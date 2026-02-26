@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pricing - CreditSoft</title>
-    <meta name="description" content="Simple, transparent pricing for credit repair software. Starter $49/mo, Professional $99/mo, Enterprise $199/mo.">
+    <meta name="description" content="Credit repair software pricing. Unlimited users. No per-seat fees. Starter, Professional, and Enterprise plans.">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://www.creditsoft.app/pricing">
     
@@ -104,14 +104,14 @@
         </div>
         
         <div class="pricing-grid" id="pricingGrid">
-            <!-- Prices loaded via JS -->
+            <!-- Plans loaded via JS -->
         </div>
         
         <script>
         const plans = {
-            starter: {name:'Starter',monthly:49,yearly:399,lifetime:999,features:['Up to 25 clients','Metro2 error detection','Basic dispute templates','Email support','Monthly reports']},
-            professional: {name:'Professional',monthly:99,yearly:799,lifetime:1999,features:['Unlimited clients','50-state CRO rules','AI dispute variations','Client portal','Priority support']},
-            enterprise: {name:'Enterprise',monthly:199,yearly:1599,lifetime:3999,features:['Everything in Professional','Multi-user access','White-label','API access','Dedicated support']}
+            starter: {name:'Starter',features:['Up to 25 clients','Metro2 error detection','Basic dispute templates','Email support','Monthly reports']},
+            professional: {name:'Professional',features:['Unlimited clients','50-state CRO rules','AI dispute variations','Client portal','Priority support','Chrome Extension']},
+            enterprise: {name:'Enterprise',features:['Everything in Professional','White-label','API access','Dedicated support']}
         };
         
         let billing = 'monthly';
@@ -126,19 +126,12 @@
         function renderPricing() {
             let html = '';
             for (const [key, plan] of Object.entries(plans)) {
-                const price = plan[billing];
-                const period = billing === 'lifetime' ? ' one-time' : '/mo';
                 const featured = key === 'professional' ? ' featured' : '';
                 html += '<div class="pricing-card' + featured + '">';
                 if (billing === 'yearly') html += '<span class="save-badge">Save 20%</span>';
                 if (billing === 'lifetime') html += '<span class="save-badge">Best Value</span>';
                 html += '<h3>' + plan.name + '</h3>';
-                if (billing === 'lifetime') {
-                    html += '<div class="price lifetime-price">$' + price + '</div>';
-                } else {
-                    html += '<div class="price">$' + price + '<span>' + period + '</span></div>';
-                }
-                html += '<p class="desc">' + (billing === 'lifetime' ? 'Pay once, own forever' : (billing === 'yearly' ? 'Billed annually' : 'Perfect for new pros')) + '</p>';
+                html += '<p class="desc">' + (billing === 'lifetime' ? 'Pay once, own forever' : (billing === 'yearly' ? 'Billed annually' : 'Unlimited users • No per-seat fees')) + '</p>';
                 html += '<ul class="pricing-features">';
                 for (const f of plan.features) html += '<li>' + f + '</li>';
                 html += '</ul>';

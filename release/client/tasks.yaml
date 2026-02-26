@@ -1,0 +1,22 @@
+# CreditSoft Client Tasks Configuration
+---
+tasks:
+  - name: check_status
+    description: Check client's credit repair status
+    expected_output: Current status with recent activity
+    assigned_agent: client_support
+    dependencies: []
+    context:
+      - fetch_client_data
+      - list_disputes
+      - show_progress
+
+  - name: generate_report
+    description: Generate progress report for client
+    expected_output: Detailed progress report
+    assigned_agent: progress_reporter
+    dependencies: []
+    context:
+      - calculate_improvements
+      - list_completed_disputes
+      - outline_next_steps

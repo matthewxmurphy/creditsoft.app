@@ -67,7 +67,12 @@
         <div class="intro" id="intro">
             <h2>How well do you know credit repair?</h2>
             <p>Take our free quiz to test your knowledge. True/False and Multiple Choice questions about Metro2, FCRA, FDCPA, and credit repair best practices.</p>
-            <button class="btn" onclick="startQuiz()">Start Quiz</button>
+            <p style="margin-top:16px;color:var(--gray);font-size:14px;">🎯 Perfect score = 25% off your first year!</p>
+            <div style="margin-top:24px;text-align:left;max-width:400px;margin-left:auto;margin-right:auto;">
+                <input type="text" id="quizName" placeholder="Your Name" style="width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;margin-bottom:12px;font-size:16px;">
+                <input type="email" id="quizEmail" placeholder="Your Email" style="width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;margin-bottom:12px;font-size:16px;">
+            </div>
+            <button class="btn" onclick="startQuiz()" style="width:200px;">Start Quiz</button>
         </div>
         <div class="progress" id="progress" style="display:none"><div class="progress-bar" id="progressBar"></div></div>
         <div id="quizContainer"></div>
@@ -162,12 +167,29 @@
         document.getElementById('scoreCard').style.display = 'block';
         document.getElementById('scoreNum').textContent = score;
         
+        const name = document.getElementById('quizName').value || 'there';
+        const email = document.getElementById('quizEmail').value;
+        
+        // Save lead if email provided
+        if (email) {
+            fetch('/api/lead.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name, email: email, source: 'quiz', score: score})
+            }).catch(() => {});
+        }
+        
         let msg = '';
-        if (score >= 20) msg = "Excellent! You really know your credit repair!";
+        let couponHtml = '';
+        if (score === 25) {
+            msg = "Perfect score! 🎉 You really know your credit repair!";
+            couponHtml = '<div style="background:linear-gradient(135deg,#10b981,#059669);color:white;padding:20px;border-radius:12px;margin:20px 0;"><div style="font-size:14px;opacity:0.9;">🎉 25% OFF YOUR FIRST YEAR</div><div style="font-size:28px;font-weight:800;margin:8px 0;">QUIZMASTER25</div><div style="font-size:12px;opacity:0.8;">Use code at checkout</div></div>';
+        } else if (score >= 20) msg = "Excellent! You really know your credit repair!";
         else if (score >= 15) msg = "Good job! You have solid knowledge.";
         else if (score >= 10) msg = "Not bad! There's room to learn.";
         else msg = "Time to study up! CreditSoft can help.";
-        document.getElementById('scoreMsg').textContent = msg;
+        
+        document.getElementById('scoreMsg').innerHTML = msg + couponHtml;
     }
     </script>
 </body>

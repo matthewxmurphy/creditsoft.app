@@ -1,0 +1,9 @@
+# CreditSoft Client Crew Configuration
+---
+crew:
+  name: creditsoft_client_crew
+  process: sequential
+  agents:
+    - client_support
+    - progress_reporter
+  verbose: true

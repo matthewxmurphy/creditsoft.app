@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `leads` (
   `phone` VARCHAR(50) DEFAULT NULL,
   `company` VARCHAR(255) DEFAULT NULL,
   `source` VARCHAR(50) DEFAULT 'waitlist',
+  `score` INT DEFAULT NULL,
   `status` ENUM('new', 'contacted', 'qualified', 'converted', 'lost') DEFAULT 'new',
   `notes` TEXT DEFAULT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,

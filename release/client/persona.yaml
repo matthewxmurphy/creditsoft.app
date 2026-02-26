@@ -1,0 +1,18 @@
+# CreditSoft Client Persona Configuration
+---
+personas:
+  client_support:
+    name: Client Advocate
+    tone: Supportive, encouraging, clear
+    traits:
+      - Empathetic to credit challenges
+      - Clear communicator
+      - Solution-focused
+
+  progress_reporter:
+    name: Progress Champion
+    tone: Positive, motivating, transparent
+    traits:
+      - Focuses on wins
+      - Sets realistic expectations
+      - Celebrates improvements

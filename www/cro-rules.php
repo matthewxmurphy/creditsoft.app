@@ -14,43 +14,36 @@
         :root{--primary:#2563eb;--dark:#0f172a;--light:#f8fafc;--gray:#64748b;--border:#e2e8f0;--success:#10b981;--warning:#f59e0b;--danger:#ef4444}
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Inter',sans-serif;background:var(--light);color:var(--dark);line-height:1.6}
-        .hero{background:linear-gradient(135deg,#0f172a,#1e3a5f,#2563eb);color:white;padding:140px 20px 60px}
-        .hero h1{font-size:38px;font-weight:700;margin-bottom:12px}
+        .hero{background:linear-gradient(135deg,#0f172a,#1e3a5f,#2563eb);color:white;padding:120px 20px 40px}
+        .hero h1{font-size:36px;font-weight:700;margin-bottom:8px}
         .hero p{opacity:0.9}
         .nav{position:absolute;top:0;left:0;right:0;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;z-index:100}
         .nav-logo img{height:70px}
         .nav-links{display:flex;gap:28px}
         .nav-links a{color:white;text-decoration:none;font-weight:500}
-        .container{max-width:900px;margin:0 auto;padding:40px 20px}
-        .intro{background:white;padding:32px;border-radius:16px;margin-bottom:24px}
-        .intro h2{font-size:24px;margin-bottom:12px}
-        .intro p{color:var(--gray)}
-        .alert{background:#fef3c7;border:1px solid #fcd34d;border-radius:12px;padding:16px;margin-bottom:24px}
-        .alert-title{font-weight:600;color:#92400e;margin-bottom:4px}
-        .alert p{font-size:14px;color:#92400e}
-        .state-selector{background:white;padding:24px;border-radius:16px;margin-bottom:24px}
-        .state-selector label{display:block;font-weight:600;margin-bottom:12px}
-        .state-selector select{width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:16px}
-        .state-info{display:none}
-        .state-info.active{display:block}
-        .state-header{background:linear-gradient(135deg,var(--primary),#3b82f6);color:white;padding:24px;border-radius:16px;margin-bottom:20px}
-        .state-header h3{font-size:24px;margin-bottom:8px}
-        .requirements{background:white;padding:24px;border-radius:16px}
-        .req-item{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid var(--border)}
-        .req-item:last-child{border-bottom:none}
-        .req-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-        .req-icon.required{background:#fee2e2;color:var(--danger)}
-        .req-icon.optional{background:#d1fae5;color:var(--success)}
-        .req-icon.info{background:#dbeafe;color:var(--primary)}
-        .req-content h4{font-size:16px;margin-bottom:4px}
-        .req-content p{font-size:14px;color:var(--gray)}
-        .all-states{background:white;padding:24px;border-radius:16px}
-        .states-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
-        .state-badge{display:block;padding:8px 12px;background:var(--light);border-radius:8px;text-align:center;font-size:14px;color:var(--gray);text-decoration:none}
-        .state-badge:hover{background:var(--primary);color:white}
-        .footer{background:#0a0f1a;color:var(--gray);padding:40px 0;text-align:center;font-size:14px}
+        .container{max-width:1200px;margin:0 auto;padding:30px 20px;display:flex;gap:30px}
+        .main-content{flex:1}
+        .alpha-index{position:sticky;top:100px;height:fit-content;background:white;padding:16px 12px;border-radius:12px;min-width:50px}
+        .alpha-index a{display:block;width:36px;height:28px;line-height:28px;text-align:center;background:var(--light);border-radius:4px;font-size:13px;font-weight:600;color:var(--dark);text-decoration:none;margin-bottom:2px}
+        .alpha-index a:hover{background:var(--primary);color:white}
+        .alpha-index a.disabled{color:var(--border);pointer-events:none}
+        .state-section{margin-bottom:40px}
+        .state-letter{font-size:28px;font-weight:700;color:var(--primary);margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+        .state-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+        .state-card{background:white;padding:20px;border-radius:12px;border-left:4px solid var(--primary)}
+        .state-card.licensed{border-left-color:var(--danger)}
+        .state-card.strict{border-left-color:#7c3aed}
+        .state-card h4{font-size:18px;margin-bottom:8px}
+        .state-card .status{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:12px}
+        .state-card .status.licensed{background:#fee2e2;color:var(--danger)}
+        .state-card .status.strict{background:#ede9fe;color:#7c3aed}
+        .state-card .status.none{background:#d1fae5;color:var(--success)}
+        .state-card ul{list-style:none;padding:0;margin:0}
+        .state-card li{font-size:13px;color:var(--gray);padding:4px 0;display:flex;justify-content:space-between}
+        .state-card li span{color:var(--dark);font-weight:500}
+        .footer{background:#0a0f1a;color:var(--gray);padding:30px 0;text-align:center;font-size:14px}
         .footer a{color:var(--primary);text-decoration:none}
-        @media(max-width:768px){.nav-links{display:none}}
+        @media(max-width:768px){.nav-links{display:none};.alpha-index{position:static}}
     </style>
 </head>
 <body>
@@ -66,172 +59,684 @@
     </nav>
     <section class="hero">
         <h1>50-State CRO Rules</h1>
-        <p>Know your state's requirements. We'll help you stay compliant.</p>
+        <p>Complete guide to Credit Repair Organization requirements by state</p>
     </section>
     <div class="container">
-        <div class="alert">
-            <div class="alert-title">⚠️ Important Compliance Notice</div>
-            <p>Credit repair laws vary significantly by state. You MUST be compliant in EACH state where you take clients. Operating without proper registration can result in fines, lawsuits, and criminal charges. CreditSoft helps you track requirements - but ultimately YOU are responsible for compliance.</p>
-        </div>
-        <div class="intro">
-            <h2>Select Your State</h2>
-            <p>Choose your state to see CRO requirements. CreditSoft automatically applies these rules to your workflows.</p>
-        </div>
-        <div class="state-selector">
-            <label>Select your state:</label>
-            <select id="stateSelect" onchange="showState()">
-                <option value="">-- Select a State --</option>
-                <option value="AL">Alabama</option>
-                <option value="AK">Alaska</option>
-                <option value="AZ">Arizona</option>
-                <option value="AR">Arkansas</option>
-                <option value="CA">California</option>
-                <option value="CO">Colorado</option>
-                <option value="CT">Connecticut</option>
-                <option value="DE">Delaware</option>
-                <option value="FL">Florida</option>
-                <option value="GA">Georgia</option>
-                <option value="HI">Hawaii</option>
-                <option value="ID">Idaho</option>
-                <option value="IL">Illinois</option>
-                <option value="IN">Indiana</option>
-                <option value="IA">Iowa</option>
-                <option value="KS">Kansas</option>
-                <option value="KY">Kentucky</option>
-                <option value="LA">Louisiana</option>
-                <option value="ME">Maine</option>
-                <option value="MD">Maryland</option>
-                <option value="MA">Massachusetts</option>
-                <option value="MI">Michigan</option>
-                <option value="MN">Minnesota</option>
-                <option value="MS">Mississippi</option>
-                <option value="MO">Missouri</option>
-                <option value="MT">Montana</option>
-                <option value="NE">Nebraska</option>
-                <option value="NV">Nevada</option>
-                <option value="NH">New Hampshire</option>
-                <option value="NJ">New Jersey</option>
-                <option value="NM">New Mexico</option>
-                <option value="NY">New York</option>
-                <option value="NC">North Carolina</option>
-                <option value="ND">North Dakota</option>
-                <option value="OH">Ohio</option>
-                <option value="OK">Oklahoma</option>
-                <option value="OR">Oregon</option>
-                <option value="PA">Pennsylvania</option>
-                <option value="RI">Rhode Island</option>
-                <option value="SC">South Carolina</option>
-                <option value="SD">South Dakota</option>
-                <option value="TN">Tennessee</option>
-                <option value="TX">Texas</option>
-                <option value="UT">Utah</option>
-                <option value="VT">Vermont</option>
-                <option value="VA">Virginia</option>
-                <option value="WA">Washington</option>
-                <option value="WV">West Virginia</option>
-                <option value="WI">Wisconsin</option>
-                <option value="WY">Wyoming</option>
-            </select>
-        </div>
-        <div id="stateInfo" class="state-info">
-            <div class="state-header">
-                <h3 id="stateName">State Name</h3>
-                <p id="stateStatus">CRO Status: </p>
+        <div class="main-content">
+            <div class="alert">
+                <div class="alert-title">⚠️ Important Compliance Notice</div>
+                <p>Credit repair laws vary by state. You MUST be compliant in EACH state where you take clients. This page is for reference only - verify requirements with your attorney. Non-compliance can result in fines, lawsuits, and criminal charges.</p>
             </div>
-            <div class="requirements" id="requirements"></div>
-        </div>
-        <div class="all-states">
-            <h3 style="margin-bottom:16px">All States</h3>
-            <div class="states-grid">
-                <a href="#" class="state-badge" onclick="selectState('CA');return false;">CA</a>
-                <a href="#" class="state-badge" onclick="selectState('TX');return false;">TX</a>
-                <a href="#" class="state-badge" onclick="selectState('FL');return false;">FL</a>
-                <a href="#" class="state-badge" onclick="selectState('NY');return false;">NY</a>
-                <a href="#" class="state-badge" onclick="selectState('GA');return false;">GA</a>
-                <a href="#" class="state-badge" onclick="selectState('IL');return false;">IL</a>
-                <a href="#" class="state-badge" onclick="selectState('OH');return false;">OH</a>
-                <a href="#" class="state-badge" onclick="selectState('NC');return false;">NC</a>
-                <a href="#" class="state-badge" onclick="selectState('PA');return false;">PA</a>
-                <a href="#" class="state-badge" onclick="selectState('MI');return false;">MI</a>
-            </div>
+            
+            <div class="state-list">
+        
+        <div class="alpha-index">
+            <a href="#Alabama">A</a>
+            <a href="#California">C</a>
+            <a href="#Delaware">D</a>
+            <a href="#Florida">F</a>
+            <a href="#Georgia">G</a>
+            <a href="#Hawaii">H</a>
+            <a href="#Idaho">I</a>
+            <a href="#Kansas">K</a>
+            <a href="#Louisiana">L</a>
+            <a href="#Maine">M</a>
+            <a href="#Nebraska">N</a>
+            <a href="#Ohio">O</a>
+            <a href="#Pennsylvania">P</a>
+            <a href="#RhodeIsland">R</a>
+            <a href="#SouthCarolina">S</a>
+            <a href="#Tennessee">T</a>
+            <a href="#Utah">U</a>
+            <a href="#Vermont">V</a>
+            <a href="#Washington">W</a>
         </div>
     </div>
-    <footer class="footer"><p>© 2026 CreditSoft · <a href="/pricing">Pricing</a> · <a href="/privacy">Privacy</a></p></footer>
-    <script>
-    const statesData = {
-        'CA':{name:'California',status:'Licensed - Strict',fees:'$10/setup, $25/mo max',bond:'$100,000',registration:'CRO Registration Required',disclosures:'Yes - 5 days before contract'},
-        'TX':{name:'Texas',status:'Licensed',fees:'Reasonable & customary',bond:'$50,000',registration:'CSO Registration Required',disclosures:'Yes'},
-        'FL':{name:'Florida',status:'Licensed',fees:'$25 activation, $99/mo',bond:'$50,000',registration:'CRO Registration',disclosures:'Yes'},
-        'NY':{name:'New York',status:'Strict',fees:'No advance fees',bond:'$50,000',registration:'Registration Required',disclosures:'Comprehensive'},
-        'GA':{name:'Georgia',status:'Licensed',fees:'$20 activation, $90/mo',bond:'$25,000',registration:'CRO License',disclosures:'Yes'},
-        'IL':{name:'Illinois',status:'Licensed',fees:'$100 activation, $150/mo',bond:'$10,000',registration:'CRO License',disclosures:'Yes'},
-        'OH':{name:'Ohio',status:'Licensed',fees:'$25 activation, $125/mo',bond:'$50,000',registration:'CRO License',disclosures:'Yes'},
-        'NC':{name:'North Carolina',status:'Licensed',fees:'$50 activation, $75/mo',bond:'$20,000',registration:'CRO License',disclosures:'Yes'},
-        'PA':{name:'Pennsylvania',status:'Registered',fees:'Reasonable',bond:'None',registration:'Registration',disclosures:'Standard'},
-        'MI':{name:'Michigan',status:'Licensed',fees:'$50 activation, $100/mo',bond:'$25,000',registration:'CRO License',disclosures:'Yes'},
-        'AL':{name:'Alabama',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'AK':{name:'Alaska',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'AZ':{name:'Arizona',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'AR':{name:'Arkansas',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'CO':{name:'Colorado',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'CT':{name:'Connecticut',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'DE':{name:'Delaware',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'HI':{name:'Hawaii',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'ID':{name:'Idaho',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'IN':{name:'Indiana',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'IA':{name:'Iowa',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'KS':{name:'Kansas',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'KY':{name:'Kentucky',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'LA':{name:'Louisiana',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'ME':{name:'Maine',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'MD':{name:'Maryland',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'MA':{name:'Massachusetts',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'MN':{name:'Minnesota',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'MS':{name:'Mississippi',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'MO':{name:'Missouri',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'MT':{name:'Montana',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'NE':{name:'Nebraska',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'NV':{name:'Nevada',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'NH':{name:'New Hampshire',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'NJ':{name:'New Jersey',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'NM':{name:'New Mexico',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'ND':{name:'North Dakota',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'OK':{name:'Oklahoma',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'OR':{name:'Oregon',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'RI':{name:'Rhode Island',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'SC':{name:'South Carolina',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'SD':{name:'South Dakota',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'TN':{name:'Tennessee',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'UT':{name:'Utah',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'VT':{name:'Vermont',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'VA':{name:'Virginia',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'WA':{name:'Washington',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'WV':{name:'West Virginia',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'WI':{name:'Wisconsin',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-        'WY':{name:'Wyoming',status:'No State License',fees:'Permitted',bond:'None',registration:'None',disclosures:'FCRA only'},
-    };
-    function selectState(code) {
-        document.getElementById('stateSelect').value = code;
-        showState();
-    }
-    function showState() {
-        const code = document.getElementById('stateSelect').value;
-        const info = document.getElementById('stateInfo');
-        if (!code || !statesData[code]) {
-            info.classList.remove('active');
-            return;
-        }
-        const s = statesData[code];
-        document.getElementById('stateName').textContent = s.name;
-        document.getElementById('stateStatus').textContent = 'Status: ' + s.status;
-        let html = '';
-        html += '<div class="req-item"><div class="req-icon required">💰</div><div class="req-content"><h4>Fee Limits</h4><p>' + s.fees + '</p></div></div>';
-        html += '<div class="req-item"><div class="req-icon required">🛡️</div><div class="req-content"><h4>Bond Required</h4><p>' + s.bond + '</p></div></div>';
-        html += '<div class="req-item"><div class="req-icon info">📋</div><div class="req-content"><h4>Registration</h4><p>' + s.registration + '</p></div></div>';
-        html += '<div class="req-item"><div class="req-icon optional">📝</div><div class="req-content"><h4>Disclosures</h4><p>' + s.disclosures + '</p></div></div>';
-        document.getElementById('requirements').innerHTML = html;
-        info.classList.add('active');
-    }
-    </script>
+                <a href="#Louisiana">LA</a>
+                <a href="#Maine">ME</a>
+                <a href="#Maryland">MD</a>
+                <a href="#Massachusetts">MA</a>
+                <a href="#Michigan">MI</a>
+                <a href="#Minnesota">MN</a>
+                <a href="#Mississippi">MS</a>
+                <a href="#Missouri">MO</a>
+                <a href="#Montana">MT</a>
+                <a href="#Nebraska">NE</a>
+                <a href="#Nevada">NV</a>
+                <a href="#NewHampshire">NH</a>
+                <a href="#NewJersey">NJ</a>
+                <a href="#NewMexico">NM</a>
+                <a href="#NewYork">NY</a>
+                <a href="#NorthCarolina">NC</a>
+                <a href="#NorthDakota">ND</a>
+                <a href="#Ohio">OH</a>
+                <a href="#Oklahoma">OK</a>
+                <a href="#Oregon">OR</a>
+                <a href="#Pennsylvania">PA</a>
+                <a href="#RhodeIsland">RI</a>
+                <a href="#SouthCarolina">SC</a>
+                <a href="#SouthDakota">SD</a>
+                <a href="#Tennessee">TN</a>
+                <a href="#Texas">TX</a>
+                <a href="#Utah">UT</a>
+                <a href="#Vermont">VT</a>
+                <a href="#Virginia">VA</a>
+                <a href="#Washington">WA</a>
+                <a href="#WestVirginia">WV</a>
+                <a href="#Wisconsin">WI</a>
+                <a href="#Wyoming">WY</a>
+            </div>
+        </div>
+
+        <div class="state-section" id="A">
+            <div class="state-letter">A</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4 id="Alabama">Alabama</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4 id="Alaska">Alaska</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Arizona</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Arkansas</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="C">
+            <div class="state-letter">C</div>
+            <div class="state-grid">
+                <div class="state-card strict">
+                    <h4>California</h4>
+                    <span class="status strict">STRICT - CRO Registered</span>
+                    <ul>
+                        <li>Registration: <span>CRO Registration Required</span></li>
+                        <li>Bond: <span>$100,000</span></li>
+                        <li>Fees: <span>$10 setup, $25/mo max</span></li>
+                        <li>Disclosures: <span>5 days before contract</span></li>
+                        <li>Advance Fees: <span>Limited</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Colorado</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Connecticut</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="D">
+            <div class="state-letter">D</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Delaware</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="F">
+            <div class="state-letter">F</div>
+            <div class="state-grid">
+                <div class="state-card licensed">
+                    <h4>Florida</h4>
+                    <span class="status licensed">Licensed</span>
+                    <ul>
+                        <li>Registration: <span>CRO Registration</span></li>
+                        <li>Bond: <span>$50,000</span></li>
+                        <li>Fees: <span>$25 activation, $99/mo</span></li>
+                        <li>Disclosures: <span>Required</span></li>
+                        <li>Advance Fees: <span>Restricted</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="G">
+            <div class="state-letter">G</div>
+            <div class="state-grid">
+                <div class="state-card licensed">
+                    <h4>Georgia</h4>
+                    <span class="status licensed">Licensed</span>
+                    <ul>
+                        <li>Registration: <span>CRO License</span></li>
+                        <li>Bond: <span>$25,000</span></li>
+                        <li>Fees: <span>$20 activation, $90/mo</span></li>
+                        <li>Disclosures: <span>Required</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="H">
+            <div class="state-letter">H</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Hawaii</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="I">
+            <div class="state-letter">I</div>
+            <div class="state-grid">
+                <div class="state-card licensed">
+                    <h4>Idaho</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+                <div class="state-card licensed">
+                    <h4>Illinois</h4>
+                    <span class="status licensed">Licensed</span>
+                    <ul>
+                        <li>Registration: <span>CRO License</span></li>
+                        <li>Bond: <span>$10,000</span></li>
+                        <li>Fees: <span>$100 activation, $150/mo</span></li>
+                        <li>Disclosures: <span>Required</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Indiana</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Iowa</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="K">
+            <div class="state-letter">K</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Kansas</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Kentucky</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="L">
+            <div class="state-letter">L</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Louisiana</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                        <li>Disclosures: <span>FCRA only</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="M">
+            <div class="state-letter">M</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Maine</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Maryland</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Massachusetts</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Michigan</h4>
+                    <span class="status licensed">Licensed</span>
+                    <ul>
+                        <li>Registration: <span>CRO License</span></li>
+                        <li>Bond: <span>$25,000</span></li>
+                        <li>Fees: <span>$50 activation, $100/mo</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Minnesota</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Mississippi</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Missouri</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Montana</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="N">
+            <div class="state-letter">N</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Nebraska</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Nevada</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>New Hampshire</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>New Jersey</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>New Mexico</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card strict">
+                    <h4>New York</h4>
+                    <span class="status strict">STRICT</span>
+                    <ul>
+                        <li>Registration: <span>Registration Required</span></li>
+                        <li>Bond: <span>$50,000</span></li>
+                        <li>Fees: <span>No advance fees</span></li>
+                        <li>Disclosures: <span>Comprehensive</span></li>
+                    </ul>
+                </div>
+                <div class="state-card licensed">
+                    <h4>North Carolina</h4>
+                    <span class="status licensed">Licensed</span>
+                    <ul>
+                        <li>Registration: <span>CRO License</span></li>
+                        <li>Bond: <span>$20,000</span></li>
+                        <li>Fees: <span>$50 activation, $75/mo</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>North Dakota</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="O">
+            <div class="state-letter">O</div>
+            <div class="state-grid">
+                <div class="state-card licensed">
+                    <h4>Ohio</h4>
+                    <span class="status licensed">Licensed</span>
+                    <ul>
+                        <li>Registration: <span>CRO License</span></li>
+                        <li>Bond: <span>$50,000</span></li>
+                        <li>Fees: <span>$25 activation, $125/mo</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Oklahoma</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Oregon</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="P">
+            <div class="state-letter">P</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Pennsylvania</h4>
+                    <span class="status none">Registered</span>
+                    <ul>
+                        <li>Fees: <span>Reasonable</span></li>
+                        <li>Bond: <span>None</span></li>
+                        <li>Registration: <span>Registration</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="R">
+            <div class="state-letter">R</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Rhode Island</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="S">
+            <div class="state-letter">S</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>South Carolina</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>South Dakota</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="T">
+            <div class="state-letter">T</div>
+            <div class="state-grid">
+                <div class="state-card licensed">
+                    <h4>Tennessee</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card licensed">
+                    <h4>Texas</h4>
+                    <span class="status licensed">Licensed - CSO</span>
+                    <ul>
+                        <li>Registration: <span>CSO Registration Required</span></li>
+                        <li>Bond: <span>$50,000</span></li>
+                        <li>Fees: <span>Reasonable & customary</span></li>
+                        <li>Disclosures: <span>Required</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="U">
+            <div class="state-letter">U</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Utah</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="V">
+            <div class="state-letter">V</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Vermont</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Virginia</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="state-section" id="W">
+            <div class="state-letter">W</div>
+            <div class="state-grid">
+                <div class="state-card" id="Alabama">
+                    <h4>Washington</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>West Virginia</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Wisconsin</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+                <div class="state-card" id="Alabama">
+                    <h4>Wyoming</h4>
+                    <span class="status none">No State License</span>
+                    <ul>
+                        <li>Fees: <span>Permitted</span></li>
+                        <li>Bond: <span>None required</span></li>
+                        <li>Registration: <span>None</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="alpha-index">
+            <a href="#Alabama">A</a>
+            <a href="#California">C</a>
+            <a href="#Delaware">D</a>
+            <a href="#Florida">F</a>
+            <a href="#Georgia">G</a>
+            <a href="#Hawaii">H</a>
+            <a href="#Idaho">I</a>
+            <a href="#Kansas">K</a>
+            <a href="#Louisiana">L</a>
+            <a href="#Maine">M</a>
+            <a href="#Nebraska">N</a>
+            <a href="#Ohio">O</a>
+            <a href="#Pennsylvania">P</a>
+            <a href="#RhodeIsland">R</a>
+            <a href="#SouthCarolina">S</a>
+            <a href="#Tennessee">T</a>
+            <a href="#Utah">U</a>
+            <a href="#Vermont">V</a>
+            <a href="#Washington">W</a>
+        </div>
+    </div>
+    <footer class="footer">
+        <p>© 2026 CreditSoft · <a href="/pricing">Pricing</a> · <a href="/privacy">Privacy</a></p>
+    </footer>
 </body>
 </html>

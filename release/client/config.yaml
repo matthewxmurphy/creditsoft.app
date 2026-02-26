@@ -1,0 +1,24 @@
+# CreditSoft Client Config
+# Configuration for client portal
+---
+config:
+  llm:
+    provider: openai
+    model: gpt-4
+    temperature: 0.7
+
+  redis:
+    host: "127.0.0.1"
+    port: 6379
+    password: null
+    prefix: "client_"
+
+  client_portal:
+    features:
+      - dashboard
+      - disputes
+      - documents
+      - messaging
+    notification_channels:
+      - email
+      - sms

@@ -1,0 +1,83 @@
+# CreditSoft Tools Configuration
+# Defines custom tools and integrations available to AI agents
+---
+tools:
+  # Email validation and verification
+  - name: email_validator
+    type: api
+    description: Validate email format and check MX records
+    endpoint: /api/validate-email
+    method: POST
+    params:
+      - email
+    returns: { valid: bool, mx_found: bool, score: int }
+
+  # Turnstile CAPTCHA verification
+  - name: turnstile_verifier
+    type: api
+    description: Verify Cloudflare Turnstile token
+    endpoint: /api/verify-turnstile
+    method: POST
+    params:
+      - token
+      - ip
+    returns: { success: bool, error_codes: array }
+
+  # CRM integration
+  - name: crm_integration
+    type: api
+    description: Create and update leads in CRM
+    endpoint: /api/crm/leads
+    method: POST
+    params:
+      - email
+      - name
+      - phone
+      - source
+      - score
+    returns: { lead_id: string, status: string }
+
+  # Knowledge base search
+  - name: knowledge_base
+    type: search
+    description: Search documentation and FAQs
+    endpoint: /api/kb/search
+    params:
+      - query
+    returns: { articles: array, confidence: float }
+
+  # Support ticket creation
+  - name: ticket_creator
+    type: api
+    description: Create support ticket in system
+    endpoint: /api/support/ticket
+    method: POST
+    params:
+      - email
+      - subject
+      - description
+      - priority
+    returns: { ticket_id: string, status: string }
+
+  # Calendar/scheduling integration
+  - name: calendar_integration
+    type: api
+    description: Check availability and send scheduling links
+    endpoint: /api/calendar/availability
+    method: GET
+    params:
+      - date
+    returns: { slots: array, calendly_link: string }
+
+  # Email sender
+  - name: email_sender
+    type: api
+    description: Send transactional emails
+    endpoint: /api/email/send
+    method: POST
+    params:
+      - to
+      - subject
+      - template
+      - data
+    returns: { message_id: string, status: string }

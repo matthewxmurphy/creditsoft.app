@@ -211,7 +211,7 @@ $testimonials = [
         .pricing-features li::before { content: '✓'; color: var(--success); font-weight: bold; }
         
         /* Testimonials Carousel */
-        .testimonials { background: white; overflow: hidden; }
+        .testimonials { background: white; overflow: hidden; display: none; }
         .testimonials h2 { text-align: center; font-size: 36px; margin-bottom: 12px; }
         .testimonials .subtitle { text-align: center; color: var(--gray); margin-bottom: 48px; }
         
@@ -318,6 +318,7 @@ $testimonials = [
         <nav class="nav">
             <div class="nav-logo"><a href="/"><img src="/assets/images/CreditSoft.png" alt="CreditSoft"></a></div>
             <div class="nav-links">
+                <a href="/quiz">Take Quiz</a>
                 <a href="#features">Features</a>
                 <a href="/pricing">Pricing</a>
                 <a href="/about">About</a>
@@ -332,7 +333,7 @@ $testimonials = [
             <p>Stop relying on "AI letters". Real results come from Metro2 compliance and proper dispute workflows.</p>
             <div class="cta-group">
                 <a href="#waitlist" class="btn btn-primary">Get Early Access</a>
-                <a href="#comparison" class="btn btn-outline">Compare Features</a>
+                <a href="/quiz" class="btn btn-outline">Take the Quiz</a>
             </div>
         </div>
     </section>

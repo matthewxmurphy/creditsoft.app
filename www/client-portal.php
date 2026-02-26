@@ -114,7 +114,7 @@
             <h3>🔐 Remote Access with VPN</h3>
             <p>Need to access your intranet from another location? Here's how it works:</p>
             <ul>
-                <li>Install a VPN on your local computer (we recommend <strong>ZeroTier</strong> - free)</li>
+                <li>Connect via your own VPN (we support Tailnet, WireGuard, OpenVPN, etc.)</li>
                 <li>Your intranet is now accessible ONLY via the VPN</li>
                 <li>When you're remote, connect to VPN, then access your software</li>
                 <li>Your data never touches the public internet unencrypted</li>

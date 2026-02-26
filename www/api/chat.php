@@ -1,8 +1,38 @@
 <?php
-// Load config from outside web root
-$config_path = dirname(__DIR__, 2) . '/credit_config.php';
-if (file_exists($config_path)) {
-    require_once $config_path;
+// Load config from outside web root - try multiple possible paths
+$possible_paths = [
+    dirname(__DIR__, 3) . '/credit_config.php',
+    dirname(__DIR__, 2) . '/credit_config.php',
+    dirname(__DIR__) . '/../credit_config.php',
+    '/Volumes/MacHome/Users/mmurphy/Websites/CreditSoft/credit_config.php',
+    $_SERVER['DOCUMENT_ROOT'] . '/../credit_config.php',
+    $_SERVER['DOCUMENT_ROOT'] . '/credit_config.php',
+    '/home/creditso/credit_config.php',
+    '/home/creditso/public_html/../credit_config.php',
+];
+
+$config_loaded = false;
+foreach ($possible_paths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        $config_loaded = true;
+        break;
+    }
+}
+
+// TEMP: If still not loaded, check a few more
+if (!$config_loaded) {
+    $alt_paths = [
+        '/var/www/vhosts/creditsoft.app/httpdocs/../credit_config.php',
+        '/opt/bitnami/apache2/htdocs/../credit_config.php',
+    ];
+    foreach ($alt_paths as $path) {
+        if (file_exists($path)) {
+            require_once $path;
+            $config_loaded = true;
+            break;
+        }
+    }
 }
 
 // Chatbot API endpoint - processes messages with RAG using YAML knowledge base
@@ -61,12 +91,7 @@ ABOUT CREDITSOFT:
 - Competitors CDM and CRC host client PII on their servers
 ";
 
-$openaiApiKey = defined('OPENAI_API_KEY') ? OPENAI_API_KEY : '';
-
-if (empty($openaiApiKey) || strlen($openaiApiKey) < 20) {
-    echo json_encode(['reply' => 'Chatbot is configuring. Email hello@creditsoft.app for questions!']);
-    exit;
-}
+$openaiApiKey = 'sk-bAkutqQmZ3n7CJlpNS5quRcA7zqsGs9fijblPtZPwt0iA9hPUZiySxbNF9kgvvuf';
 
 $systemPrompt = "You are Ashley, a friendly and helpful Sales Assistant for CreditSoft, a credit repair software company. You're knowledgeable about credit repair, Metro2 compliance, and FCRA/FDCPA laws. 
 
