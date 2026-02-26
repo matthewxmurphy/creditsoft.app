@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.creditsoft.app/sitemap.xml
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /app/
+Disallow: /vendor/
+Disallow: /writable/
+Disallow: /api/
+Disallow: /installer/
+
+# Security
+Disallow: /credit_config.php

@@ -40,7 +40,14 @@
         .nav-links { display: flex; gap: 28px; align-items: center; }
         .nav-links a { color: white; text-decoration: none; font-weight: 500; font-size: 15px; }
         
-        .container { max-width: 1200px; margin: 0 auto; padding: 60px 20px; }
+        .billing-toggle { display: flex; justify-content: center; gap: 8px; margin-bottom: 40px; }
+        .billing-btn { padding: 12px 24px; border: 2px solid var(--border); background: white; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .billing-btn.active { border-color: var(--primary); background: var(--primary); color: white; }
+        
+        .pricing-card .save-badge { background: var(--success); color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px; }
+        .pricing-card .lifetime-price { font-size: 32px; font-weight: 800; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
         
         .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto; }
         .pricing-card { background: white; border: 2px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
@@ -90,49 +97,59 @@
     </section>
     
     <div class="container">
-        <div class="pricing-grid">
-            <div class="pricing-card">
-                <h3>Starter</h3>
-                <div class="price">$49<span>/mo</span></div>
-                <p class="desc">Perfect for new credit repair pros</p>
-                <ul class="pricing-features">
-                    <li>Up to 25 clients</li>
-                    <li>Metro2 error detection</li>
-                    <li>Basic dispute templates</li>
-                    <li>Email support</li>
-                    <li>Monthly reports</li>
-                </ul>
-                <a href="/subscribe?plan=starter" class="btn btn-primary">Start Free Trial</a>
-            </div>
-            
-            <div class="pricing-card featured">
-                <h3>Professional</h3>
-                <div class="price">$99<span>/mo</span></div>
-                <p class="desc">Most popular choice</p>
-                <ul class="pricing-features">
-                    <li>Unlimited clients</li>
-                    <li>50-state CRO rules</li>
-                    <li>AI dispute variations</li>
-                    <li>Client portal</li>
-                    <li>Priority support</li>
-                </ul>
-                <a href="/subscribe?plan=professional" class="btn btn-primary">Start Free Trial</a>
-            </div>
-            
-            <div class="pricing-card">
-                <h3>Enterprise</h3>
-                <div class="price">$199<span>/mo</span></div>
-                <p class="desc">For agencies & teams</p>
-                <ul class="pricing-features">
-                    <li>Everything in Professional</li>
-                    <li>Multi-user access</li>
-                    <li>White-label</li>
-                    <li>API access</li>
-                    <li>Dedicated support</li>
-                </ul>
-                <a href="/subscribe?plan=enterprise" class="btn btn-primary">Contact Sales</a>
-            </div>
+        <div class="billing-toggle">
+            <button class="billing-btn active" onclick="setBilling('monthly')">Monthly</button>
+            <button class="billing-btn" onclick="setBilling('yearly')">Yearly <span style="color:var(--success)">Save 20%</span></button>
+            <button class="billing-btn" onclick="setBilling('lifetime')">Lifetime</button>
         </div>
+        
+        <div class="pricing-grid" id="pricingGrid">
+            <!-- Prices loaded via JS -->
+        </div>
+        
+        <script>
+        const plans = {
+            starter: {name:'Starter',monthly:49,yearly:399,lifetime:999,features:['Up to 25 clients','Metro2 error detection','Basic dispute templates','Email support','Monthly reports']},
+            professional: {name:'Professional',monthly:99,yearly:799,lifetime:1999,features:['Unlimited clients','50-state CRO rules','AI dispute variations','Client portal','Priority support']},
+            enterprise: {name:'Enterprise',monthly:199,yearly:1599,lifetime:3999,features:['Everything in Professional','Multi-user access','White-label','API access','Dedicated support']}
+        };
+        
+        let billing = 'monthly';
+        function setBilling(b) {
+            billing = b;
+            document.querySelectorAll('.billing-btn').forEach((btn,i) => {
+                btn.classList.toggle('active', ['monthly','yearly','lifetime'][i] === b);
+            });
+            renderPricing();
+        }
+        
+        function renderPricing() {
+            let html = '';
+            for (const [key, plan] of Object.entries(plans)) {
+                const price = plan[billing];
+                const period = billing === 'lifetime' ? ' one-time' : '/mo';
+                const featured = key === 'professional' ? ' featured' : '';
+                html += '<div class="pricing-card' + featured + '">';
+                if (billing === 'yearly') html += '<span class="save-badge">Save 20%</span>';
+                if (billing === 'lifetime') html += '<span class="save-badge">Best Value</span>';
+                html += '<h3>' + plan.name + '</h3>';
+                if (billing === 'lifetime') {
+                    html += '<div class="price lifetime-price">$' + price + '</div>';
+                } else {
+                    html += '<div class="price">$' + price + '<span>' + period + '</span></div>';
+                }
+                html += '<p class="desc">' + (billing === 'lifetime' ? 'Pay once, own forever' : (billing === 'yearly' ? 'Billed annually' : 'Perfect for new pros')) + '</p>';
+                html += '<ul class="pricing-features">';
+                for (const f of plan.features) html += '<li>' + f + '</li>';
+                html += '</ul>';
+                const link = billing === 'lifetime' ? '/subscribe?plan=' + key + '&billing=lifetime' : '/subscribe?plan=' + key;
+                const btnText = key === 'enterprise' ? 'Contact Sales' : 'Start Free Trial';
+                html += '<a href="' + link + '" class="btn btn-primary">' + btnText + '</a></div>';
+            }
+            document.getElementById('pricingGrid').innerHTML = html;
+        }
+        renderPricing();
+        </script>
         
         <div class="faq">
             <h2>Frequently Asked Questions</h2>

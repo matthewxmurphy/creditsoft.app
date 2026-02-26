@@ -142,7 +142,7 @@ $testimonials = [
         body { font-family: 'Inter', sans-serif; background: var(--light); color: var(--dark); line-height: 1.6; }
         
         /* Toast Notifications */
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 99999; }
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 99999; }
         .toast { background: white; color: var(--dark); padding: 16px 20px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); animation: slideIn 0.4s ease, fadeOut 0.4s ease 4.6s forwards; display: flex; align-items: center; gap: 12px; min-width: 300px; border-left: 4px solid var(--success); }
         .toast-info { border-left-color: var(--primary); }
         .toast-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--light); display: flex; align-items: center; justify-content: center; font-size: 18px; }
@@ -391,50 +391,12 @@ $testimonials = [
         </div>
     </section>
     
-    <section class="pricing" id="pricing">
+    <!-- Link to Pricing Page -->
+    <section class="pricing-cta" style="background:var(--light);padding:60px 0;text-align:center;">
         <div class="container">
-            <h2>Simple, Transparent Pricing</h2>
-            <p class="subtitle">No hidden fees. No surprises. Just powerful credit repair software.</p>
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>Starter</h3>
-                    <div class="price">$49<span>/mo</span></div>
-                    <p class="desc">Perfect for new credit repair pros</p>
-                    <ul class="pricing-features">
-                        <li>Up to 25 clients</li>
-                        <li>Metro2 error detection</li>
-                        <li>Basic dispute templates</li>
-                        <li>Email support</li>
-                    </ul>
-                    <a href="/subscribe?plan=starter" class="btn btn-primary">Start Free Trial</a>
-                </div>
-                <div class="pricing-card featured">
-                    <h3>Professional</h3>
-                    <div class="price">$99<span>/mo</span></div>
-                    <p class="desc">Most popular choice</p>
-                    <ul class="pricing-features">
-                        <li>Unlimited clients</li>
-                        <li>50-state CRO rules</li>
-                        <li>AI dispute variations</li>
-                        <li>Client portal</li>
-                        <li>Priority support</li>
-                    </ul>
-                    <a href="/subscribe?plan=professional" class="btn btn-primary">Start Free Trial</a>
-                </div>
-                <div class="pricing-card">
-                    <h3>Enterprise</h3>
-                    <div class="price">$199<span>/mo</span></div>
-                    <p class="desc">For agencies & teams</p>
-                    <ul class="pricing-features">
-                        <li>Everything in Professional</li>
-                        <li>Multi-user access</li>
-                        <li>White-label</li>
-                        <li>API access</li>
-                        <li>Dedicated support</li>
-                    </ul>
-                    <a href="/subscribe?plan=enterprise" class="btn btn-primary">Contact Sales</a>
-                </div>
-            </div>
+            <h2 style="font-size:32px;margin-bottom:12px;">Simple, Transparent Pricing</h2>
+            <p style="color:var(--gray);margin-bottom:24px;">Monthly, Yearly, and Lifetime options available.</p>
+            <a href="/pricing" class="btn btn-primary" style="font-size:18px;padding:16px 32px;">View Pricing</a>
         </div>
     </section>
     
