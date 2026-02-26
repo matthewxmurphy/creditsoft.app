@@ -1,0 +1,90 @@
+# CreditSoft Agent Configuration
+# This file defines project structure and conventions for AI agents
+---
+project:
+  name: CreditSoft
+  description: SaaS credit repair software competing with Credit Repair Cloud & Client Dispute Manager
+  working_directory: /Volumes/MacHome/Users/mmurphy/Websites/CreditSoft
+
+tech_stack:
+  framework: CodeIgniter 4.4
+  database: MySQL/MariaDB
+  pdf: TCPDF
+  frontend: Vanilla HTML/CSS/JS
+  php_version: "8.1+"
+
+key_files:
+  - purpose: Full project roadmap
+    path: plan.md
+  - purpose: Company values & communication standards
+    path: soul.md
+  - purpose: Landing page (creditsoft.app)
+    path: index.php
+  - purpose: CodeIgniter entry point
+    path: app.php
+  - purpose: Setup wizard
+    path: installer/
+  - purpose: Database schema
+    path: credit_system.sql
+  - purpose: Routing rules
+    path: .htaccess
+
+setup:
+  steps:
+    - Upload ZIP to server
+    - Run installer at /installer/
+    - Config saved to credit_config.php (outside web root)
+  credentials:
+    email: admin@credit.com
+    password: admin123
+
+routing:
+  landing_page: /
+  dashboard: /dashboard
+  admin: /admin
+  api: /api
+
+code_style:
+  php_version: "8.1+"
+  standard: PSR-2-ish
+  conventions: CodeIgniter
+  comments: No unless complex logic
+
+database:
+  tables:
+    - users
+    - clients
+    - credit_reports
+    - report_accounts
+    - error_types
+    - account_errors
+    - disputes
+    - dispute_templates
+    - drip_campaigns
+    - drip_queue
+    - sops
+    - knowledge_base
+    - tasks
+    - activity_log
+    - settings
+
+current_priority:
+  - Fix installer permission issues
+  - Test intranet functionality
+  - Build storefront (Stripe, licensing)
+  - Create .md knowledge base files for AI RAG
+
+common_tasks:
+  create_zip: "zip -r credit_system.zip . -x '*.DS_Store' -x '*.git*'"
+
+conventions:
+  config_location: credit_config.php (one level up from web root)
+  controllers: app/Controllers/
+  models: app/Models/
+  views: app/Views/
+  services: app/Services/
+
+testing:
+  - Check PHP error logs on server
+  - Installer shows system check on Step 1
+  - Debug mode enabled in app.php

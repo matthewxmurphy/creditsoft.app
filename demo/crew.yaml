@@ -1,0 +1,9 @@
+# CreditSoft Demo Crew Configuration
+---
+crew:
+  name: creditsoft_demo_crew
+  process: sequential
+  agents:
+    - dashboard_assistant
+    - analytics_agent
+  verbose: true

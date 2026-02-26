@@ -1,0 +1,38 @@
+# CreditSoft Client Tools Configuration
+---
+tools:
+  - name: client_status
+    type: api
+    description: Get client account status
+    endpoint: /api/client/status
+    returns: { account: object, subscription: object }
+
+  - name: dispute_tracker
+    type: api
+    description: Track dispute status
+    endpoint: /api/client/disputes
+    returns: { disputes: array, counts: object }
+
+  - name: knowledge_base
+    type: search
+    description: Search client education resources
+    endpoint: /api/kb/search
+    returns: { articles: array }
+
+  - name: progress_calculator
+    type: api
+    description: Calculate progress metrics
+    endpoint: /api/client/progress
+    returns: { score_change: int, items_resolved: int }
+
+  - name: report_generator
+    type: api
+    description: Generate progress PDF
+    endpoint: /api/client/report
+    returns: { pdf_url: string }
+
+  - name: milestone_tracker
+    type: api
+    description: Track milestone achievements
+    endpoint: /api/client/milestones
+    returns: { achieved: array, upcoming: array }

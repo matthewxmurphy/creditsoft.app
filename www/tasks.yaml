@@ -1,0 +1,40 @@
+# CreditSoft Tasks Configuration
+# Defines tasks for AI agents to perform
+# Each task has description, expected output, assigned agent, and dependencies
+---
+tasks:
+  # Lead qualification task
+  - name: qualify_lead
+    description: Validate and qualify incoming lead from landing page form
+    expected_output: JSON with lead_score, valid_email, and next_action
+    assigned_agent: lead_agent
+    dependencies: []
+    context:
+      - verify_turnstile
+      - validate_email_format
+      - check_mx_records
+      - score_lead_intent
+
+  # Support ticket creation
+  - name: handle_support_inquiry
+    description: Process customer support request from website chat or form
+    expected_output: Support ticket ID and automated response
+    assigned_agent: support_agent
+    dependencies: [qualify_lead]
+    context:
+      - search_knowledge_base
+      - categorize_issue
+      - create_ticket
+      - send_acknowledgment
+
+  # Demo scheduling
+  - name: schedule_demo
+    description: Handle demo request and schedule appointment
+    expected_output: Confirmation with scheduled date/time
+    assigned_agent: sales_agent
+    dependencies: [qualify_lead]
+    context:
+      - check_availability
+      - send_calendly_link
+      - create_crm_lead
+      - send_confirmation_email
