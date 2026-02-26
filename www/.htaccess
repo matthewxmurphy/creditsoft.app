@@ -1,0 +1,12 @@
+# Enable RewriteEngine
+RewriteEngine On
+
+# Route .php files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)\.php$ /$1.php [L]
+
+# If requesting without extension, try adding .php
+RewriteCond %{REQUEST_URI} !\.php$
+RewriteCond %{REQUEST_URI} !\.
+RewriteRule ^(.*)$ /$1.php [L]
