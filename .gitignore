@@ -1,0 +1,37 @@
+# CreditSoft - GitHub deployment ready
+
+# Dependencies (bundled in ZIP)
+# vendor/ - uncomment if you want to exclude vendor
+# vendor/
+
+# Writable directories (created at runtime)
+writable/cache/*
+writable/logs/*
+writable/session/*
+writable/uploads/*
+!writable/.gitkeep
+
+# Environment
+.env
+.env.*
+*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+*.zip
+*.tar.gz
+
+# Database (remote only)
+*.sql.gz
+
+# Credit config (contains credentials - outside web root)
+# credit_config.php - created by installer
