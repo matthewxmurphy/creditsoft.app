@@ -1,5 +1,7 @@
 # CreditSoft - AGENTS.md
 
+**IMPORTANT**: This project's working directory is `/Volumes/MacHome/Users/mmurphy/Websites/CreditSoft`
+
 ## Project Overview
 
 CreditSoft is a SaaS credit repair software competing with Credit Repair Cloud & Client Dispute Manager. Built on CodeIgniter 4.4 with Metro2 compliance at its core.

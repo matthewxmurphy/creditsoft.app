@@ -1,5 +1,7 @@
 # Credit Error Identifier System - Project Plan
 
+**IMPORTANT**: This project's working directory is `/Volumes/MacHome/Users/mmurphy/Websites/CreditSoft`
+
 ## Overview
 
 SaaS credit repair software competing with Credit Repair Cloud & Client Dispute Manager.

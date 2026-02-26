@@ -1,5 +1,7 @@
 # CreditSoft - Our Soul
 
+**IMPORTANT**: This project's working directory is `/Volumes/MacHome/Users/mmurphy/Websites/CreditSoft`
+
 ## Core Values
 
 ### 1. Transparency First
