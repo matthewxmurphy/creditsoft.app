@@ -461,7 +461,7 @@ return [
             50% { transform: translateY(-8px); }
         }
         
-        .logo img { width: 100%; height: 100%; object-fit: contain; }
+        .logo svg { width: 100%; height: 100%; }
         .logo svg { width: 40px; height: 40px; color: var(--primary); }
         
         .header h1 { 
@@ -851,7 +851,17 @@ return [
     <div class="installer">
         <div class="header">
             <div class="logo" id="headerLogo">
-                <img src="/assets/images/CreditSoft.png" alt="CreditSoft">
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="120" height="120" rx="24" fill="url(#grad)"/>
+                    <path d="M35 75V45L60 30L85 45V75L60 90L35 75Z" stroke="white" stroke-width="4" fill="none"/>
+                    <path d="M60 30V90M35 45L85 75M85 45L35 75" stroke="white" stroke-width="3"/>
+                    <defs>
+                        <linearGradient id="grad" x1="0" y1="0" x2="120" y2="120">
+                            <stop stop-color="#00d4ff"/>
+                            <stop offset="1" stop-color="#a855f7"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
             </div>
         </div>
         
