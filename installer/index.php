@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $filename = 'logo.png';
         }
 
-        $targetDir = $basePath . '/assets/images/';
+        $targetDir = $_SERVER['DOCUMENT_ROOT'] . '/assets/images/';
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
         }
@@ -851,7 +851,7 @@ return [
     <div class="installer">
         <div class="header">
             <div class="logo" id="headerLogo">
-                <img src="assets/images/CreditSoft.png" alt="CreditSoft">
+                <img src="/assets/images/CreditSoft.png" alt="CreditSoft">
             </div>
         </div>
         
@@ -1156,12 +1156,12 @@ return [
                     
                     const ext = result.filename.split('.').pop();
                     if (ext === 'svg') {
-                        document.getElementById('logoPreview').innerHTML = `<img src="assets/images/${result.filename}?t=${Date.now()}" style="max-width:120px;max-height:60px;">`;
+                        document.getElementById('logoPreview').innerHTML = `<img src="/assets/images/${result.filename}?t=${Date.now()}" style="max-width:120px;max-height:60px;">`;
                     } else {
-                        document.getElementById('logoPreview').innerHTML = `<img src="assets/images/${result.filename}?t=${Date.now()}" style="max-width:120px;max-height:60px;object-fit:contain;">`;
+                        document.getElementById('logoPreview').innerHTML = `<img src="/assets/images/${result.filename}?t=${Date.now()}" style="max-width:120px;max-height:60px;object-fit:contain;">`;
                     }
                     
-                    document.getElementById('headerLogo').innerHTML = `<img src="assets/images/${result.filename}?t=${Date.now()}" style="max-width:52px;max-height:52px;object-fit:contain;">`;
+                    document.getElementById('headerLogo').innerHTML = `<img src="/assets/images/${result.filename}?t=${Date.now()}" style="max-width:52px;max-height:52px;object-fit:contain;">`;
                     
                     showAlert('logoAlert', 'Logo uploaded!', 'success');
                     btn.disabled = false;
