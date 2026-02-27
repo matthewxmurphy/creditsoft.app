@@ -1,20 +1,15 @@
-# CodeIgniter
-DirectoryIndex index.php
-
+# Enable RewriteEngine
 RewriteEngine On
 RewriteBase /
 
-# HTTPS redirect
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
-
-# Serve static files directly
+# Serve existing files/directories
 RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# Serve directories
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# Route everything else through CI
-RewriteRule ^(.*)$ index.php?/$1 [L,QSA]
+# Route .php files (remove .php extension)
+RewriteCond %{REQUEST_URI} !\.
+RewriteRule ^(.+)$ $1.php [L]
+
+# Root to index
+RewriteRule ^$ index.php [L]
