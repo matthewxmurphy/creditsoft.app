@@ -1,11 +1,6 @@
-<?php
-$page_title = 'Activate License';
-$page_description = 'Activate your CreditSoft license';
-$page_hero = true;
-$hero_title = 'Activate Your License';
-$hero_subtitle = 'Enter your license key to get started';
-?>
-<?php include 'header.php'; ?>
+<?= $this->extend('layout/storefront') ?>
+
+<?= $this->section('content') ?>
 
 <style>
 .activate-form{max-width:500px;margin:0 auto;background:white;padding:40px;border-radius:16px}
@@ -83,4 +78,4 @@ document.getElementById('licenseKey').addEventListener('input', function(e) {
 });
 </script>
 
-<?php include 'footer.php'; ?>
+<?= $this->endSection() ?>

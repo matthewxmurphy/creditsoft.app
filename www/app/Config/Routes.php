@@ -33,6 +33,7 @@ class Routes extends BaseConfig
         $this->routes['GET']['security'] = 'home/security';
         $this->routes['GET']['metro2'] = 'home/metro2';
         $this->routes['GET']['client-portal'] = 'home/clientPortal';
+        $this->routes['GET']['activate'] = 'home/activate';
         
         // API endpoints (public)
         $this->routes['POST']['api/chat'] = 'api/chat';

@@ -127,4 +127,13 @@ class Home extends BaseController
         $data['page_title'] = 'Client Portal';
         return view('home/client-portal', $data);
     }
+    
+    public function activate()
+    {
+        $data['page_title'] = 'Activate License';
+        $data['page_hero'] = true;
+        $data['hero_title'] = 'Activate Your License';
+        $data['hero_subtitle'] = 'Enter your license key to get started';
+        return view('home/activate', $data);
+    }
 }

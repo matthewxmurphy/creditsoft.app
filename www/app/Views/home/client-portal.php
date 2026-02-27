@@ -1,11 +1,6 @@
-<?php
-$page_title = 'Client Portal';
-$page_description = 'Two-layer client portal: Intranet + Website Widget';
-$page_hero = true;
-$hero_title = 'Client Portal';
-$hero_subtitle = 'Secure client access to their credit repair progress';
-?>
-<?php include 'header.php'; ?>
+<?= $this->extend('layout/storefront') ?>
+
+<?= $this->section('content') ?>
 
 <style>
 .two-layer{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
@@ -31,7 +26,7 @@ $hero_subtitle = 'Secure client access to their credit repair progress';
 <div class="container">
     <div id="licenseCheck"></div>
     
-    <div class="intro">
+    <div class="intro" style="background:white;padding:32px;border-radius:16px;margin-bottom:24px;">
         <h2>Two-Layer Client Portal</h2>
         <p>Give your clients visibility into their credit repair progress while keeping your data secure.</p>
     </div>
@@ -113,4 +108,4 @@ async function checkLicense() {
 checkLicense();
 </script>
 
-<?php include 'footer.php'; ?>
+<?= $this->endSection() ?>
