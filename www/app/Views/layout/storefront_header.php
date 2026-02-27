@@ -1,23 +1,16 @@
-<?php
-$page_title = $page_title ?? 'CreditSoft';
-$page_description = $page_description ?? 'Metro2-First Credit Repair Software';
-$page_hero = $page_hero ?? false;
-$hero_title = $hero_title ?? '';
-$hero_subtitle = $hero_subtitle ?? '';
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $page_title ?> - CreditSoft</title>
-    <meta name="description" content="<?= $page_description ?>">
+    <title><?= $page_title ?? 'CreditSoft' ?> - CreditSoft</title>
+    <meta name="description" content="<?= $page_description ?? 'Metro2-First Credit Repair Software' ?>">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://www.creditsoft.app/<?= basename($_SERVER['REQUEST_URI'], '.php') ?>">
+    <link rel="canonical" href="https://www.creditsoft.app/">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.creditsoft.app/<?= basename($_SERVER['REQUEST_URI'], '.php') ?>">
-    <meta property="og:title" content="<?= $page_title ?> - CreditSoft">
-    <meta property="og:description" content="<?= $page_description ?>">
+    <meta property="og:url" content="https://www.creditsoft.app/">
+    <meta property="og:title" content="<?= $page_title ?? 'CreditSoft' ?> - CreditSoft">
+    <meta property="og:description" content="<?= $page_description ?? 'Metro2-First Credit Repair Software' ?>">
     <meta property="og:image" content="https://www.creditsoft.app/assets/images/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -100,9 +93,9 @@ $hero_subtitle = $hero_subtitle ?? '';
         document.getElementById('mobileMenu').classList.toggle('active');
     }
     </script>
-    <?php if ($page_hero): ?>
+    <?php if (isset($page_hero) && $page_hero): ?>
     <section class="hero">
-        <h1><?= $hero_title ?></h1>
-        <p><?= $hero_subtitle ?></p>
+        <h1><?= $hero_title ?? '' ?></h1>
+        <p><?= $hero_subtitle ?? '' ?></p>
     </section>
     <?php endif; ?>

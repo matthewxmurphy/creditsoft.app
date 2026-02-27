@@ -1,5 +1,4 @@
-<?= $this->extend('layout/main') ?>
-
+<?= $this->extend('layout/storefront_header') ?>
 <?= $this->section('content') ?>
-<?= $content ?>
-<?= $this->endSection() ?>
+<?= $content ?? '' ?>
+<?= $this->extend('layout/storefront_footer') ?>

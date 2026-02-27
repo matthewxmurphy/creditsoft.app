@@ -21,15 +21,22 @@ class Routes extends BaseConfig
         
         // Storefront pages
         $this->routes['GET']['pricing'] = 'home/pricing';
+        $this->routes['GET']['quiz'] = 'home/quiz';
+        $this->routes['GET']['about'] = 'home/about';
+        $this->routes['GET']['cro-rules'] = 'home/croRules';
         $this->routes['GET']['subscribe'] = 'home/subscribe';
         $this->routes['GET']['presales-tips'] = 'home/presalesTips';
         $this->routes['GET']['terms'] = 'home/terms';
         $this->routes['GET']['privacy'] = 'home/privacy';
         $this->routes['GET']['cookies'] = 'home/cookies';
         $this->routes['GET']['legal'] = 'home/legal';
+        $this->routes['GET']['security'] = 'home/security';
+        $this->routes['GET']['metro2'] = 'home/metro2';
+        $this->routes['GET']['client-portal'] = 'home/clientPortal';
         
         // API endpoints (public)
         $this->routes['POST']['api/chat'] = 'api/chat';
+        $this->routes['POST']['api/lead'] = 'api/lead';
         $this->routes['POST']['api/payment'] = 'api/payment';
         $this->routes['GET']['api/plans'] = 'api/plans';
 

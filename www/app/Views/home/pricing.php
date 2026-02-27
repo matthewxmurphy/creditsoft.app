@@ -1,11 +1,6 @@
-<?php
-$page_title = 'Pricing';
-$page_description = 'Credit repair software pricing. Unlimited users. No per-seat fees.';
-$page_hero = true;
-$hero_title = 'Simple, Transparent Pricing';
-$hero_subtitle = 'No hidden fees. No surprises. Just powerful credit repair software.';
-?>
-<?php include 'header.php'; ?>
+<?= $this->extend('layout/storefront') ?>
+
+<?= $this->section('content') ?>
 
 <style>
 .billing-toggle { display: flex; justify-content: center; gap: 8px; margin-bottom: 40px; }
@@ -79,13 +74,21 @@ $hero_subtitle = 'No hidden fees. No surprises. Just powerful credit repair soft
         <h2>Frequently Asked Questions</h2>
         <div class="faq-item">
             <h4>Is there a free trial?</h4>
-            <p>Yes! All plans come with a 14-day free trial. No credit card required.</p>
+            <p>Yes! All plans come with a 14-day free trial. No credit card required to start.</p>
         </div>
         <div class="faq-item">
             <h4>Can I change plans later?</h4>
-            <p>Absolutely. Upgrade or downgrade anytime.</p>
+            <p>Absolutely. Upgrade or downgrade your plan at any time from your account settings.</p>
+        </div>
+        <div class="faq-item">
+            <h4>What payment methods do you accept?</h4>
+            <p>We accept all major credit cards through our secure payment processor.</p>
+        </div>
+        <div class="faq-item">
+            <h4>Is my data secure?</h4>
+            <p>Yes. Your data stays on YOUR server. We never host your client data on our infrastructure.</p>
         </div>
     </div>
 </div>
 
-<?php include 'footer.php'; ?>
+<?= $this->endSection() ?>
