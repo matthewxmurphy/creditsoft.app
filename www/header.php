@@ -31,8 +31,10 @@ $hero_subtitle = $hero_subtitle ?? '';
     <style>
         :root { --primary: #2563eb; --primary-dark: #1d4ed8; --success: #10b981; --dark: #0f172a; --light: #f8fafc; --gray: #64748b; --border: #e2e8f0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--light); color: var(--dark); line-height: 1.6; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        body { font-family: 'Inter', sans-serif; background: var(--light); color: var(--dark); line-height: 1.6; padding: 0; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .container-narrow { max-width: 800px; margin: 0 auto; padding: 0 24px; }
+        .page-content { padding: 60px 24px; max-width: 1200px; margin: 0 auto; }
         a { color: var(--primary); text-decoration: none; }
         a:hover { text-decoration: underline; }
         .btn { display: inline-block; padding: 14px 28px; border-radius: 10px; font-size: 16px; font-weight: 600; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
@@ -56,9 +58,11 @@ $hero_subtitle = $hero_subtitle ?? '';
         .mobile-menu.active { display: flex; flex-direction: column; gap: 20px; }
         .mobile-menu a { color: white; text-decoration: none; font-weight: 500; font-size: 20px; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
         
-        .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%); color: white; padding: 140px 20px 60px; text-align: center; }
+        .hero { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%); color: white; padding: 120px 24px 60px; text-align: center; }
         .hero h1 { font-size: 42px; font-weight: 800; margin-bottom: 12px; }
-        .hero p { font-size: 18px; opacity: 0.9; }
+        .hero p { font-size: 18px; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+        
+        .main-content { padding: 60px 24px; max-width: 1200px; margin: 0 auto; }
         
         .footer { background: #0a0f1a; color: var(--gray); padding: 40px 0; text-align: center; font-size: 14px; }
         .footer a { color: var(--primary); text-decoration: none; }
