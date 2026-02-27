@@ -358,7 +358,7 @@ return [
         file_put_contents($installedPath, json_encode([
             'installed_at' => date('Y-m-d H:i:s'),
             'license_id' => $license,
-            'version' => '1.0.0',
+            'version' => '1.1.0',
         ]));
 
         session_destroy();
