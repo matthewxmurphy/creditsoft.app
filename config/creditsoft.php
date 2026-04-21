@@ -558,7 +558,7 @@ return [
     ],
     'updates' => [
         'current_version' => env('CREDITSOFT_APP_VERSION', '0.9.1'),
-        'current_build' => env('CREDITSOFT_APP_BUILD', '2026.04.18.141630'),
+        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '0.9.1')),
         'channel' => env('CREDITSOFT_UPDATE_CHANNEL', 'stable'),
         'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://updates.creditsoft.app/api/update-feed'),
         'fallback_feed_url' => env('CREDITSOFT_UPDATE_FEED_FALLBACK_URL', ''),

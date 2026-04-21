@@ -66,10 +66,14 @@ class CreditsoftSelfUpdateService
         $packageRoot = $this->detectPackageRoot($extractDirectory);
         $manifest = $this->readManifest($packageRoot);
         $version = trim((string) ($manifest['version'] ?? $status['latest_version'] ?? ''));
-        $build = trim((string) ($manifest['build'] ?? $status['latest_build'] ?? now()->format('Y.m.d.His')));
+        $build = trim((string) ($manifest['build'] ?? $status['latest_build'] ?? $version));
 
         if ($version === '') {
             throw new RuntimeException('The update package is missing a valid version.');
+        }
+
+        if ($build === '') {
+            $build = $version;
         }
 
         $this->syncPackage($packageRoot);

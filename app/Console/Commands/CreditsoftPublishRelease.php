@@ -12,7 +12,7 @@ class CreditsoftPublishRelease extends Command
 {
     protected $signature = 'creditsoft:release
         {--release= : Publish an explicit release version instead of auto-bumping}
-        {--build= : Publish an explicit build stamp instead of the current timestamp}
+        {--build= : Publish an explicit build identifier instead of using the release version}
         {--summary= : One-line update-feed summary}
         {--headline= : Update-feed headline}
         {--note=* : Release note to prepend to the update feed}
@@ -27,7 +27,7 @@ class CreditsoftPublishRelease extends Command
         $now = Carbon::now();
         $previousVersion = trim((string) ($feed['latest_version'] ?? ''));
         $version = trim((string) ($this->option('release') ?: $this->nextVersion($previousVersion, $now)));
-        $build = trim((string) ($this->option('build') ?: $now->format('Y.m.d.His')));
+        $build = trim((string) ($this->option('build') ?: $version));
         $dryRun = (bool) $this->option('dry-run');
 
         if (! $this->isDateVersion($version)) {

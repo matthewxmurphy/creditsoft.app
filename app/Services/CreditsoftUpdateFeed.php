@@ -24,6 +24,14 @@ class CreditsoftUpdateFeed
         $minimumVersion = trim((string) ($feed['minimum_version'] ?? ''));
         $requiresUpdate = (bool) ($feed['update_required'] ?? false);
 
+        if ($currentBuild === '') {
+            $currentBuild = $currentVersion;
+        }
+
+        if ($latestBuild === '') {
+            $latestBuild = $latestVersion;
+        }
+
         $versionBehind = $this->isVersionLessThan($currentVersion, $latestVersion);
         $belowMinimum = $this->isVersionLessThan($currentVersion, $minimumVersion);
         $buildChanged = $currentBuild !== '' && $latestBuild !== '' && $currentBuild !== $latestBuild;

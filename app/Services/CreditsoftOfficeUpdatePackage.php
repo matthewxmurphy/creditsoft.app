@@ -18,7 +18,7 @@ class CreditsoftOfficeUpdatePackage
     public function build(?string $version = null, ?string $build = null): array
     {
         $version = trim($version ?: $this->releaseVersion());
-        $build = trim($build ?: now()->format('Y.m.d.His'));
+        $build = trim($build ?: $version);
 
         if ($version === '') {
             throw new RuntimeException('CreditSoft could not resolve an update package version.');

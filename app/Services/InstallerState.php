@@ -103,7 +103,7 @@ class InstallerState
             'feature_trials' => [],
             'updates' => [
                 'current_version' => (string) config('creditsoft.updates.current_version', '0.5.0'),
-                'current_build' => (string) config('creditsoft.updates.current_build', ''),
+                'current_build' => (string) config('creditsoft.updates.current_build', config('creditsoft.updates.current_version', '0.5.0')),
             ],
         ];
     }

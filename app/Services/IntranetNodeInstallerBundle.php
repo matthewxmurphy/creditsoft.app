@@ -140,7 +140,7 @@ class IntranetNodeInstallerBundle
             'bundled' => $bundled,
             'source' => $bundled ? 'bundled-office-package' : 'remote-update-feed',
             'version' => $latestVersion ?: $this->version(),
-            'build' => $feed['latest_build'] ?? null,
+            'build' => $feed['latest_build'] ?? ($latestVersion ?: $this->version()),
             'download_url' => $downloadUrl,
             'feed_url' => $feedUrl,
         ];
@@ -329,7 +329,7 @@ class IntranetNodeInstallerBundle
             'APP_MAINTENANCE_DRIVER' => (string) data_get(config('app.maintenance', []), 'driver', 'file'),
             'BCRYPT_ROUNDS' => (string) env('BCRYPT_ROUNDS', '12'),
             'CREDITSOFT_APP_VERSION' => (string) ($package['version'] ?? $this->version()),
-            'CREDITSOFT_APP_BUILD' => (string) ($package['build'] ?? now()->format('Y.m.d.His')),
+            'CREDITSOFT_APP_BUILD' => (string) ($package['build'] ?? $package['version'] ?? $this->version()),
             'CREDITSOFT_DOCKER_BIND' => '0.0.0.0',
             'CREDITSOFT_DOCKER_PORT' => '8001',
             'CREDITSOFT_ROUTER_BIND' => '127.0.0.1',
