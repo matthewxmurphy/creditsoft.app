@@ -94,7 +94,11 @@
     "extra": {
         "laravel": {
             "dont-discover": [
-                "kirschbaum-development/eloquent-power-joins"
+                "kirschbaum-development/eloquent-power-joins",
+                "laravel/boost",
+                "laravel/pail",
+                "laravel/sail",
+                "nunomaduro/collision"
             ]
         }
     },

@@ -176,6 +176,10 @@ class CreditsoftOfficeUpdatePackage
             'public/hot',
             'storage/',
             'test-results/',
+            'vendor/laravel/boost/',
+            'vendor/laravel/pail/',
+            'vendor/laravel/sail/',
+            'vendor/nunomaduro/collision/',
         ] as $prefix) {
             $normalizedPrefix = str_replace('\\', '/', $prefix);
 

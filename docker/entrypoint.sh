@@ -20,8 +20,10 @@ rm -f bootstrap/cache/*.php
 php_opcache_memory="${PHP_OPCACHE_MEMORY_CONSUMPTION:-192}"
 php_opcache_files="${PHP_OPCACHE_MAX_ACCELERATED_FILES:-20000}"
 php_opcache_validate="${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-0}"
+php_memory_limit="${PHP_MEMORY_LIMIT:-512M}"
 
 cat > /usr/local/etc/php/conf.d/zz-creditsoft-cache.ini <<EOF
+memory_limit=${php_memory_limit}
 opcache.enable=1
 opcache.enable_cli=1
 opcache.memory_consumption=${php_opcache_memory}

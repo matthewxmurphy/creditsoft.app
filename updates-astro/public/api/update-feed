@@ -1,12 +1,15 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.21.40",
-    "latest_build": "2026.04.21.194420",
-    "published_at": "2026-04-21T19:44:20+00:00",
-    "headline": "CreditSoft 2026.4.21.40 is ready",
-    "summary": "Roster processing dots no longer use disabled-looking grey.",
+    "latest_version": "2026.4.21.41",
+    "latest_build": "2026.04.21.210357",
+    "published_at": "2026-04-21T21:03:57+00:00",
+    "headline": "CreditSoft 2026.4.21.41 is ready",
+    "summary": "Fixes office-node 500s caused by stale dev-provider cache after self-update.",
     "notes": [
+        "CreditSoft 2026.4.21.41 prevents dev-only Laravel providers from being discovered in production office builds so web, queue, and scheduler containers share a safe bootstrap cache.",
+        "CreditSoft 2026.4.21.41 raises the default Docker PHP memory limit to 512 MB while keeping it configurable through PHP_MEMORY_LIMIT.",
+        "CreditSoft 2026.4.21.41 keeps office update packages from shipping dev-only Laravel vendor packages that can poison shared bootstrap cache.",
         "CreditSoft 2026.4.21.40 changes archived lifecycle processing dots from grey to blue so grey no longer reads as disabled while hover text explains the archived state.",
         "CreditSoft 2026.4.21.39 changes the client-name roster dot from vague billing grey to processing status: green for ready/current, red for work needed, amber for intake, and neutral for inactive lifecycle records.",
         "CreditSoft 2026.4.21.38 moves the roster stage links back to the right of search and tightens the client table width.",
@@ -270,7 +273,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.21.40.zip",
+    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.21.41.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",
