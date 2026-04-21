@@ -27,7 +27,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    clientHealthDotClass,
     clientHealthLabel,
     clientHealthRowClass,
     clientHealthScoreLabel,
@@ -301,7 +300,9 @@ const documentStorageDetail = computed(() => {
     ];
 
     if (storage.metadata_only_count > 0) {
-        parts.push(`${formatNumber(storage.metadata_only_count)} metadata-only`);
+        parts.push(
+            `${formatNumber(storage.metadata_only_count)} metadata-only`,
+        );
     }
 
     return parts.join(' · ');
@@ -608,6 +609,97 @@ const clientStatusLabel = (client: (typeof props.clients)[number]) =>
             : isGraduatedClient(client)
               ? 'Graduated'
               : client.status.replaceAll('_', ' ');
+
+const blockedProviderStatuses = [
+    'needs_credentials',
+    'blocked',
+    'disconnected',
+    'needs_client_payment',
+    'needs_reactivation',
+    'paused',
+];
+
+const clientProcessingState = (client: ClientRow) => {
+    if (isEndedClient(client)) {
+        return 'inactive';
+    }
+
+    if (isLeadClient(client)) {
+        return 'intake';
+    }
+
+    const providers = client.import_audit.providers;
+    const hasBlockedProvider = providers.some((provider) =>
+        blockedProviderStatuses.includes(provider.status),
+    );
+
+    if (
+        client.import_audit.needs_provider_credentials ||
+        hasBlockedProvider ||
+        providers.length === 0 ||
+        !client.import_audit.provider_ready
+    ) {
+        return 'needs_work';
+    }
+
+    if (client.import_audit.report_pulled === false) {
+        return 'needs_work';
+    }
+
+    return 'ready';
+};
+
+const clientProcessingDotClass = (client: ClientRow) => {
+    const state = clientProcessingState(client);
+
+    if (state === 'ready') {
+        return 'bg-emerald-500 ring-2 ring-emerald-100';
+    }
+
+    if (state === 'needs_work') {
+        return 'bg-rose-500 ring-2 ring-rose-100';
+    }
+
+    if (state === 'intake') {
+        return 'bg-amber-400 ring-2 ring-amber-100';
+    }
+
+    return 'bg-stone-300 ring-2 ring-stone-100';
+};
+
+const clientProcessingLabel = (client: ClientRow) => {
+    const state = clientProcessingState(client);
+
+    if (state === 'ready') {
+        return 'Provider ready and report processing is current.';
+    }
+
+    if (state === 'intake') {
+        return 'Lead needs intake before report processing.';
+    }
+
+    if (state === 'inactive') {
+        return `${sourceKindLabel(client)} record is not in the active processing queue.`;
+    }
+
+    if (client.import_audit.needs_provider_credentials) {
+        return 'Needs provider credentials before processing.';
+    }
+
+    if (!client.import_audit.providers.length) {
+        return 'Needs a monitoring provider before processing.';
+    }
+
+    if (!client.import_audit.provider_ready) {
+        return 'Saved monitoring access needs staff review.';
+    }
+
+    if (client.import_audit.report_pulled === false) {
+        return 'Provider is ready; next report still needs processing.';
+    }
+
+    return 'Needs staff or companion review before processing.';
+};
 const paginationLabel = computed(() => {
     if (props.pagination.total === 0) {
         return '0 shown';
@@ -1572,13 +1664,14 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                     <span class="text-stone-900">
                                         {{
                                             formatNumber(
-                                                documentStorageSummary
-                                                    .file_client_count,
+                                                documentStorageSummary.file_client_count,
                                             )
                                         }}
                                     </span>
                                 </p>
-                                <p class="mt-1 text-xs font-medium text-stone-700">
+                                <p
+                                    class="mt-1 text-xs font-medium text-stone-700"
+                                >
                                     {{ documentStorageHeadline }}
                                 </p>
                                 <p class="mt-0.5 text-[11px] text-stone-500">
@@ -1710,7 +1803,7 @@ const updateAddClientDialogOpen = (open: boolean) => {
                         >
                             <template
                                 v-for="(tab, index) in rosterTabs"
-                                    :key="tab.value"
+                                :key="tab.value"
                             >
                                 <button
                                     type="button"
@@ -1795,11 +1888,15 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         class="flex min-w-0 items-start gap-2.5"
                                     >
                                         <span
-                                            class="mt-1.5 size-2 rounded-full"
+                                            class="mt-1.5 size-2.5 shrink-0 rounded-full"
                                             :class="
-                                                clientHealthDotClass(
-                                                    clientHealthSource(client),
-                                                )
+                                                clientProcessingDotClass(client)
+                                            "
+                                            :title="
+                                                clientProcessingLabel(client)
+                                            "
+                                            :aria-label="
+                                                clientProcessingLabel(client)
                                             "
                                         />
                                         <div class="min-w-0">
