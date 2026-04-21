@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628" role="img" aria-labelledby="title desc">
+  <title id="title">Google Drive installer ad image</title>
+  <desc id="desc">A Google Drive inspired backup tile with triangular color blocks and text.</desc>
+  <rect width="1200" height="628" fill="#f8fafc"/>
+  <path d="M598 100 792 436H404z" fill="#fbbc04"/>
+  <path d="M598 100 710 294H486z" fill="#34a853"/>
+  <path d="M404 436h388l-72 126H332z" fill="#4285f4"/>
+  <path d="M486 294 332 562 220 368 374 100z" fill="#188038"/>
+  <path d="M710 294 598 100h224l154 268-112 194z" fill="#ea4335"/>
+  <text x="86" y="520" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="700">Google Drive</text>
+  <text x="90" y="574" fill="#475569" font-family="Arial, Helvetica, sans-serif" font-size="34">workspace backup handoff and shared document storage</text>
+</svg>

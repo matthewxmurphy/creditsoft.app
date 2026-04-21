@@ -1,0 +1,48 @@
+---
+import '../styles/site.css';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+
+interface Props {
+	title?: string;
+	description?: string;
+	path?: string;
+}
+
+const {
+	title = 'CreditSoft',
+	description = 'Local-first credit operations software with branded web, portal, update, and office lanes.',
+	path = Astro.url.pathname,
+} = Astro.props;
+
+const canonical = new URL(path, Astro.site ?? 'https://www.creditsoft.app');
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<link rel="canonical" href={canonical.toString()} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={canonical.toString()} />
+		<meta property="og:image" content="https://www.creditsoft.app/og-image.png" />
+	</head>
+	<body>
+		<div class="site-shell">
+			<SiteHeader currentPath={path} />
+			<main class="site-main">
+				<slot />
+			</main>
+			<SiteFooter />
+		</div>
+	</body>
+</html>

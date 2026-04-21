@@ -1,0 +1,5 @@
+{
+    "target_base_url": "https://hearthless-nongelatinously-melodie.ngrok-free.dev/api/v1",
+    "bridge_token": "csoft_TnLDcmpLQHF0FaeUqyEUmnAz2JY0UGXWePTJxFYuNDd9tJNf",
+    "timeout_seconds": 12
+}

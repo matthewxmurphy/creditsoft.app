@@ -1,0 +1,35 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Roadmap | CreditSoft" description="What CreditSoft supports now, what is in progress, and what is planned.">
+	<PageHero
+		eyebrow="Roadmap"
+		title="What is supported now, what is in progress, and what is planned."
+		copy="The public site should be honest about the product surface. Some lanes are real today, some are in progress, and some are planned next."
+	/>
+
+	<section class="section">
+		<div class="proof-grid">
+			<article class="proof-block">
+				<h2>Supported now</h2>
+				<ul class="bullet-list">
+					<li>Local-first office app</li>
+					<li>Browser companion</li>
+					<li>Client website and portal lanes</li>
+					<li>Sales-site admin shell</li>
+				</ul>
+			</article>
+			<article class="proof-block">
+				<h2>In progress</h2>
+				<ul class="bullet-list">
+					<li>IdentityIQ support</li>
+					<li>Astro + Supabase public site</li>
+					<li>Update/download lane cleanup</li>
+					<li>Pricing/admin data flow</li>
+				</ul>
+			</article>
+		</div>
+	</section>
+</Layout>

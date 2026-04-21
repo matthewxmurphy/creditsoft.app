@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" role="img" aria-label="Postmark">
+  <rect width="300" height="80" fill="none"/>
+  <g transform="translate(16 16)">
+    <rect width="48" height="48" rx="14" fill="#ffde59"/>
+    <path d="M12 17h24a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V21a4 4 0 0 1 4-4Zm-1 4 13 10 13-10" fill="none" stroke="#0f172a" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+    <path d="M29 12h14v14" fill="none" stroke="#0f172a" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+  </g>
+  <text x="78" y="49" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="31" font-weight="900">Postmark</text>
+</svg>

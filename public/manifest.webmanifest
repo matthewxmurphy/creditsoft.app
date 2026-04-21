@@ -1,0 +1,148 @@
+{
+  "id": "/",
+  "name": "CreditSoft",
+  "short_name": "CreditSoft",
+  "description": "Local-first credit operations for private office casework.",
+  "start_url": "/dashboard?source=pwa",
+  "scope": "/",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "display": "standalone",
+  "background_color": "#f7f4ec",
+  "theme_color": "#111111",
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open the CreditSoft control panel.",
+      "url": "/dashboard?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Client roster",
+      "short_name": "Clients",
+      "description": "Open the client roster.",
+      "url": "/clients?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Inbox",
+      "short_name": "Inbox",
+      "description": "Open the office inbox and hot queue.",
+      "url": "/inbox?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Tasks",
+      "short_name": "Tasks",
+      "description": "Open the task board.",
+      "url": "/tasks?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Import clients",
+      "short_name": "Import",
+      "description": "Jump straight to the migration import page.",
+      "url": "/clients/import?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "short_name": "Billing",
+      "description": "Open the billing workspace.",
+      "url": "/billing?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "CFO",
+      "short_name": "CFO",
+      "description": "Open the finance and revenue dashboard.",
+      "url": "/cfo?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Connectivity",
+      "short_name": "Connectivity",
+      "description": "Open office connectivity and ops settings.",
+      "url": "/settings/connectivity?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "CreditSoft OPS",
+      "short_name": "OPS",
+      "description": "Open the internal migration operator lane.",
+      "url": "/migration-operator?source=pwa-shortcut",
+      "icons": [
+        {
+          "src": "/pwa-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

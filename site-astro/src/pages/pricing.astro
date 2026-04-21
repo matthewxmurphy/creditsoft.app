@@ -1,0 +1,37 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Layout from '../layouts/Layout.astro';
+import { loadPlans } from '../lib/site-data';
+
+const planResult = await loadPlans(Astro.cookies);
+const plans = planResult.data;
+---
+
+<Layout title="Pricing | CreditSoft" description="CreditSoft pricing for Enterprise and Enterprise Pro.">
+	<PageHero
+		eyebrow="Pricing"
+		title="Simple plans, visible sale pricing, and room for admin-controlled pricing later."
+		copy="The public pricing page should feel clear at a glance, while the admin lane controls list price, sale price, and yearly discount without editing raw files."
+	/>
+
+	<section class="section section--pricing-preview">
+		<div class="plan-grid">
+			{plans.map((plan) => (
+				<article class={`plan-card ${plan.highlighted ? 'plan-card--highlighted' : ''}`}>
+					<div class="plan-card__curl">
+						<span>Sale</span>
+						<em>${plan.monthlyPrice.toFixed(2)} / mo</em>
+					</div>
+					<div class="plan-card__pill">{plan.badge ?? 'Launch pricing'}</div>
+					<h2>{plan.name}</h2>
+					<p class="plan-card__price">${(plan.saleMonthlyPrice ?? plan.monthlyPrice).toFixed(2)} / mo</p>
+					<p class="plan-card__copy">{plan.description ?? 'CreditSoft sales-site plan.'}</p>
+					<ul class="bullet-list">
+						{plan.features.slice(0, 4).map((feature) => <li>{feature}</li>)}
+					</ul>
+					<a class="button button--secondary" href="/subscribe">Start office fit check</a>
+				</article>
+			))}
+		</div>
+	</section>
+</Layout>

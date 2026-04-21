@@ -1,0 +1,17 @@
+# CreditSoft Crew Configuration
+# Defines the crew/team of AI agents and their orchestration
+# Sequential: tasks run one after another
+# Hierarchical: manager delegates to agents
+---
+crew:
+  name: creditsoft_crew
+  process: sequential
+  agents:
+    - lead_agent
+    - support_agent
+    - sales_agent
+  manager_agent: sales_agent
+  verbose: true
+  config:
+    max_iterations: 10
+    timeout: 300

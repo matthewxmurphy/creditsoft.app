@@ -1,0 +1,159 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+
+const lanes = [
+  {
+    title: "Office package",
+    version: "v0.9.25",
+    bullets: ["Explicit recovery sweep", "Real activity date checks", "Guarded provider queue"],
+    action: "Download package",
+    href: "/downloads/creditsoft-office-v0.9.25.zip",
+  },
+  {
+    title: "Browser companion",
+    version: "v0.5.6",
+    bullets: ["7-day trial during setup", "Recovery sweep button", "Guarded SmartCredit and IdentityIQ pulls"],
+    action: "Download companion",
+    href: "/downloads/creditsoft-browser-companion-v0.5.6.zip",
+  },
+  {
+    title: "Companion renewal",
+    version: "Zelle",
+    bullets: ["Scan the live QR", "Use account email as memo", "Processing can take up to 8 hours"],
+    action: "Open renewal",
+    href: "/renewal/",
+  },
+];
+---
+
+<BaseLayout
+  title="CreditSoft Downloads"
+  description="CreditSoft office package downloads, browser companion installs, and download archive."
+>
+  <SiteHeader />
+
+  <main class="page-wrap section page-body">
+    <SectionHeading
+      eyebrow="Downloads"
+      title="Install the office package or grab the browser companion."
+      text="The companion lives here on the update lane. It can be tested for 7 days during setup, then unlocked through the same Zelle renewal flow."
+    />
+    <div class="download-layout">
+      {lanes.map((lane) => (
+        <article class="lane panel">
+          <div class="lane-head">
+            <span>{lane.title}</span>
+            <strong>{lane.version}</strong>
+          </div>
+          <ul>
+            {lane.bullets.map((item) => <li>{item}</li>)}
+          </ul>
+          <a class="button primary" href={lane.href}>{lane.action}</a>
+        </article>
+      ))}
+    </div>
+
+    <section class="companion-strip panel-soft">
+      <div>
+        <span class="eyebrow">Browser companion trial</span>
+        <h3>Pull reports first. Upgrade only when the trial earns its keep.</h3>
+        <p>
+          New installs get the companion for 7 days so an office can migrate clients, test SmartCredit and IdentityIQ pulls,
+          and decide whether the automation lane belongs in their monthly plan.
+        </p>
+      </div>
+      <div class="qr-mini">
+        <img src="/assets/payments/zelle.png" alt="CreditSoft Zelle QR code" loading="lazy" />
+        <span>Zelle renewal QR</span>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-body {
+    padding-top: 60px;
+  }
+
+  .download-layout {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .lane {
+    padding: 24px;
+  }
+
+  .lane-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    font-weight: 650;
+  }
+
+  .lane ul {
+    margin: 0 0 22px;
+    padding-left: 18px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .companion-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: center;
+    margin-top: 22px;
+    padding: 26px;
+  }
+
+  .companion-strip h3 {
+    margin: 14px 0 0;
+    font-size: clamp(1.6rem, 3vw, 2.35rem);
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+  }
+
+  .companion-strip p {
+    margin: 12px 0 0;
+    max-width: 72ch;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .qr-mini {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .qr-mini img {
+    width: 142px;
+    height: 142px;
+    object-fit: contain;
+    border-radius: 18px;
+    background: white;
+    padding: 10px;
+  }
+
+  @media (max-width: 900px) {
+    .download-layout,
+    .companion-strip {
+      grid-template-columns: 1fr;
+    }
+
+    .qr-mini {
+      justify-items: start;
+    }
+  }
+</style>

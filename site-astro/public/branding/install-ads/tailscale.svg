@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628" role="img" aria-labelledby="title desc">
+  <title id="title">Tailscale installer ad image</title>
+  <desc id="desc">A private network tile with connected nodes and Tailscale text.</desc>
+  <rect width="1200" height="628" fill="#0c0a09"/>
+  <g stroke="#f5f5f4" stroke-width="10" stroke-linecap="round" opacity="0.9">
+    <path d="M268 210 486 314 268 418M486 314h256M742 314l190-104M742 314l190 104"/>
+  </g>
+  <g fill="#f5f5f4">
+    <circle cx="268" cy="210" r="34"/>
+    <circle cx="268" cy="418" r="34"/>
+    <circle cx="486" cy="314" r="40"/>
+    <circle cx="742" cy="314" r="40"/>
+    <circle cx="932" cy="210" r="34"/>
+    <circle cx="932" cy="418" r="34"/>
+  </g>
+  <text x="90" y="524" fill="#f5f5f4" font-family="Arial, Helvetica, sans-serif" font-size="86" font-weight="700">Tailscale</text>
+  <text x="94" y="578" fill="#a8a29e" font-family="Arial, Helvetica, sans-serif" font-size="34">private staff access for server nodes and support</text>
+</svg>

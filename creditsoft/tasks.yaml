@@ -1,0 +1,7 @@
+tasks:
+  - intake_reports
+  - compare_bureaus
+  - confirm_violations
+  - draft_letters
+  - publish_case_brief
+  - update_cfo_metrics

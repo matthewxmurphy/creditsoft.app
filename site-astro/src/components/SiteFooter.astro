@@ -1,0 +1,26 @@
+---
+import { footerGroups } from '../content/site';
+---
+
+<footer class="site-footer">
+	<div class="site-footer__brand">
+		<img src="/brand/creditsoft-wordmark.png" alt="CreditSoft" />
+		<p>
+			CreditSoft gives credit offices a cleaner website, portal, update lane, and operations surface without
+			looking like generic software.
+		</p>
+	</div>
+
+	<div class="site-footer__groups">
+		{footerGroups.map((group) => (
+			<div class="site-footer__group">
+				<h3>{group.title}</h3>
+				<ul>
+					{group.links.map((link) => (
+						<li><a href={link.href}>{link.label}</a></li>
+					))}
+				</ul>
+			</div>
+		))}
+	</div>
+</footer>

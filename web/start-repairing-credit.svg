@@ -1,0 +1,66 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="110" y1="60" x2="820" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF6FF"/>
+      <stop offset="1" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="card" x1="258" y1="157" x2="719" y2="538" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F5F9FF"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="677" y1="127" x2="791" y2="274" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <filter id="shadow" x="122" y="94" width="688" height="496" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="18"/>
+      <feGaussianBlur stdDeviation="28"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0588235 0 0 0 0 0.0941176 0 0 0 0 0.164706 0 0 0 0.12 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+  <rect width="960" height="720" rx="44" fill="url(#bg)"/>
+  <circle cx="171" cy="142" r="70" fill="#DBEAFE"/>
+  <circle cx="816" cy="590" r="94" fill="#E0F2FE"/>
+  <g filter="url(#shadow)">
+    <rect x="178" y="132" width="576" height="384" rx="30" fill="url(#card)"/>
+    <rect x="178" y="132" width="576" height="72" rx="30" fill="#0F172A"/>
+    <rect x="178" y="174" width="576" height="30" fill="#0F172A"/>
+    <circle cx="220" cy="168" r="8" fill="#FCA5A5"/>
+    <circle cx="247" cy="168" r="8" fill="#FCD34D"/>
+    <circle cx="274" cy="168" r="8" fill="#86EFAC"/>
+    <rect x="320" y="153" width="210" height="30" rx="15" fill="rgba(255,255,255,0.12)"/>
+    <rect x="214" y="236" width="246" height="170" rx="24" fill="#FFFFFF"/>
+    <rect x="236" y="258" width="120" height="12" rx="6" fill="#CBD5E1"/>
+    <rect x="236" y="287" width="188" height="18" rx="9" fill="#0F172A"/>
+    <rect x="236" y="324" width="150" height="14" rx="7" fill="#94A3B8"/>
+    <rect x="236" y="354" width="122" height="14" rx="7" fill="#94A3B8"/>
+    <rect x="236" y="387" width="150" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="236" y="407" width="170" height="10" rx="5" fill="#E2E8F0"/>
+    <rect x="486" y="236" width="230" height="70" rx="22" fill="url(#accent)"/>
+    <rect x="514" y="260" width="122" height="12" rx="6" fill="rgba(255,255,255,0.68)"/>
+    <rect x="514" y="281" width="168" height="10" rx="5" fill="rgba(255,255,255,0.38)"/>
+    <rect x="486" y="326" width="230" height="108" rx="22" fill="#F8FAFC"/>
+    <path d="M515 395L551 363L588 374L636 334L687 352" stroke="#10B981" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="551" cy="363" r="9" fill="#10B981"/>
+    <circle cx="588" cy="374" r="9" fill="#10B981"/>
+    <circle cx="636" cy="334" r="9" fill="#10B981"/>
+    <circle cx="687" cy="352" r="9" fill="#10B981"/>
+    <rect x="214" y="432" width="502" height="52" rx="18" fill="#EFF6FF"/>
+    <circle cx="246" cy="458" r="11" fill="#2563EB"/>
+    <rect x="269" y="451" width="156" height="14" rx="7" fill="#2563EB"/>
+    <rect x="605" y="446" width="83" height="24" rx="12" fill="#DCFCE7"/>
+  </g>
+  <rect x="120" y="532" width="214" height="106" rx="28" fill="#FFFFFF" opacity="0.9"/>
+  <rect x="146" y="563" width="86" height="14" rx="7" fill="#0F172A"/>
+  <rect x="146" y="588" width="154" height="10" rx="5" fill="#94A3B8"/>
+  <rect x="146" y="609" width="106" height="10" rx="5" fill="#94A3B8"/>
+  <rect x="628" y="82" width="186" height="172" rx="30" fill="#FFFFFF" opacity="0.92"/>
+  <rect x="654" y="111" width="114" height="14" rx="7" fill="#0F172A"/>
+  <rect x="654" y="139" width="68" height="56" rx="16" fill="#DBEAFE"/>
+  <rect x="734" y="139" width="52" height="56" rx="16" fill="#DCFCE7"/>
+  <rect x="654" y="213" width="132" height="10" rx="5" fill="#CBD5E1"/>
+</svg>

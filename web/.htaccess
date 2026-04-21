@@ -1,0 +1,51 @@
+ErrorDocument 404 /404
+Options -MultiViews
+
+# Enable RewriteEngine
+RewriteEngine On
+RewriteBase /
+
+# Stable website API bridge endpoints
+RewriteRule ^api/v1/meta/callback/?$ /api/v1/meta/callback.php [END,QSA]
+RewriteRule ^api/v1/?$ /api/v1/index.php [END,QSA]
+RewriteRule ^api/v1/(.+)$ /api/v1/index.php [END,QSA]
+
+# Admin subdomain shortcuts
+RewriteCond %{HTTP_HOST} ^admin\.[^:]+(?::\d+)?$ [NC]
+RewriteRule ^$ admin/index.php [L,QSA]
+
+RewriteCond %{HTTP_HOST} ^admin\.[^:]+(?::\d+)?$ [NC]
+RewriteRule ^login/?$ admin/login.php [L,QSA]
+
+RewriteCond %{HTTP_HOST} ^admin\.[^:]+(?::\d+)?$ [NC]
+RewriteRule ^logout/?$ admin/logout.php [L,QSA]
+
+RewriteCond %{HTTP_HOST} ^admin\.[^:]+(?::\d+)?$ [NC]
+RewriteRule ^email-preview(?:\.php)?/?$ admin/email-preview.php [L,QSA]
+
+RewriteCond %{HTTP_HOST} ^admin\.[^:]+(?::\d+)?$ [NC]
+RewriteRule ^two-factor/?$ admin/two-factor.php [L,QSA]
+
+RewriteCond %{HTTP_HOST} ^admin\.[^:]+(?::\d+)?$ [NC]
+RewriteRule ^two-factor-challenge/?$ admin/two-factor-challenge.php [L,QSA]
+
+# SEO crawler endpoints
+RewriteRule ^robots\.txt$ robots.php [L,QSA]
+RewriteRule ^sitemap\.xml$ sitemap.php [L,QSA]
+
+# Normalize clean PHP-backed routes with trailing slashes, e.g. /crm/ -> /crm
+RewriteCond %{DOCUMENT_ROOT}/$1.php -f
+RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+# Serve existing files/directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Root to index
+RewriteRule ^$ index.php [L]
+
+# Route .php files only when the matching file actually exists
+RewriteCond %{REQUEST_URI} !\.
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L]

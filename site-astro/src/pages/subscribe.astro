@@ -1,0 +1,236 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Layout from '../layouts/Layout.astro';
+import {
+	emailDomainHasMailServer,
+	requestIp,
+	turnstileSiteKey,
+	verifyTurnstileToken,
+} from '../lib/lead-guard';
+import { captureLead } from '../lib/site-data';
+
+const search = Astro.url.searchParams;
+const requestedStep = search.get('step');
+const starter = {
+	name: search.get('name') ?? '',
+	email: search.get('email') ?? '',
+	phone: search.get('phone') ?? '',
+	company: search.get('company') ?? '',
+	planInterest: search.get('planInterest') ?? '',
+};
+
+const monitoringOptions = ['SmartCredit', 'Credit Karma', 'IdentityIQ', 'MyScoreIQ', 'Other'];
+const workflowOptions = ['Credit Repair Cloud', 'DisputeFox', 'White Label CRO', 'Client Dispute Manager', 'Manual process'];
+const teamOptions = ['Just me', '2-3', '4-10', '11+'];
+
+let step = requestedStep === 'qualify' ? 'qualify' : 'starter';
+let submitted = false;
+let submitError = '';
+let submittedLeadName = '';
+
+if (Astro.request.method === 'POST') {
+	const formData = await Astro.request.formData();
+	step = 'qualify';
+	starter.name = String(formData.get('name') ?? '').trim();
+	starter.email = String(formData.get('email') ?? '').trim();
+	starter.phone = String(formData.get('phone') ?? '').trim();
+	starter.company = String(formData.get('company') ?? '').trim();
+	starter.planInterest = String(formData.get('planInterest') ?? '').trim();
+
+	const currentWorkflow = String(formData.get('currentWorkflow') ?? '').trim();
+	const clientCount = String(formData.get('clientCount') ?? '').trim();
+	const merchantProvider = String(formData.get('merchantProvider') ?? '').trim();
+	const paymentMethods = String(formData.get('paymentMethods') ?? '').trim();
+	const websiteStatus = String(formData.get('websiteStatus') ?? '').trim();
+	const outsourcing = String(formData.get('outsourcing') ?? '').trim();
+	const roiVisibility = String(formData.get('roiVisibility') ?? '').trim();
+	const teamSize = String(formData.get('teamSize') ?? '').trim();
+	const notes = String(formData.get('notes') ?? '').trim();
+	const monitoringSystems = formData.getAll('monitoringSystems').map((value) => String(value));
+	const turnstileToken = String(formData.get('cf-turnstile-response') ?? formData.get('turnstile_token') ?? '').trim();
+
+	if (!starter.name || !starter.email) {
+		submitError = 'Please keep the contact step filled out so we know who this office belongs to.';
+	} else if (!currentWorkflow || !clientCount) {
+		submitError = 'Please tell us what you currently use and roughly how many clients you have.';
+	} else if (!(await emailDomainHasMailServer(starter.email))) {
+		submitError = 'That email domain does not publish mail server DNS yet.';
+	} else {
+		const turnstile = await verifyTurnstileToken(turnstileToken, requestIp(Astro.request));
+
+		if (!turnstile.ok) {
+			submitError = 'The browser check did not pass. Refresh and try again.';
+		} else {
+			const result = await captureLead(
+				{
+					name: starter.name,
+					email: starter.email,
+					phone: starter.phone || null,
+					company: starter.company || null,
+					planInterest: starter.planInterest || null,
+					source: 'astro_subscribe',
+					status: 'qualified',
+					currentSoftware: currentWorkflow,
+					clientCount: Number(clientCount),
+					outsourcing: outsourcing || null,
+					merchantProvider: merchantProvider || null,
+					paymentMethods: paymentMethods || null,
+					websiteStatus: websiteStatus || null,
+					roiVisibility: roiVisibility || null,
+					notes: {
+						monitoringSystems,
+						teamSize,
+						notes,
+						turnstileVerified: !turnstile.skipped,
+						mailDomainChecked: true,
+						crmConfirmation: 'Lead accepted for CRM review. No email was sent.',
+					},
+				},
+				Astro.cookies,
+			);
+
+			submitted = true;
+			submittedLeadName = result.data.name;
+		}
+	}
+}
+---
+
+<Layout title="Office Fit Check | CreditSoft" description="Two-step office intake for migration, workflow, merchant, website, and outsourcing details.">
+	{turnstileSiteKey ? <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script> : null}
+	<PageHero
+		eyebrow="Office fit check"
+		title="Step one gets the contact. Step two gets the real office profile."
+		copy="The public site should not stop at name and email. It should move straight into client count, workflow, monitoring, merchant setup, website quality, outsourcing, and ROI visibility."
+	/>
+
+	<section class="section">
+		{submitted ? (
+			<div class="qualify-preview">
+				<div class="eyebrow">Saved</div>
+				<h2>{submittedLeadName}, your office profile is in.</h2>
+				<p class="lede">The lead capture went through. This is where the sales/admin lane can now pick up workflow, plan fit, merchant questions, outsourcing, and website migration follow-up.</p>
+			</div>
+		) : (
+			<div class="two-column-copy">
+				{step === 'starter' ? (
+					<form class="stack-form" method="get" action="/subscribe">
+						<input type="hidden" name="step" value="qualify" />
+						<h2>Starter step</h2>
+						<label>
+							<span>Name</span>
+							<input type="text" name="name" placeholder="Your name" value={starter.name} required />
+						</label>
+						<label>
+							<span>Email</span>
+							<input type="email" name="email" placeholder="you@company.com" value={starter.email} required />
+						</label>
+						<label>
+							<span>Phone</span>
+							<input type="text" name="phone" placeholder="(555) 555-5555" value={starter.phone} />
+						</label>
+						<label>
+							<span>Company</span>
+							<input type="text" name="company" placeholder="CreditSoft App" value={starter.company} />
+						</label>
+						<button class="button button--primary" type="submit">Go to step two</button>
+					</form>
+				) : (
+					<form class="stack-form" method="post">
+						<h2>Step two</h2>
+						{submitError ? <p class="lede">{submitError}</p> : null}
+						<input type="hidden" name="name" value={starter.name} />
+						<input type="hidden" name="email" value={starter.email} />
+						<input type="hidden" name="phone" value={starter.phone} />
+						<input type="hidden" name="company" value={starter.company} />
+						<input type="hidden" name="planInterest" value={starter.planInterest} />
+						<label>
+							<span>Current workflow</span>
+							<select name="currentWorkflow" required>
+								<option value="">Choose one</option>
+								{workflowOptions.map((option) => <option value={option}>{option}</option>)}
+							</select>
+						</label>
+						<label>
+							<span>Client count</span>
+							<select name="clientCount" required>
+								<option value="">Choose one</option>
+								<option value="25">0-25</option>
+								<option value="100">26-100</option>
+								<option value="250">101-250</option>
+								<option value="500">251-500</option>
+								<option value="1000">500+</option>
+							</select>
+						</label>
+						<label>
+							<span>Monitoring systems</span>
+							<select name="monitoringSystems" multiple size={Math.min(monitoringOptions.length, 5)}>
+								{monitoringOptions.map((option) => <option value={option}>{option}</option>)}
+							</select>
+						</label>
+						<label>
+							<span>Merchant provider</span>
+							<input type="text" name="merchantProvider" placeholder="Authorize.net, PaymentCloud, NMI, etc." />
+						</label>
+						<label>
+							<span>How do you take payments now?</span>
+							<input type="text" name="paymentMethods" placeholder="Zelle, ACH, card, manual, etc." />
+						</label>
+						<label>
+							<span>Website status</span>
+							<select name="websiteStatus">
+								<option value="">Choose one</option>
+								<option value="have_and_like">Have one and like it</option>
+								<option value="have_and_dislike">Have one and dislike it</option>
+								<option value="need_one">Need one</option>
+							</select>
+						</label>
+						<label>
+							<span>Do you outsource?</span>
+							<select name="outsourcing">
+								<option value="">Choose one</option>
+								<option value="no">No</option>
+								<option value="yes_some">Only some parts</option>
+								<option value="yes_heavy">Yes, a lot</option>
+							</select>
+						</label>
+						<label>
+							<span>ROI visibility</span>
+							<select name="roiVisibility">
+								<option value="">Choose one</option>
+								<option value="none">No idea yet</option>
+								<option value="rough">Rough idea</option>
+								<option value="tracked">Tracked regularly</option>
+							</select>
+						</label>
+						<label>
+							<span>Team size</span>
+							<select name="teamSize">
+								<option value="">Choose one</option>
+								{teamOptions.map((option) => <option value={option}>{option}</option>)}
+							</select>
+						</label>
+						<label>
+							<span>Anything else?</span>
+							<textarea name="notes" rows="4" placeholder="What hurts now, what you need replaced, and what a win would look like." />
+						</label>
+						{turnstileSiteKey ? <div class="cf-turnstile" data-sitekey={turnstileSiteKey}></div> : null}
+						<button class="button button--primary" type="submit">Submit office profile</button>
+					</form>
+				)}
+
+				<div class="qualify-preview">
+					<h2>Step two asks the right questions</h2>
+					<ul class="bullet-list">
+						<li>How many clients do you have?</li>
+						<li>What monitoring systems do you use?</li>
+						<li>What do you currently use to do the work?</li>
+						<li>Do you have a merchant, and if not how do you take payments?</li>
+						<li>Do you have a website, and do you even like it?</li>
+						<li>Do you outsource, and do you know your ROI?</li>
+					</ul>
+				</div>
+			</div>
+		)}
+	</section>
+</Layout>

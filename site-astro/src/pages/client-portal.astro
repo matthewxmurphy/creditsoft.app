@@ -1,0 +1,27 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Client Portal | CreditSoft" description="Client-facing portal entry and expectations for CreditSoft offices.">
+	<PageHero
+		eyebrow="Portal"
+		title="Client-facing access should feel like part of the same product."
+		copy="The public portal lane explains what clients log into, while keeping the actual office and admin surfaces separate."
+	/>
+
+	<section class="section">
+		<div class="proof-grid">
+			<article class="proof-block">
+				<h2>Client login</h2>
+				<p>For people already working with your office who need their portal entry point.</p>
+				<a class="button button--secondary" href="/login">Go to login options</a>
+			</article>
+			<article class="proof-block">
+				<h2>Admin login</h2>
+				<p>For the office owner or site admin managing pricing, leads, licenses, and the public site rails.</p>
+				<a class="button button--secondary" href="/admin/login">Open admin</a>
+			</article>
+		</div>
+	</section>
+</Layout>

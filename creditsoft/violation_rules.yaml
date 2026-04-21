@@ -1,0 +1,89 @@
+rules:
+  - key: metro2_status_conflict
+    title: Status conflict across bureaus
+    severity: high
+    priority_boost: 16
+    category: metro2
+    reference: Metro 2 consistency
+    description: The same tradeline is reporting incompatible account statuses across bureaus.
+    next_action: Compare status, payment state, and remarks across all bureaus before drafting the dispute letter.
+  - key: metro2_balance_conflict
+    title: Balance mismatch across bureaus
+    severity: high
+    priority_boost: 14
+    category: metro2
+    reference: Metro 2 accuracy
+    description: A matched tradeline shows different balances across bureaus.
+    next_action: Validate the latest statement history and prepare a balance accuracy dispute.
+  - key: metro2_missing_key_dates
+    title: Missing key payment or delinquency dates
+    severity: medium
+    priority_boost: 10
+    category: metro2
+    reference: Metro 2 completeness
+    description: Date fields needed to interpret the tradeline are missing or inconsistent.
+    next_action: Capture the missing or conflicting dates and cite completeness requirements in the next challenge.
+  - key: metro2_missing_bureau_entry
+    title: Tradeline missing from one or more bureaus
+    severity: medium
+    priority_boost: 8
+    category: metro2
+    reference: Cross-bureau consistency
+    description: A tradeline is present on one or two bureaus but missing from the rest.
+    next_action: Confirm whether the account should appear on every bureau and document the gap for follow-up.
+  - key: duplicate_account
+    title: Duplicate account reporting
+    severity: high
+    priority_boost: 15
+    category: metro2
+    reference: Duplicate tradeline review
+    description: The same account appears multiple times on a bureau or matched set.
+    next_action: Mark the duplicate entries and prepare language requesting deletion or correction of the duplicate reporting.
+  - key: stale_collection_open
+    title: Collection remains open with stale reporting
+    severity: high
+    priority_boost: 18
+    category: metro2
+    reference: Collection status review
+    description: A collection item still shows open status when it appears stale or internally inconsistent.
+    next_action: Review collection status and date history, then prepare the stale-open collection challenge.
+  - key: unverifiable_item
+    title: Item appears incomplete or unverifiable
+    severity: medium
+    priority_boost: 9
+    category: compliance
+    reference: Accuracy, completeness, verifiability
+    description: The tradeline is missing enough information that it may fail accuracy or verifiability standards.
+    next_action: Note which fields are incomplete and move the item into review for verification language.
+  - key: utilization_over_threshold
+    title: Utilization over 30 percent
+    severity: medium
+    priority_boost: 4
+    category: strategy
+    reference: Revolving utilization priority
+    description: Revolving utilization is above the recommended coaching threshold.
+    next_action: Add the account to the utilization paydown plan and include it in the next client brief.
+  - key: metro2_payment_status_conflict
+    title: Payment status conflict across bureaus
+    severity: high
+    priority_boost: 13
+    category: metro2
+    reference: Payment history consistency
+    description: A matched tradeline reports different payment states across the bureaus.
+    next_action: Compare the payment state history and remarks, then draft a dispute around the inconsistent payment reporting.
+  - key: metro2_open_state_conflict
+    title: Open versus closed conflict
+    severity: high
+    priority_boost: 12
+    category: metro2
+    reference: Account status consistency
+    description: The same tradeline is reported as open on one bureau and closed on another.
+    next_action: Confirm the correct open or closed state and elevate the inconsistency into the next dispute package.
+  - key: metro2_missing_credit_limit
+    title: Revolving limit missing or incomplete
+    severity: medium
+    priority_boost: 7
+    category: metro2
+    reference: Revolving completeness
+    description: A revolving tradeline is missing the credit limit needed to evaluate utilization accurately.
+    next_action: Capture the missing limit data and challenge the incomplete revolving reporting before coaching the client.

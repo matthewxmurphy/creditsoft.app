@@ -1,0 +1,60 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Layout from '../layouts/Layout.astro';
+import { comparisonRows, productOverviewPages, proofPoints } from '../content/site';
+---
+
+<Layout title="Features | CreditSoft" description="CreditSoft features across intranet, PWA, migration, portal, website, and update lanes.">
+	<PageHero
+		eyebrow="Features"
+		title="A longer feature list is only useful if the software actually organizes the work."
+		copy="CreditSoft is strongest when the product narrows the lane for the operator instead of showing every possible tool and pretending that counts as automation."
+	/>
+
+	<section class="section">
+		<div class="proof-grid">
+			{proofPoints.map((item) => (
+				<article class="proof-block">
+					<h2>{item.title}</h2>
+					<p>{item.copy}</p>
+				</article>
+			))}
+		</div>
+	</section>
+
+	<section class="section section--contrast">
+		<div class="comparison-table">
+			<div class="comparison-table__head">
+				<span>Feature</span>
+				<span>CreditSoft</span>
+				<span>Typical stack</span>
+			</div>
+			{comparisonRows.map((row) => (
+				<div class="comparison-table__row">
+					<strong>{row.label}</strong>
+					<span>{row.creditsoft}</span>
+					<span>{row.typical}</span>
+				</div>
+			))}
+		</div>
+	</section>
+
+	<section class="section">
+		<div class="section__intro">
+			<div class="eyebrow">Overview map</div>
+			<h2>The stack at a glance.</h2>
+			<p class="lede lede--narrow">
+				Use this page to understand the product shape quickly. Each lane has its own page when you want
+				the expanded details.
+			</p>
+		</div>
+		<div class="overview-grid">
+			{productOverviewPages.map((item) => (
+				<a class="overview-link" href={item.href}>
+					<strong>{item.title}</strong>
+					<span>{item.copy}</span>
+				</a>
+			))}
+		</div>
+	</section>
+</Layout>

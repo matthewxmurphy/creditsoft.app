@@ -1,0 +1,66 @@
+---
+import { featureMenuItems, navLinks } from '../content/site';
+
+interface Props {
+	currentPath?: string;
+}
+
+const { currentPath = '/' } = Astro.props;
+const normalizedPath =
+	currentPath.length > 1 && currentPath.endsWith('/') ? currentPath.slice(0, -1) : currentPath;
+
+const featuresCurrent = normalizedPath === '/features';
+---
+
+<header class="site-header">
+	<div class="site-header__utility">
+		<div class="site-header__utility-inner">
+			<p>Metro2-first credit repair software with local-first CRM, intranet, portal, and website lanes.</p>
+			<a href="mailto:hello@creditsoft.app">hello@creditsoft.app</a>
+		</div>
+	</div>
+
+	<div class="site-header__nav-shell">
+		<div class="site-header__logo">
+			<a href="/" aria-label="CreditSoft home">
+				<img src="/brand/creditsoft-wordmark.png" alt="CreditSoft" />
+			</a>
+		</div>
+
+		<nav class="site-header__nav" aria-label="Primary">
+			{navLinks.map((link) => (
+				link.href === '/features' ? (
+					<div class="site-header__nav-item site-header__nav-item--has-menu">
+						<a
+							class={featuresCurrent ? 'site-header__nav-link site-header__nav-trigger is-active' : 'site-header__nav-link site-header__nav-trigger'}
+							href={link.href}
+							aria-haspopup="true"
+						>
+							<span>{link.label}</span>
+							<svg viewBox="0 0 20 20" aria-hidden="true">
+								<path d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" />
+							</svg>
+						</a>
+						<div class="site-header__dropdown" aria-label="Feature pages">
+							{featureMenuItems.map((item) => (
+								<a class="site-header__dropdown-item" href={item.href}>
+									<strong>{item.title}</strong>
+									<span>{item.copy}</span>
+								</a>
+							))}
+						</div>
+					</div>
+				) : (
+					<a class={currentPath === link.href ? 'is-active' : ''} href={link.href}>
+						{link.label}
+					</a>
+				)
+			))}
+		</nav>
+
+		<div class="site-header__actions">
+			<a class="button button--primary" href="/subscribe">Start Intake</a>
+			<a class="button button--ghost" href="/login">Login</a>
+		</div>
+	</div>
+</header>

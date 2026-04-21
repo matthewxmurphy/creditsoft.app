@@ -1,0 +1,89 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Layout from '../layouts/Layout.astro';
+import { loadInstallAds, loadUpdateFeed } from '../lib/site-data';
+
+const updateFeed = await loadUpdateFeed(Astro.cookies);
+const installAds = await loadInstallAds(Astro.cookies);
+const feed = updateFeed.data;
+---
+
+<Layout title="Updates | CreditSoft" description="Update lane for installers, companion downloads, and public update notes.">
+	<PageHero
+		eyebrow="Updates"
+		title="The update lane should feel real, not empty."
+		copy="This page exists to hold update notes, dummy package downloads while the feed is being wired, and the browser companion download so customers do not wonder whether the update server is real."
+	/>
+
+	<section class="section">
+		<div class="proof-grid">
+			<article class="proof-block">
+				<h2>Desktop installer</h2>
+				<p>Serve a versioned package and point the website and installer feed at the same source of truth.</p>
+				<a class="button button--secondary" href={feed.downloadUrl} target="_blank" rel="noreferrer">Download current package</a>
+			</article>
+			<article class="proof-block">
+				<h2>Customer companion</h2>
+				<p>Host the browser companion package from the update lane. New installs get a 7-day setup trial before the paid companion feature is required.</p>
+				{feed.browserCompanionUrl ? (
+					<a class="button button--secondary" href={feed.browserCompanionUrl} target="_blank" rel="noreferrer">Download companion</a>
+				) : null}
+			</article>
+			<article class="proof-block">
+				<h2>Update notes</h2>
+				<p>{feed.notes ?? 'Show what changed, what version is current, and what the office should expect before or after install.'}</p>
+				<div class="pill-list">
+					<span class="pill">Current {feed.currentVersion}</span>
+					<span class="pill">Latest {feed.latestVersion}</span>
+				</div>
+			</article>
+		</div>
+	</section>
+
+	<section class="section">
+		<div class="section__split">
+			<div>
+				<div class="eyebrow">Zelle renewal</div>
+				<h2>Trial ended? Scan the Zelle QR from the renewal lane.</h2>
+				<p class="lede">The intranet license page sends expired companion access to renewal, and the same QR is staged here so the update server can collect payments without guessing.</p>
+				<div class="button-row">
+					<a class="button button--primary" href="https://updates.creditsoft.app/renewal/">Open renewal</a>
+					{feed.browserCompanionUrl ? (
+						<a class="button button--secondary" href={feed.browserCompanionUrl}>Download companion 0.5.6</a>
+					) : null}
+				</div>
+			</div>
+			<img class="zelle-qr" src="/assets/payments/zelle.png" alt="CreditSoft Zelle QR code" loading="lazy" />
+		</div>
+	</section>
+
+	<section class="section">
+		<div class="section__intro">
+			<div class="eyebrow">Installer ads</div>
+			<h2>Public install ads can come from the same site data lane.</h2>
+		</div>
+		<div class="proof-grid">
+			{installAds.data.map((ad) => (
+				<article class="proof-block">
+					{ad.imageUrl ? <img class="promo-image" src={ad.imageUrl} alt={ad.title} loading="lazy" /> : null}
+					<div class="eyebrow">{ad.eyebrow}</div>
+					<h3>{ad.title}</h3>
+					<p>{ad.copy}</p>
+					<a class="button button--secondary" href={ad.linkUrl} target="_blank" rel="noreferrer">{ad.ctaLabel}</a>
+				</article>
+			))}
+		</div>
+	</section>
+</Layout>
+
+<style>
+	.zelle-qr {
+		width: min(100%, 320px);
+		justify-self: center;
+		border-radius: 18px;
+		background: white;
+		padding: 14px;
+		border: 1px solid var(--line);
+		box-shadow: var(--shadow);
+	}
+</style>

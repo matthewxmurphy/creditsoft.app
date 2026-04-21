@@ -1,0 +1,132 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+---
+
+<BaseLayout
+  title="CreditSoft Renewal"
+  description="Renew CreditSoft with clear pricing, annual discounts, and the correct update lane."
+>
+  <SiteHeader />
+
+  <main class="page-wrap section page-body">
+    <SectionHeading
+      eyebrow="Renewal"
+      title="Renewals should feel like a normal update, not a support ticket."
+      text="Show the current plan, the sale price, the annual discount, and the next step in one view."
+    />
+    <div class="renewal-grid">
+      <article class="renewal-card panel">
+        <span class="eyebrow">Zelle renewal</span>
+        <h3>Scan the QR, then send the office email as the memo.</h3>
+        <p>Use this lane when the office license expires or when the 7-day browser companion trial needs to become paid access.</p>
+        <div class="qr-panel">
+          <img src="/assets/payments/zelle.png" alt="CreditSoft Zelle QR code" />
+          <small>Live CreditSoft Zelle QR</small>
+        </div>
+        <div class="numbers">
+          <div><strong>7 days</strong><span>companion trial</span></div>
+          <div><strong>10%</strong><span>Zelle discount</span></div>
+          <div><strong>8h</strong><span>processing window</span></div>
+        </div>
+      </article>
+      <article class="renewal-card panel-soft">
+        <span class="eyebrow">What payment unlocks</span>
+        <ul>
+          <li>Browser companion report pulls after the setup trial ends</li>
+          <li>Continued office updates and recovery downloads</li>
+          <li>Legacy CRM import support during customer onboarding</li>
+          <li>Plan changes, extensions, and billing history review</li>
+        </ul>
+        <a class="button primary" href="/downloads/creditsoft-browser-companion-v0.5.6.zip">Download companion 0.5.6</a>
+      </article>
+    </div>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-body {
+    padding-top: 60px;
+  }
+
+  .renewal-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 18px;
+  }
+
+  .renewal-card {
+    padding: 26px;
+  }
+
+  .renewal-card h3 {
+    margin: 16px 0 10px;
+    font-size: 1.8rem;
+  }
+
+  .renewal-card p {
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .qr-panel {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    margin: 24px 0 0;
+    color: var(--muted);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .qr-panel img {
+    width: min(100%, 320px);
+    border-radius: 22px;
+    background: white;
+    padding: 14px;
+  }
+
+  .numbers {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+  }
+
+  .numbers div {
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .numbers strong {
+    display: block;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+  }
+
+  .numbers span,
+  .renewal-card li {
+    color: var(--muted);
+  }
+
+  .renewal-card ul {
+    margin: 18px 0 0;
+    padding-left: 18px;
+    line-height: 1.9;
+  }
+
+  .renewal-card .button {
+    margin-top: 24px;
+  }
+
+  @media (max-width: 900px) {
+    .renewal-grid,
+    .numbers {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

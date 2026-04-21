@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#111111">
+        <title>CreditSoft | Offline</title>
+        <style>
+            :root {
+                color-scheme: light;
+            }
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                background:
+                    radial-gradient(circle at top left, rgba(245, 158, 11, 0.12), transparent 28%),
+                    linear-gradient(180deg, rgba(255, 251, 235, 0.96), rgba(247, 244, 236, 1));
+                color: #1c1917;
+                font-family: "Instrument Sans", system-ui, sans-serif;
+            }
+
+            .panel {
+                width: min(92vw, 34rem);
+                border: 1px solid rgba(120, 113, 108, 0.2);
+                border-radius: 28px;
+                background: rgba(255, 255, 255, 0.92);
+                padding: 2rem;
+                box-shadow: 0 18px 48px rgba(28, 25, 23, 0.12);
+            }
+
+            .panel-shell {
+                display: grid;
+                gap: 1.5rem;
+            }
+
+            .eyebrow {
+                margin: 0 0 0.5rem;
+                color: #78716c;
+                font-size: 0.7rem;
+                font-weight: 600;
+                letter-spacing: 0.28em;
+                text-transform: uppercase;
+            }
+
+            h1 {
+                margin: 0;
+                font-size: clamp(1.8rem, 4vw, 2.6rem);
+            }
+
+            p {
+                margin: 1rem 0 0;
+                color: #57534e;
+                line-height: 1.65;
+            }
+
+            .meta {
+                margin-top: 1.1rem;
+                padding: 0.95rem 1rem;
+                border-radius: 18px;
+                background: rgba(245, 245, 244, 0.95);
+                border: 1px solid rgba(120, 113, 108, 0.14);
+            }
+
+            .meta-label {
+                margin: 0;
+                color: #78716c;
+                font-size: 0.68rem;
+                font-weight: 700;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+            }
+
+            .meta-value {
+                margin: 0.4rem 0 0;
+                color: #1c1917;
+                font-size: 0.98rem;
+                font-weight: 600;
+                word-break: break-word;
+            }
+
+            .actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.85rem;
+                margin-top: 0.4rem;
+            }
+
+            .button,
+            .link-button {
+                appearance: none;
+                border: 0;
+                border-radius: 999px;
+                padding: 0.95rem 1.3rem;
+                font: inherit;
+                font-weight: 700;
+                cursor: pointer;
+                transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .button {
+                color: #14532d;
+                background: linear-gradient(135deg, #86efac, #4ade80);
+                box-shadow: 0 14px 30px rgba(74, 222, 128, 0.25);
+            }
+
+            .button:hover,
+            .button:focus-visible {
+                transform: translateY(-1px);
+                box-shadow: 0 18px 32px rgba(74, 222, 128, 0.3);
+            }
+
+            .button[disabled] {
+                cursor: wait;
+                opacity: 0.8;
+                transform: none;
+            }
+
+            .link-button {
+                color: #1c1917;
+                background: rgba(255, 255, 255, 0.9);
+                border: 1px solid rgba(120, 113, 108, 0.22);
+            }
+
+            .status {
+                min-height: 1.4rem;
+                margin: 0;
+                font-size: 0.95rem;
+                color: #57534e;
+            }
+
+            .status.error {
+                color: #9f1239;
+            }
+
+            .support-note {
+                margin-top: 0.35rem;
+                font-size: 0.92rem;
+                color: #6b7280;
+            }
+
+            .command-block {
+                display: grid;
+                gap: 0.9rem;
+                margin-top: 0.15rem;
+                padding: 1rem;
+                border-radius: 20px;
+                background: rgba(28, 25, 23, 0.04);
+                border: 1px solid rgba(120, 113, 108, 0.14);
+            }
+
+            .command-label {
+                margin: 0;
+                color: #78716c;
+                font-size: 0.68rem;
+                font-weight: 700;
+                letter-spacing: 0.22em;
+                text-transform: uppercase;
+            }
+
+            .command-text {
+                margin: 0;
+                padding: 0.95rem 1rem;
+                border-radius: 18px;
+                background: rgba(255, 255, 255, 0.96);
+                border: 1px solid rgba(120, 113, 108, 0.16);
+                color: #1c1917;
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 0.88rem;
+                line-height: 1.6;
+                word-break: break-all;
+            }
+
+            .hint {
+                margin: 0;
+                font-size: 0.92rem;
+                color: #57534e;
+                line-height: 1.6;
+            }
+        </style>
+    </head>
+    <body>
+        <main class="panel">
+            <div class="panel-shell">
+                <div>
+                    <p class="eyebrow">CreditSoft Offline</p>
+                    <h1>Your local office app is temporarily unavailable.</h1>
+                    <p>Press reconnect first. If the office still does not come back, contact CreditSoft support and tell them which page you were trying to open.</p>
+
+                    <div class="meta">
+                        <p class="meta-label">Requested page</p>
+                        <p class="meta-value" id="targetPath">Checking current location…</p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="actions">
+                        <button id="retryButton" class="button" type="button">Reconnect now</button>
+                        <button id="copyCommandButton" class="link-button" type="button">Copy restart command</button>
+                        <a class="link-button" href="/tools/restart-creditsoft.sh" download>Download restart helper</a>
+                        <a class="link-button" href="https://creditsoft.app/" target="_blank" rel="noreferrer">Contact CreditSoft</a>
+                    </div>
+                    <p id="status" class="status"></p>
+                    <p class="support-note">If reconnect keeps failing, support may need the host machine turned back on or the local Laravel service restarted.</p>
+                </div>
+
+                <div class="command-block">
+                    <div>
+                        <p class="command-label">Terminal restart</p>
+                        <p class="hint">Open Terminal, paste this command, then press Return. Or download the helper and run <strong><code>sh restart-creditsoft.sh</code></strong>. After the local service starts, come back here and press <strong>Reconnect now</strong>.</p>
+                        <p class="hint" style="margin-top: 0.7rem;">If the page shell still comes back blank after a restart or system update, run <strong><code id="recoveryCommandInline"></code></strong> once, then start the service again. That is a recovery step, not the normal boot command.</p>
+                    </div>
+                    <p id="restartCommand" class="command-text"></p>
+                </div>
+            </div>
+        </main>
+        <script>
+            const retryButton = document.getElementById('retryButton');
+            const copyCommandButton = document.getElementById('copyCommandButton');
+            const statusNode = document.getElementById('status');
+            const targetPathNode = document.getElementById('targetPath');
+            const restartCommandNode = document.getElementById('restartCommand');
+            const recoveryCommandInlineNode = document.getElementById('recoveryCommandInline');
+            const currentUrl = window.location.href;
+            const healthUrl = `${window.location.origin}/up`;
+            const restartCommand = 'cd \"/Users/mmurphy/Code/CreditSoft\" && php -d opcache.enable_cli=1 -d opcache.memory_consumption=256 -d opcache.interned_strings_buffer=32 -d opcache.max_accelerated_files=50000 -d opcache.validate_timestamps=1 -d opcache.revalidate_freq=0 -d opcache.file_update_protection=0 -d realpath_cache_size=64M -d realpath_cache_ttl=600 -S 127.0.0.1:8001 -t public';
+            const recoveryCommand = 'cd \"/Users/mmurphy/Code/CreditSoft\" && php artisan optimize:clear && php artisan optimize';
+
+            targetPathNode.textContent = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+            restartCommandNode.textContent = restartCommand;
+            recoveryCommandInlineNode.textContent = recoveryCommand;
+
+            const setStatus = (message, tone = 'default') => {
+                statusNode.textContent = message;
+                statusNode.className = tone === 'error' ? 'status error' : 'status';
+            };
+
+            const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+            const probe = async (url) => {
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-store',
+                        'X-CreditSoft-Reconnect': '1',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Request failed with ${response.status}`);
+                }
+            };
+
+            const reconnect = async () => {
+                retryButton.disabled = true;
+                setStatus('Checking the local office service…');
+
+                try {
+                    await probe(healthUrl);
+                    setStatus('Office service is responding. Reopening your page…');
+                    await wait(350);
+                    window.location.reload();
+                    return;
+                } catch (_healthError) {
+                    try {
+                        await probe(currentUrl);
+                        setStatus('The page responded. Reopening now…');
+                        await wait(350);
+                        window.location.reload();
+                        return;
+                    } catch (_pageError) {
+                        setStatus('Reconnect failed. If this keeps happening, use the CreditSoft support button above.', 'error');
+                    }
+                } finally {
+                    retryButton.disabled = false;
+                }
+            };
+
+            retryButton.addEventListener('click', reconnect);
+
+            copyCommandButton.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(restartCommand);
+                    setStatus('Restart command copied. Paste it into Terminal and press Return.');
+                } catch (_error) {
+                    setStatus('Could not copy automatically. Select the command below and copy it manually.', 'error');
+                }
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "officeName": "CreditSoft Office",
+  "candidateBaseUrls": [
+    "http://127.0.0.1:8001/api/v1",
+    "https://creditsoft-intranet.tailnet-name.ts.net/api/v1",
+    "https://www.example-office-domain.com/api/v1"
+  ],
+  "selectionStrategy": "fastest",
+  "dashboardPath": "/dashboard?source=intranet-client",
+  "notes": "Do not store a personal API key in this file. Pass it through CREDITSOFT_API_TOKEN, --token, or a future OS keychain wrapper."
+}

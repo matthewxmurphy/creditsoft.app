@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CreditSoft Legend Lab 2</title>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        referrerpolicy="no-referrer"
+    />
+    <style>
+        :root {
+            --bg: #f6f1e8;
+            --panel: #fffdf8;
+            --line: #d8cec2;
+            --ink: #1f1a17;
+            --muted: #6e665f;
+            --gold: #f0bb2a;
+            --amber: #d9a63d;
+            --rose: #b65e49;
+            --sky: #6b89ad;
+            --moss: #6b8761;
+            --shadow: 0 22px 58px rgba(31, 26, 23, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            background:
+                radial-gradient(circle at top left, rgba(240, 187, 42, 0.12), transparent 26%),
+                linear-gradient(180deg, #fbf7ef 0%, var(--bg) 100%);
+            color: var(--ink);
+            font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+        }
+
+        body {
+            padding: 28px;
+        }
+
+        .shell {
+            max-width: 1520px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: 30px;
+            background: rgba(255, 253, 248, 0.92);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-copy {
+            padding: 24px 26px;
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 3vw, 3rem);
+            line-height: 1;
+        }
+
+        .lede {
+            margin: 16px 0 0;
+            max-width: 62ch;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .checklist {
+            display: grid;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .checklist div {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .checklist i {
+            width: 18px;
+            color: var(--gold);
+            text-align: center;
+        }
+
+        .recommend {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 18px;
+            padding: 8px 14px;
+            border: 1px solid rgba(240, 187, 42, 0.45);
+            background: rgba(240, 187, 42, 0.16);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .legend-panel {
+            position: relative;
+            padding: 18px 20px;
+        }
+
+        .legend-panel h2 {
+            margin: 0 34px 10px 0;
+            font-size: 15px;
+        }
+
+        .legend-copy {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .legend-row,
+        .flags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .dismiss {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 30px;
+            height: 30px;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background 0.18s ease, color 0.18s ease;
+        }
+
+        .dismiss:hover {
+            background: rgba(31, 26, 23, 0.06);
+            color: var(--ink);
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+            margin: 32px 0 16px;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .section-title p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .option {
+            display: grid;
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .option-head {
+            display: flex;
+            gap: 12px;
+            align-items: start;
+            justify-content: space-between;
+        }
+
+        .number {
+            display: inline-flex;
+            min-width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            background: var(--ink);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .number.recommended {
+            background: linear-gradient(135deg, #171210 0%, #5d420d 100%);
+            box-shadow: inset 0 0 0 1px rgba(240, 187, 42, 0.5);
+        }
+
+        .option-title {
+            flex: 1;
+        }
+
+        .option-title h4 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .option-title p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .rec-chip {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 6px 10px;
+            border: 1px solid rgba(240, 187, 42, 0.45);
+            background: rgba(240, 187, 42, 0.15);
+            color: #6e4c00;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .sample {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .sample small {
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .sample strong {
+            font-size: 15px;
+        }
+
+        .meta-notes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .meta-notes span {
+            padding: 6px 9px;
+            background: rgba(31, 26, 23, 0.05);
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: default;
+        }
+
+        .label::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 10px);
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 250px;
+            padding: 9px 12px;
+            background: rgba(22, 18, 15, 0.94);
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.45;
+            white-space: normal;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.16s ease;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.18);
+        }
+
+        .label:hover::after {
+            opacity: 1;
+        }
+
+        .label i {
+            font-size: 12px;
+        }
+
+        .tone-negative { color: #9b4034; }
+        .tone-missing { color: #8d6300; }
+        .tone-single { color: #4c6787; }
+        .tone-mismatch { color: #6f5208; }
+        .tone-util { color: #4c6840; }
+        .tone-review { color: #5f5751; }
+
+        .label-tag {
+            padding: 8px 12px 8px 14px;
+            border-left: 4px solid currentColor;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: inset 0 0 0 1px rgba(31, 26, 23, 0.08);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-stamp {
+            padding: 7px 10px;
+            border: 1px solid currentColor;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.72));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .label-tab {
+            padding: 9px 12px 8px;
+            background: rgba(255,255,255,0.94);
+            box-shadow:
+                inset 0 0 0 1px rgba(31, 26, 23, 0.08),
+                inset 0 -3px 0 rgba(0,0,0,0.04);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .label-ticket {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.94);
+            border: 1px dashed currentColor;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+            padding-right: 18px;
+        }
+
+        .label-strip {
+            padding: 7px 10px;
+            background:
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(255,255,255,0.94),
+                    rgba(255,255,255,0.94) 10px,
+                    rgba(31,26,23,0.04) 10px,
+                    rgba(31,26,23,0.04) 20px
+                );
+            border-top: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-flag {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.96);
+            border-left: 10px solid currentColor;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-corner {
+            padding: 7px 11px;
+            background: rgba(255,255,255,0.96);
+            box-shadow: inset 0 0 0 1px rgba(31, 26, 23, 0.08);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .label-corner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-top: 10px solid currentColor;
+        }
+
+        .label-spine {
+            display: inline-grid;
+            grid-auto-flow: column;
+            gap: 8px;
+            padding: 8px 10px;
+            border: 1px solid rgba(31, 26, 23, 0.1);
+            background: rgba(255,255,255,0.94);
+            box-shadow: inset 4px 0 0 currentColor;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-bracket {
+            padding: 7px 11px;
+            border-left: 2px solid currentColor;
+            border-right: 2px solid currentColor;
+            background: rgba(255,255,255,0.76);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-capsuleless {
+            padding: 0;
+            background: transparent;
+            border-bottom: 2px solid currentColor;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .label-rail {
+            display: inline-grid;
+            grid-template-columns: 20px auto;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            background: rgba(255,255,255,0.96);
+            box-shadow: inset 0 0 0 1px rgba(31,26,23,0.08);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-rail .bar {
+            display: block;
+            width: 4px;
+            height: 18px;
+            background: currentColor;
+        }
+
+        .footer-legend {
+            margin-top: 22px;
+        }
+
+        @media (max-width: 1180px) {
+            .hero,
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 880px) {
+            body {
+                padding: 18px;
+            }
+
+            .hero,
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <section class="hero">
+            <div class="panel hero-copy">
+                <p class="eyebrow">Legend Lab 2</p>
+                <h1>Actual labels, stamps, tabs, and evidence markers.</h1>
+                <p class="lede">
+                    This pass avoids rounded pills almost entirely. The goal here is to make the indicators feel like real
+                    labels attached to a record, not generic UI chips.
+                </p>
+
+                <div class="checklist">
+                    <div><i class="fa-solid fa-tag"></i> Everything here is label-driven, not pill-driven.</div>
+                    <div><i class="fa-solid fa-computer-mouse"></i> Hover any sample to see its meaning.</div>
+                    <div><i class="fa-solid fa-hashtag"></i> Say “2”, “7”, or “mix 3 and 11” and I’ll know exactly which direction you mean.</div>
+                </div>
+
+                <div class="recommend">
+                    <i class="fa-solid fa-star"></i>
+                    Recommended: 1, 3, 6, 10
+                </div>
+            </div>
+
+            <aside class="panel legend-panel" id="topLegend2">
+                <button class="dismiss" type="button" data-dismiss="topLegend2" aria-label="Hide header legend">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <h2>Header Legend</h2>
+                <p class="legend-copy">This is the compact legend version. The row itself would only carry the labels.</p>
+                <div class="legend-row">
+                    <span class="label label-stamp tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                    <span class="label label-stamp tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                    <span class="label label-stamp tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    <span class="label label-stamp tone-mismatch" data-tip="Data differs across bureaus and needs Metro 2 review."><i class="fa-solid fa-code-compare"></i> Mismatch</span>
+                    <span class="label label-stamp tone-util" data-tip="Utilization is over the target threshold."><i class="fa-solid fa-chart-pie"></i> Util &gt; 30%</span>
+                </div>
+            </aside>
+        </section>
+
+        <div class="section-title">
+            <div>
+                <h3>Recommended Label Systems</h3>
+                <p>These feel the most like true tags or evidence labels instead of pills.</p>
+            </div>
+        </div>
+
+        <section class="grid">
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">1</span>
+                    <div class="option-title">
+                        <h4>Evidence Tags</h4>
+                        <p>Looks like labels applied to a file. Easy to scan and still serious.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <strong>Capital One Bank · charged off</strong>
+                    <div class="flags">
+                        <span class="label label-tag tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-tag tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="label label-tag tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+                <div class="meta-notes"><span>Best overall</span><span>Looks intentional</span><span>Easy legend</span></div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">2</span>
+                    <div class="option-title">
+                        <h4>Compliance Stamps</h4>
+                        <p>Feels like a real ops desk or audit tool. More rigid than modern SaaS chips.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <strong>Capital One Bank · charged off</strong>
+                    <div class="flags">
+                        <span class="label label-stamp tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-stamp tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="label label-stamp tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+                <div class="meta-notes"><span>Firm</span><span>Audit tone</span></div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">3</span>
+                    <div class="option-title">
+                        <h4>File Tabs</h4>
+                        <p>Looks like tabs attached to a dossier section. Very believable for a casework product.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <strong>Capital One Bank · charged off</strong>
+                    <div class="flags">
+                        <span class="label label-tab tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-tab tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="label label-tab tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+                <div class="meta-notes"><span>Dossier feel</span><span>More desktop app</span></div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">4</span>
+                    <div class="option-title">
+                        <h4>Ticket Cuts</h4>
+                        <p>Feels like removable labels or routing tickets. Good for review queues.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <strong>Capital One Bank · charged off</strong>
+                    <div class="flags">
+                        <span class="label label-ticket tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-ticket tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                    </div>
+                </div>
+                <div class="meta-notes"><span>Human</span><span>Physical label feel</span></div>
+            </article>
+        </section>
+
+        <div class="section-title">
+            <div>
+                <h3>Other Label Directions</h3>
+                <p>These still avoid pills, but lean harder into visual style.</p>
+            </div>
+        </div>
+
+        <section class="grid">
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">5</span>
+                    <div class="option-title">
+                        <h4>Warning Strips</h4>
+                        <p>Feels like printed caution tape or routing tape across a file.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-strip tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-strip tone-mismatch" data-tip="Data differs across bureaus and needs Metro 2 review."><i class="fa-solid fa-code-compare"></i> Mismatch</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">6</span>
+                    <div class="option-title">
+                        <h4>Side Flags</h4>
+                        <p>Minimal but still feels like a real attached flag rather than a UI chip.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-flag tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-flag tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="label label-flag tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">7</span>
+                    <div class="option-title">
+                        <h4>Corner Folds</h4>
+                        <p>Looks like a marked page corner. Strong if you want the UI to feel more custom.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-corner tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-corner tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">8</span>
+                    <div class="option-title">
+                        <h4>Spine Labels</h4>
+                        <p>Borrowed from folders and binders. Feels archival and case-heavy.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-spine tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-spine tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">9</span>
+                    <div class="option-title">
+                        <h4>Bracket Labels</h4>
+                        <p>Very restrained. Good if you want labels but almost no decoration.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-bracket tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-bracket tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">10</span>
+                    <div class="option-title">
+                        <h4>Underlined Stamps</h4>
+                        <p>Mostly text, but still feels like a marked label instead of a badge.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-capsuleless tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="label label-capsuleless tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="label label-capsuleless tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">11</span>
+                    <div class="option-title">
+                        <h4>Evidence Rails</h4>
+                        <p>Each marker gets its own vertical bar. Feels like a real case review instrument.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-rail tone-negative" data-tip="Negative account or derogatory reporting present."><span class="bar"></span><span>Negative</span></span>
+                        <span class="label label-rail tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><span class="bar"></span><span>Missing bureau</span></span>
+                        <span class="label label-rail tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><span class="bar"></span><span>Single bureau</span></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">12</span>
+                    <div class="option-title">
+                        <h4>Minimal Tabs</h4>
+                        <p>The quietest of the label-style options, for when you want almost no noise at all.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Flags on a tradeline</small>
+                    <div class="flags">
+                        <span class="label label-tab tone-negative" data-tip="Negative account or derogatory reporting present.">Negative</span>
+                        <span class="label label-tab tone-mismatch" data-tip="Data differs across bureaus and needs Metro 2 review.">Mismatch</span>
+                        <span class="label label-tab tone-review" data-tip="Needs manual review before dispute or coaching decisions.">Review</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <aside class="panel legend-panel footer-legend" id="bottomLegend2">
+            <button class="dismiss" type="button" data-dismiss="bottomLegend2" aria-label="Hide footer legend">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2>Footer Legend</h2>
+            <p class="legend-copy">A second legend at the bottom helps if someone forgets the labels mid-review.</p>
+            <div class="legend-row">
+                <span class="label label-tag tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                <span class="label label-tag tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                <span class="label label-tag tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                <span class="label label-tag tone-mismatch" data-tip="Data differs across bureaus and needs Metro 2 review."><i class="fa-solid fa-code-compare"></i> Mismatch</span>
+                <span class="label label-tag tone-util" data-tip="Utilization is over the target threshold."><i class="fa-solid fa-chart-pie"></i> Util &gt; 30%</span>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        document.querySelectorAll('[data-dismiss]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-dismiss');
+                const target = document.getElementById(id);
+                if (!target) return;
+                target.style.display = 'none';
+                localStorage.setItem('creditsoft-legend2-hidden-' + id, '1');
+            });
+        });
+
+        ['topLegend2', 'bottomLegend2'].forEach((id) => {
+            if (localStorage.getItem('creditsoft-legend2-hidden-' + id) === '1') {
+                const target = document.getElementById(id);
+                if (target) target.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

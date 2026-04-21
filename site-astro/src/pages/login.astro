@@ -1,0 +1,27 @@
+---
+import PageHero from '../components/PageHero.astro';
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Login | CreditSoft" description="Split login entry for clients and site administrators.">
+	<PageHero
+		eyebrow="Login"
+		title="One page, two clear lanes."
+		copy="Clients and site admins should not have to guess where they are supposed to sign in."
+	/>
+
+	<section class="section">
+		<div class="proof-grid">
+			<article class="proof-block">
+				<h2>Client portal</h2>
+				<p>Use this lane if you are a customer logging in to view your documents, portal status, or next steps.</p>
+				<a class="button button--primary" href="/client-portal">Client portal</a>
+			</article>
+			<article class="proof-block">
+				<h2>Site admin</h2>
+				<p>Use this lane to manage plan pricing, licenses, leads, reviews, payments, and public site operations.</p>
+				<a class="button button--secondary" href="/admin/login">Site admin</a>
+			</article>
+		</div>
+	</section>
+</Layout>

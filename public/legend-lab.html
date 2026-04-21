@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CreditSoft Legend Lab</title>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        referrerpolicy="no-referrer"
+    />
+    <style>
+        :root {
+            --bg: #f6f1e8;
+            --panel: #fffdf8;
+            --line: #d7cdc0;
+            --ink: #1f1a17;
+            --muted: #6f665f;
+            --gold: #f0bb2a;
+            --amber: #f59e0b;
+            --rose: #d96a4a;
+            --sky: #4f7db2;
+            --moss: #628a52;
+            --stone: #b8afa4;
+            --shadow: 0 24px 60px rgba(31, 26, 23, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background:
+                radial-gradient(circle at top left, rgba(240, 187, 42, 0.12), transparent 24%),
+                linear-gradient(180deg, #fbf7ef 0%, var(--bg) 100%);
+            color: var(--ink);
+            font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 28px;
+        }
+
+        .shell {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .hero-card,
+        .legend-bar,
+        .option {
+            border: 1px solid var(--line);
+            background: rgba(255, 253, 248, 0.9);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card {
+            border-radius: 30px;
+            padding: 24px 26px;
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 3vw, 3rem);
+            line-height: 1;
+        }
+
+        .lede {
+            margin: 16px 0 0;
+            max-width: 58ch;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .quick-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 22px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .quick-list li {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            color: var(--ink);
+            font-size: 14px;
+        }
+
+        .quick-list i {
+            width: 18px;
+            text-align: center;
+            color: var(--amber);
+        }
+
+        .picker-note {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(240, 187, 42, 0.45);
+            background: rgba(240, 187, 42, 0.16);
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .legend-stack {
+            display: grid;
+            gap: 16px;
+        }
+
+        .legend-bar {
+            position: relative;
+            border-radius: 24px;
+            padding: 18px 20px;
+        }
+
+        .legend-bar h2 {
+            margin: 0 36px 10px 0;
+            font-size: 15px;
+        }
+
+        .legend-copy {
+            margin: 0 0 14px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .legend-tokens,
+        .sample-flags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .dismiss {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .dismiss:hover {
+            background: rgba(31, 26, 23, 0.06);
+            color: var(--ink);
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: end;
+            margin: 32px 0 16px;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .section-title p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .option {
+            display: grid;
+            gap: 16px;
+            border-radius: 28px;
+            padding: 20px;
+        }
+
+        .option-head {
+            display: flex;
+            gap: 12px;
+            align-items: start;
+            justify-content: space-between;
+        }
+
+        .number {
+            display: inline-flex;
+            min-width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .number.recommended {
+            background: linear-gradient(135deg, #171210 0%, #3e2a08 100%);
+            box-shadow: inset 0 0 0 1px rgba(240, 187, 42, 0.5);
+        }
+
+        .option-title {
+            flex: 1;
+        }
+
+        .option-title h4 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .option-title p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .rec-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 999px;
+            border: 1px solid rgba(240, 187, 42, 0.45);
+            background: rgba(240, 187, 42, 0.15);
+            padding: 6px 10px;
+            color: #6e4c00;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .sample-row {
+            display: grid;
+            gap: 10px;
+            border-radius: 22px;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 16px;
+        }
+
+        .sample-row strong {
+            font-size: 15px;
+        }
+
+        .sample-row small {
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .token {
+            position: relative;
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            border-radius: 999px;
+            white-space: nowrap;
+            cursor: default;
+        }
+
+        .token::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 10px);
+            width: max-content;
+            max-width: 250px;
+            transform: translateX(-50%);
+            border-radius: 12px;
+            background: rgba(22, 18, 15, 0.94);
+            padding: 9px 12px;
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.45;
+            letter-spacing: normal;
+            text-transform: none;
+            white-space: normal;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.16s ease;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.18);
+        }
+
+        .token:hover::after {
+            opacity: 1;
+        }
+
+        .token i {
+            font-size: 12px;
+        }
+
+        .t-pill {
+            border: 1px solid transparent;
+            padding: 8px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .t-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+        }
+
+        .t-code {
+            min-width: 38px;
+            justify-content: center;
+            border: 1px solid var(--line);
+            background: #fff;
+            padding: 7px 10px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .t-outline {
+            border: 1px dashed currentColor;
+            background: rgba(255, 255, 255, 0.72);
+            padding: 7px 11px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .t-ribbon {
+            border-left: 4px solid currentColor;
+            background: rgba(255, 255, 255, 0.88);
+            border-radius: 12px;
+            padding: 7px 10px 7px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+        }
+
+        .t-mini {
+            border: 1px solid currentColor;
+            background: rgba(255, 255, 255, 0.72);
+            padding: 5px 8px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .tone-negative { color: #a64637; background-color: rgba(217, 106, 74, 0.14); border-color: rgba(217, 106, 74, 0.4); }
+        .tone-missing { color: #8b6400; background-color: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.42); }
+        .tone-single { color: #4c6587; background-color: rgba(79, 125, 178, 0.14); border-color: rgba(79, 125, 178, 0.38); }
+        .tone-mismatch { color: #73560a; background-color: rgba(240, 187, 42, 0.16); border-color: rgba(240, 187, 42, 0.4); }
+        .tone-util { color: #4c6a41; background-color: rgba(98, 138, 82, 0.14); border-color: rgba(98, 138, 82, 0.38); }
+        .tone-review { color: #645b53; background-color: rgba(184, 175, 164, 0.18); border-color: rgba(184, 175, 164, 0.4); }
+
+        .footer-legend {
+            margin-top: 22px;
+        }
+
+        .option-notes {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .note-chip {
+            border-radius: 999px;
+            background: rgba(31, 26, 23, 0.05);
+            padding: 6px 9px;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 1180px) {
+            .hero,
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 880px) {
+            body {
+                padding: 18px;
+            }
+
+            .hero,
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <section class="hero">
+            <div class="hero-card">
+                <p class="eyebrow">Legend Direction Lab</p>
+                <h1>Pick the signal style, not the whole page.</h1>
+                <p class="lede">
+                    This page is only for the inaccuracy legend and row-flag system. Every option below uses the same meanings,
+                    but packages them differently so you can react fast. If one feels right, just tell me the number.
+                </p>
+
+                <ul class="quick-list">
+                    <li><i class="fa-solid fa-circle-info"></i> Hover any marker to see what it means.</li>
+                    <li><i class="fa-solid fa-hand-pointer"></i> Header and footer legends can be dismissed with the X.</li>
+                    <li><i class="fa-solid fa-list-ol"></i> Say “use 5” or “mix 1 and 8” and I’ll know what you mean.</li>
+                </ul>
+
+                <div class="picker-note">
+                    <i class="fa-solid fa-star"></i>
+                    Recommended: 1, 3, 5, 8
+                </div>
+            </div>
+
+            <div class="legend-stack">
+                <aside class="legend-bar" id="topLegend">
+                    <button class="dismiss" type="button" data-dismiss="topLegend" aria-label="Hide header legend">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <h2>Header Legend</h2>
+                    <p class="legend-copy">This is the compact “always available” version. It explains the symbols once, then rows only need the markers.</p>
+                    <div class="legend-tokens">
+                        <span class="token t-pill tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="token t-pill tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="token t-pill tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                        <span class="token t-pill tone-mismatch" data-tip="Data differs across bureaus and needs Metro 2 review."><i class="fa-solid fa-code-compare"></i> Mismatch</span>
+                        <span class="token t-pill tone-util" data-tip="Utilization is over the target threshold."><i class="fa-solid fa-chart-pie"></i> Util &gt; 30%</span>
+                        <span class="token t-pill tone-review" data-tip="Needs manual review before dispute or coaching decisions."><i class="fa-solid fa-magnifying-glass"></i> Review</span>
+                    </div>
+                </aside>
+
+                <aside class="legend-bar">
+                    <h2>Sample Row</h2>
+                    <p class="legend-copy">A fake tradeline row so you can judge how the markers read in context.</p>
+                    <div class="sample-row">
+                        <small>Capital One Bank</small>
+                        <strong>Charged off · Balance $5,400 · Utilization 45%</strong>
+                        <div class="sample-flags">
+                            <span class="token t-pill tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                            <span class="token t-pill tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                            <span class="token t-pill tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <div class="section-title">
+            <div>
+                <h3>Recommended Directions</h3>
+                <p>These are the strongest starting points for CreditSoft’s Metro 2 review surface.</p>
+            </div>
+        </div>
+
+        <section class="grid">
+            <article class="option">
+                <div class="option-head">
+                    <span class="number recommended">1</span>
+                    <div class="option-title">
+                        <h4>Signal Chips</h4>
+                        <p>The clearest balance. Small icon, short text, one shared legend, easy to scan, easy to teach.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-pill tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="token t-pill tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="token t-pill tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+                <div class="option-notes">
+                    <span class="note-chip">Readable</span>
+                    <span class="note-chip">Fast onboarding</span>
+                    <span class="note-chip">Best default</span>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number recommended">2</span>
+                    <div class="option-title">
+                        <h4>Textless Dots</h4>
+                        <p>Minimal and beautiful, but only works well if the legend stays visible nearby.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-dot tone-negative" data-tip="Negative account or derogatory reporting present."></span>
+                        <span class="token t-dot tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."></span>
+                        <span class="token t-dot tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."></span>
+                        <span class="token t-dot tone-util" data-tip="Utilization is over the target threshold."></span>
+                    </div>
+                </div>
+                <div class="option-notes">
+                    <span class="note-chip">Very clean</span>
+                    <span class="note-chip">Needs legend always on</span>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number recommended">3</span>
+                    <div class="option-title">
+                        <h4>Icon Codes</h4>
+                        <p>Short label plus a Font Awesome icon. Cleaner than full pills, stronger than dots.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-code tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> NEG</span>
+                        <span class="token t-code tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> MISS</span>
+                        <span class="token t-code tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> 1X</span>
+                    </div>
+                </div>
+                <div class="option-notes">
+                    <span class="note-chip">Compact</span>
+                    <span class="note-chip">Ops-friendly</span>
+                    <span class="note-chip">Good for dense tables</span>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number recommended">4</span>
+                    <div class="option-title">
+                        <h4>Hairline Ribbons</h4>
+                        <p>Less “pill UI”, more review-document style. Great if you want the page to feel more editorial.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-ribbon tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Negative</span>
+                        <span class="token t-ribbon tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Missing bureau</span>
+                        <span class="token t-ribbon tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> Single bureau</span>
+                    </div>
+                </div>
+                <div class="option-notes">
+                    <span class="note-chip">Less app-like</span>
+                    <span class="note-chip">More report-like</span>
+                </div>
+            </article>
+        </section>
+
+        <div class="section-title">
+            <div>
+                <h3>Other Ideas</h3>
+                <p>These are worth seeing, even if they may not be the final answer.</p>
+            </div>
+        </div>
+
+        <section class="grid">
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">5</span>
+                    <div class="option-title">
+                        <h4>Micro Badges</h4>
+                        <p>Very small, almost stock-ticker-like. Efficient, but easier to miss.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-mini tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> Neg</span>
+                        <span class="token t-mini tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> Miss</span>
+                        <span class="token t-mini tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> 1 bureau</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">6</span>
+                    <div class="option-title">
+                        <h4>Icon Cluster</h4>
+                        <p>Pure icons grouped together. Attractive if the legend is persistent in both header and footer.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-dot tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i></span>
+                        <span class="token t-dot tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i></span>
+                        <span class="token t-dot tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i></span>
+                        <span class="token t-dot tone-mismatch" data-tip="Data differs across bureaus and needs Metro 2 review."><i class="fa-solid fa-code-compare"></i></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">7</span>
+                    <div class="option-title">
+                        <h4>Severity Strip</h4>
+                        <p>A single stacked rail on the right side of the tradeline row instead of multiple tokens inline.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+                        <span>Charged off, high review load</span>
+                        <div style="display:flex;gap:6px;">
+                            <span class="token t-dot tone-negative" data-tip="Negative account or derogatory reporting present."></span>
+                            <span class="token t-dot tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."></span>
+                            <span class="token t-dot tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."></span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">8</span>
+                    <div class="option-title">
+                        <h4>Uppercase Tags</h4>
+                        <p>Small review labels, but cleaner and more structured than the current long screaming pills.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-pill tone-negative" data-tip="Negative account or derogatory reporting present.">NEGATIVE</span>
+                        <span class="token t-pill tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present.">MISSING</span>
+                        <span class="token t-pill tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation.">SINGLE</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">9</span>
+                    <div class="option-title">
+                        <h4>Tab Markers</h4>
+                        <p>Labels become little side tabs on the tradeline card instead of floating pills inside it.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-ribbon tone-negative" data-tip="Negative account or derogatory reporting present.">Neg</span>
+                        <span class="token t-ribbon tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present.">Missing</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">10</span>
+                    <div class="option-title">
+                        <h4>Audit Codes</h4>
+                        <p>Feels more like compliance software. Good if you want a stricter ops tone than a modern SaaS tone.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-code tone-negative" data-tip="Negative account or derogatory reporting present.">A1</span>
+                        <span class="token t-code tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present.">B2</span>
+                        <span class="token t-code tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation.">C1</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">11</span>
+                    <div class="option-title">
+                        <h4>Soft Underlines</h4>
+                        <p>The cleanest visual option, but easiest to miss if staff are moving quickly.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div class="sample-flags">
+                        <span class="token t-outline tone-negative" data-tip="Negative account or derogatory reporting present.">Negative</span>
+                        <span class="token t-outline tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present.">Missing bureau</span>
+                        <span class="token t-outline tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation.">Single bureau</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="option">
+                <div class="option-head">
+                    <span class="number">12</span>
+                    <div class="option-title">
+                        <h4>Left-Rail Evidence Markers</h4>
+                        <p>One icon-led column at the far edge of the row. Strong visual structure, more custom-feeling.</p>
+                    </div>
+                </div>
+                <div class="sample-row">
+                    <small>Account row flags</small>
+                    <div style="display:grid;grid-template-columns:64px 1fr;gap:14px;align-items:start;">
+                        <div class="sample-flags" style="flex-direction:column;">
+                            <span class="token t-mini tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i></span>
+                            <span class="token t-mini tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i></span>
+                            <span class="token t-mini tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i></span>
+                        </div>
+                        <div>
+                            <strong style="display:block;margin-bottom:6px;">Tradeline content here</strong>
+                            <div style="color:var(--muted);font-size:13px;line-height:1.6;">This option moves the visual markers into their own review rail.</div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <aside class="legend-bar footer-legend" id="bottomLegend">
+            <button class="dismiss" type="button" data-dismiss="bottomLegend" aria-label="Hide footer legend">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h2>Footer Legend</h2>
+            <p class="legend-copy">A repeated legend at the bottom helps if staff scroll deep into the review and forget what the markers mean.</p>
+            <div class="legend-tokens">
+                <span class="token t-code tone-negative" data-tip="Negative account or derogatory reporting present."><i class="fa-solid fa-triangle-exclamation"></i> NEG</span>
+                <span class="token t-code tone-missing" data-tip="One or more bureaus are missing a tradeline that should be present."><i class="fa-solid fa-link-slash"></i> MISS</span>
+                <span class="token t-code tone-single" data-tip="Only one bureau is carrying the tradeline or reporting variation."><i class="fa-solid fa-circle-half-stroke"></i> 1X</span>
+                <span class="token t-code tone-mismatch" data-tip="Data differs across bureaus and needs Metro 2 review."><i class="fa-solid fa-code-compare"></i> DIFF</span>
+                <span class="token t-code tone-util" data-tip="Utilization is over the target threshold."><i class="fa-solid fa-chart-pie"></i> UTIL</span>
+                <span class="token t-code tone-review" data-tip="Needs manual review before dispute or coaching decisions."><i class="fa-solid fa-magnifying-glass"></i> REV</span>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        document.querySelectorAll('[data-dismiss]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const id = button.getAttribute('data-dismiss');
+                const target = document.getElementById(id);
+
+                if (!target) {
+                    return;
+                }
+
+                target.style.display = 'none';
+                localStorage.setItem('creditsoft-legend-hidden-' + id, '1');
+            });
+        });
+
+        ['topLegend', 'bottomLegend'].forEach((id) => {
+            if (localStorage.getItem('creditsoft-legend-hidden-' + id) === '1') {
+                const target = document.getElementById(id);
+
+                if (target) {
+                    target.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { emailProviders, productAreaDetails } from '../content/site';
+
+interface Props {
+	slug: keyof typeof productAreaDetails;
+}
+
+const { slug } = Astro.props;
+const page = productAreaDetails[slug];
+---
+
+<Layout title={`${page.title} | CreditSoft`} description={page.description}>
+	<section class="page-hero">
+		<div class="eyebrow">{page.eyebrow}</div>
+		<h1>{page.hero}</h1>
+		<p class="lede">{page.copy}</p>
+	</section>
+
+	<section class="section product-detail">
+		<div class="product-detail__copy">
+			<h2>{page.title}</h2>
+			<p>
+				This deeper page keeps the operational details out of the general features overview while still
+				showing how the lane fits into the CreditSoft stack.
+			</p>
+		</div>
+		<figure class="product-detail__visual">
+			<img src={page.image} alt={page.title} loading="eager" />
+		</figure>
+	</section>
+
+	{page.providers && (
+		<section class="section">
+			<div class="section__intro">
+				<div class="eyebrow">Supported providers</div>
+				<h2>Email lanes your office can configure.</h2>
+			</div>
+			<div class="provider-card-grid">
+				{emailProviders.map((provider) => (
+					<div class="provider-card">
+						<img src={provider.logo} alt={provider.label} loading="lazy" />
+						<span>{provider.label}</span>
+					</div>
+				))}
+			</div>
+		</section>
+	)}
+
+	<section class="section">
+		<div class="detail-grid">
+			{page.sections.map((section) => (
+				<article class="detail-block">
+					<h2>{section.title}</h2>
+					<ul>
+						{section.items.map((item) => <li>{item}</li>)}
+					</ul>
+				</article>
+			))}
+		</div>
+	</section>
+</Layout>

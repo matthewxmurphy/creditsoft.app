@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="628" viewBox="0 0 1200 628" role="img" aria-labelledby="title desc">
+  <title id="title">Net30Hosting installer ad image</title>
+  <desc id="desc">A dark hosting tile with green infrastructure lines and Net30Hosting text.</desc>
+  <rect width="1200" height="628" fill="#111827"/>
+  <path d="M0 454h1200v174H0z" fill="#0f3d2e"/>
+  <path d="M118 170h300M118 238h220M118 306h360M792 154h210M792 222h260M792 290h190" stroke="#4ade80" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="604" cy="314" r="136" fill="#f59e0b"/>
+  <circle cx="604" cy="314" r="92" fill="#111827"/>
+  <path d="M552 314h104M604 262v104" stroke="#f8fafc" stroke-width="22" stroke-linecap="round"/>
+  <text x="92" y="494" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="700">Net30Hosting</text>
+  <text x="96" y="554" fill="#bbf7d0" font-family="Arial, Helvetica, sans-serif" font-size="34">hosting . email . domains . managed install support</text>
+</svg>

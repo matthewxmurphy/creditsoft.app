@@ -1,0 +1,77 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+
+const notes = [
+  ["Office v0.9.25", "Recovery sweep", "Normal pulls stay active-only; recovery uses real payment/report/end dates and skips fresh reactivation failures."],
+  ["Office v0.9.24", "Recovery sweep", "The companion only checks old comeback candidates after staff explicitly starts a recovery sweep."],
+  ["Companion v0.5.6", "Companion lane", "Adds a guarded recovery-sweep button for 90+ day candidates while excluding fired clients and invalid credentials."],
+  ["Office v0.9.23", "Report cycle lane", "Audit, progress, and credit report imports now stay together on client profiles."],
+  ["Companion v0.5.5", "Companion lane", "DisputeFox document capture now labels credit reports, progress reports, audits, and client files."],
+  ["Office v0.9.1", "Office update lane", "405 recovery, Docker cache-volume cleanup, and safer self-update version state."],
+  ["Companion v0.5.3", "Companion lane", "SmartCredit FusionAuth invalid-login handling, CRM email review flags, and queue skipping when saved credentials fail."],
+  ["Renewal", "Zelle lane", "Live Zelle QR, payment-matching copy, and renewal messaging for expired office or companion access."],
+];
+---
+
+<BaseLayout
+  title="CreditSoft Release Notes"
+  description="CreditSoft release notes and version history."
+>
+  <SiteHeader />
+
+  <main class="page-wrap section page-body">
+    <SectionHeading
+      eyebrow="Release notes"
+      title="Short notes that tell staff what changed."
+      text="A release page should be readable in seconds and useful when someone just wants the latest version."
+    />
+    <div class="notes-layout">
+      {notes.map(([version, label, note]) => (
+        <article class="note panel-soft">
+          <span class="eyebrow">{label}</span>
+          <h3>{version}</h3>
+          <p>{note}</p>
+        </article>
+      ))}
+    </div>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-body {
+    padding-top: 60px;
+  }
+
+  .notes-layout {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .note {
+    padding: 24px;
+  }
+
+  .note h3 {
+    margin: 16px 0 10px;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+  }
+
+  .note p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .notes-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,58 @@
+# CreditSoft Config - Landing Page & SaaS Platform
+# General configuration for AI systems, models, and integrations
+---
+config:
+  # AI/LLM Settings
+  llm:
+    provider: openai
+    model: gpt-4
+    temperature: 0.7
+    max_tokens: 2000
+    api_key_env: OPENAI_API_KEY
+
+  # Turnstile Configuration
+  turnstile:
+    site_key: "0x4AAAAAACi2Qk6bhhRsXu2g"
+    secret_key: "0x4AAAAAACi2QpE3EzYkp2FkHM5R6bes4zI"
+    verify_endpoint: "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+  # Redis Configuration (for caching, sessions, rate limiting)
+  redis:
+    host: "127.0.0.1"
+    port: 6379
+    password: null
+    database: 0
+    prefix: "cs_"
+
+  # Database Configuration
+  database:
+    host: "localhost"
+    name: "creditsoft"
+    user: "creditsoft_user"
+    prefix: "cs_"
+
+  # Email Configuration
+  email:
+    driver: smtp
+    host: "mail.creditsoft.app"
+    port: 587
+    encryption: tls
+    from_address: "noreply@creditsoft.app"
+    from_name: "CreditSoft"
+
+  # CRM Integration
+  crm:
+    api_endpoint: "/api/crm"
+    api_key_env: "CRM_API_KEY"
+
+  # Rate Limiting
+  rate_limit:
+    leads_per_hour: 10
+    api_requests_per_minute: 60
+
+  # Logging
+  logging:
+    level: info
+    channels:
+      - file
+      - slack

@@ -1,0 +1,5 @@
+{
+    "target_base_url": "https://current-office-target.example/api/v1",
+    "bridge_token": "paste_a_creditsoft_partner_or_bridge_token_here",
+    "timeout_seconds": 12
+}

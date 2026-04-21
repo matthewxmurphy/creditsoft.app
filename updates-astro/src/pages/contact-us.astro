@@ -1,0 +1,58 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+---
+
+<BaseLayout title="Contact CreditSoft | Astro preview" description="Contact page preview for the CreditSoft Astro replacement site.">
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main>
+    <section class="section page-hero">
+      <div class="page-wrap section-shell">
+        <span class="eyebrow">Contact us</span>
+        <h1 class="display">The intake page can look premium and still gather the right office details.</h1>
+        <p class="lede">
+          This preview keeps the cleaner theme shell while pointing people into the real
+          two-step qualification flow instead of dropping them onto a dead waitlist card.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap simple-grid two">
+        <article class="info-card panel">
+          <h3>What we ask next</h3>
+          <ul>
+            <li>How many active clients they have</li>
+            <li>Which monitoring system they use</li>
+            <li>What software or outsourcing lane they rely on now</li>
+            <li>How they take payments and whether they already have a merchant</li>
+            <li>Whether their current website is working for them</li>
+          </ul>
+          <div class="button-row">
+            <a class="button primary" href="https://creditsoft.app/subscribe">Open live intake</a>
+          </div>
+        </article>
+
+        <article class="info-card panel-soft">
+          <h3>Contact lane</h3>
+          <p>
+            For the preview, the live intake stays on the current main site so the form
+            continues writing real lead data while we evaluate the visual replacement.
+          </p>
+          <div class="stacked-links">
+            <a href="mailto:hello@creditsoft.app">hello@creditsoft.app</a>
+            <a href="https://creditsoft.app/subscribe">Start the two-step form</a>
+            <a href="/pricing-plan">Review plans first</a>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+</BaseLayout>

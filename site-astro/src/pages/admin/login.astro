@@ -1,0 +1,426 @@
+---
+import { ADMIN_AUTH_MODE, ADMIN_LOGIN_EMAIL, ADMIN_LOGIN_PASSWORD_HASH, ADMIN_SESSION_KEY, ADMIN_SESSION_TTL_MS } from "../../lib/admin";
+import { loadLeads, loadLicenses, loadPlans, loadReviews } from "../../lib/site-data";
+
+const [planResult, leadResult, licenseResult, reviewResult] = await Promise.all([
+	loadPlans(Astro.cookies),
+	loadLeads(Astro.cookies),
+	loadLicenses(Astro.cookies),
+	loadReviews(Astro.cookies),
+]);
+
+const adminSummary = {
+	plans: planResult.data.length,
+	leads: leadResult.data.length,
+	licenses: licenseResult.data.filter((entry) => entry.status === "active").length,
+	reviews: reviewResult.data.length,
+};
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>CreditSoft Admin Login</title>
+		<meta name="description" content="CreditSoft website operations login." />
+		<style>
+			:root {
+				color-scheme: dark;
+				--bg: #070b16;
+				--panel: rgba(12, 16, 30, 0.88);
+				--panel-2: rgba(17, 23, 42, 0.95);
+				--border: rgba(255, 255, 255, 0.08);
+				--text: #f7f8ff;
+				--muted: rgba(247, 248, 255, 0.7);
+				--accent: #8fd0ff;
+				--accent-2: #aef0bc;
+				--warning: #f6cf9d;
+			}
+
+			html, body {
+				margin: 0;
+				min-height: 100%;
+				background:
+					radial-gradient(circle at 15% 10%, rgba(143, 208, 255, 0.2), transparent 28%),
+					radial-gradient(circle at 85% 12%, rgba(174, 240, 188, 0.12), transparent 24%),
+					linear-gradient(180deg, #050814, #0b1022 56%, #0a0f1d);
+				color: var(--text);
+				font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			}
+
+			body::before {
+				content: "";
+				position: fixed;
+				inset: 0;
+				pointer-events: none;
+				background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+				background-size: 52px 52px;
+				mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 84%);
+			}
+
+			.shell {
+				max-width: 1180px;
+				margin: 0 auto;
+				padding: 28px 24px 56px;
+			}
+
+			.topbar {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 24px;
+			}
+
+			.brand {
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+			}
+
+			.brand strong {
+				font-size: 0.8rem;
+				letter-spacing: 0.34em;
+				text-transform: uppercase;
+				color: rgba(247, 248, 255, 0.58);
+			}
+
+			.brand span {
+				font-size: clamp(1.3rem, 2.4vw, 2rem);
+				font-weight: 800;
+			}
+
+			.topbar a {
+				color: var(--text);
+				text-decoration: none;
+				padding: 0.82rem 1rem;
+				border-radius: 999px;
+				border: 1px solid var(--border);
+				background: rgba(255,255,255,0.04);
+				font-weight: 700;
+			}
+
+			.grid {
+				display: grid;
+				grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.88fr);
+				gap: 24px;
+			}
+
+			.hero,
+			.form-card {
+				border-radius: 30px;
+				border: 1px solid var(--border);
+				background: linear-gradient(180deg, rgba(15, 20, 38, 0.95), rgba(8, 12, 24, 0.95));
+				box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+			}
+
+			.hero {
+				padding: 32px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				min-height: 520px;
+			}
+
+			.pill {
+				display: inline-flex;
+				align-self: flex-start;
+				padding: 0.42rem 0.8rem;
+				border-radius: 999px;
+				background: rgba(143, 208, 255, 0.14);
+				color: #d7ebff;
+				letter-spacing: 0.2em;
+				text-transform: uppercase;
+				font-size: 0.72rem;
+				font-weight: 700;
+			}
+
+			h1 {
+				margin: 18px 0 12px;
+				font-size: clamp(2.4rem, 4vw, 4.6rem);
+				letter-spacing: -0.06em;
+				line-height: 0.95;
+			}
+
+			.lead {
+				max-width: 58ch;
+				color: var(--muted);
+				line-height: 1.75;
+				font-size: 1.03rem;
+			}
+
+			.hero-grid {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 14px;
+				margin-top: 28px;
+			}
+
+			.stat {
+				padding: 16px 18px;
+				border-radius: 20px;
+				background: rgba(255,255,255,0.04);
+				border: 1px solid rgba(255,255,255,0.08);
+			}
+
+			.stat strong {
+				display: block;
+				font-size: 1.35rem;
+				margin-bottom: 4px;
+			}
+
+			.stat span {
+				color: var(--muted);
+				font-size: 0.9rem;
+				line-height: 1.5;
+			}
+
+			.form-card {
+				padding: 30px;
+			}
+
+			.form-card h2 {
+				margin: 0;
+				font-size: 1.4rem;
+			}
+
+			.form-card p {
+				margin: 8px 0 20px;
+				color: var(--muted);
+				line-height: 1.6;
+			}
+
+			form {
+				display: grid;
+				gap: 14px;
+			}
+
+			label {
+				display: grid;
+				gap: 8px;
+				font-size: 0.9rem;
+				color: rgba(247, 248, 255, 0.74);
+			}
+
+			input {
+				appearance: none;
+				border: 1px solid rgba(255,255,255,0.12);
+				background: rgba(255,255,255,0.04);
+				color: var(--text);
+				border-radius: 16px;
+				padding: 0.94rem 1rem;
+				font-size: 1rem;
+			}
+
+			input:focus {
+				outline: 2px solid rgba(143, 208, 255, 0.35);
+				outline-offset: 2px;
+				border-color: rgba(143, 208, 255, 0.5);
+			}
+
+			.actions {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 12px;
+				margin-top: 6px;
+			}
+
+			button, .button {
+				border: 0;
+				border-radius: 16px;
+				padding: 0.95rem 1.05rem;
+				font-size: 0.98rem;
+				font-weight: 700;
+				cursor: pointer;
+				text-decoration: none;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+			}
+
+			.button-primary {
+				background: linear-gradient(135deg, #8fd0ff, #aef0bc);
+				color: #08111c;
+				box-shadow: 0 16px 28px rgba(127, 189, 255, 0.15);
+			}
+
+			.button-secondary {
+				background: rgba(255,255,255,0.04);
+				color: var(--text);
+				border: 1px solid rgba(255,255,255,0.12);
+			}
+
+			.helper {
+				margin-top: 14px;
+				padding: 12px 14px;
+				border-radius: 16px;
+				background: rgba(255,255,255,0.03);
+				border: 1px dashed rgba(255,255,255,0.1);
+				color: rgba(247, 248, 255, 0.7);
+				line-height: 1.5;
+				font-size: 0.86rem;
+			}
+
+			#error {
+				min-height: 1.2em;
+				color: #ffb6b6;
+				font-size: 0.9rem;
+			}
+
+			@media (max-width: 960px) {
+				.grid {
+					grid-template-columns: 1fr;
+				}
+
+				.hero-grid {
+					grid-template-columns: 1fr;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="shell">
+			<div class="topbar">
+				<div class="brand">
+					<strong>CreditSoft Admin</strong>
+					<span>Website operations login</span>
+				</div>
+				<a href="/login">Entry hub</a>
+			</div>
+
+			<div class="grid">
+				<section class="hero">
+					<div>
+						<div class="pill">Fallback auth</div>
+						<h1>Sign in to manage plans, leads, licenses, and site requests.</h1>
+						<p class="lead">
+							This admin slice is ready now with a hashed fallback login. When Supabase auth is
+							wired, the same shell can be pointed at the hosted auth flow without redesigning the
+							sales site.
+						</p>
+					</div>
+
+					<div class="hero-grid">
+						<div class="stat">
+							<strong>{adminSummary.plans}</strong>
+							<span>Plan tiers ready to publish and adjust.</span>
+						</div>
+						<div class="stat">
+							<strong>{adminSummary.leads}</strong>
+							<span>Recent leads waiting in the website pipeline.</span>
+						</div>
+						<div class="stat">
+							<strong>{adminSummary.licenses}</strong>
+							<span>Active licenses that can be issued or extended.</span>
+						</div>
+						<div class="stat">
+							<strong>{adminSummary.reviews}</strong>
+							<span>Reviews queued for replies and proof.</span>
+						</div>
+					</div>
+				</section>
+
+				<section class="form-card">
+					<h2>Admin login</h2>
+					<p>
+						Use the fallback credentials for now. The email defaults to
+						<strong>{ADMIN_LOGIN_EMAIL}</strong>.
+					</p>
+
+					<form id="login-form" novalidate>
+						<label>
+							Email
+							<input id="email" name="email" type="email" value={ADMIN_LOGIN_EMAIL} autocomplete="username" required />
+						</label>
+						<label>
+							Password
+							<input id="password" name="password" type="password" autocomplete="current-password" required />
+						</label>
+
+						<div class="actions">
+							<button class="button button-primary" type="submit">Sign in</button>
+							<a class="button button-secondary" href="/">Back to site</a>
+						</div>
+						<div id="error" aria-live="polite"></div>
+					</form>
+
+					<div class="helper">
+						Mode: <strong>{ADMIN_AUTH_MODE}</strong>. Session lasts about 12 hours and is stored
+						locally in the browser until logout or expiry.
+					</div>
+				</section>
+			</div>
+		</div>
+
+		<script type="module" define:vars={{ expectedEmail: ADMIN_LOGIN_EMAIL, expectedHash: ADMIN_LOGIN_PASSWORD_HASH, sessionKey: ADMIN_SESSION_KEY, sessionTtlMs: ADMIN_SESSION_TTL_MS, destination: "/admin/" }}>
+			const emailInput = document.getElementById("email");
+			const passwordInput = document.getElementById("password");
+			const form = document.getElementById("login-form");
+			const errorBox = document.getElementById("error");
+
+			const normalize = (value) => value.trim().toLowerCase();
+
+			const toHex = (buffer) =>
+				Array.from(new Uint8Array(buffer))
+					.map((byte) => byte.toString(16).padStart(2, "0"))
+					.join("");
+
+			async function sha256(value) {
+				const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+				return toHex(digest);
+			}
+
+			function setError(message) {
+				errorBox.textContent = message;
+			}
+
+			function readSession() {
+				try {
+					const raw = localStorage.getItem(sessionKey);
+					if (!raw) return null;
+					const session = JSON.parse(raw);
+					if (!session || session.email !== expectedEmail || session.expiresAt <= Date.now()) {
+						localStorage.removeItem(sessionKey);
+						return null;
+					}
+					return session;
+				} catch {
+					return null;
+				}
+			}
+
+			if (readSession()) {
+				location.replace(destination);
+			}
+
+			form.addEventListener("submit", async (event) => {
+				event.preventDefault();
+				setError("");
+
+				const email = normalize(emailInput.value);
+				const password = passwordInput.value;
+
+				if (email !== expectedEmail) {
+					setError("That email does not match the admin fallback account.");
+					return;
+				}
+
+				const passwordHash = await sha256(password);
+				if (passwordHash !== expectedHash) {
+					setError("Password mismatch. Check the fallback password and try again.");
+					return;
+				}
+
+				const session = {
+					email,
+					issuedAt: Date.now(),
+					expiresAt: Date.now() + sessionTtlMs,
+					mode: "fallback",
+				};
+
+				localStorage.setItem(sessionKey, JSON.stringify(session));
+				location.replace(destination);
+			});
+		</script>
+	</body>
+</html>

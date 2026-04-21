@@ -1,0 +1,114 @@
+{
+  "version": 3,
+  "generated_at": "2026-04-12T11:12:00-07:00",
+  "tips": [
+    {
+      "id": "payment-history",
+      "category": "Payment history",
+      "title": "Write down the exact late payment you want checked.",
+      "body": "The month, account name, and what looks wrong matter more than a long explanation."
+    },
+    {
+      "id": "balances",
+      "category": "Balances",
+      "title": "High card balances can hurt even when you pay on time.",
+      "body": "If a card is close to the limit, paying it down can help before any dispute work even starts."
+    },
+    {
+      "id": "collections",
+      "category": "Collections",
+      "title": "A collection should tell the same story everywhere it appears.",
+      "body": "If one bureau shows it differently or not at all, save a note so it can be reviewed."
+    },
+    {
+      "id": "personal-info",
+      "category": "Personal information",
+      "title": "Wrong addresses and mixed personal details are worth flagging.",
+      "body": "Old or unfamiliar personal information can make the rest of the file harder to trust."
+    },
+    {
+      "id": "timing",
+      "category": "Timing",
+      "title": "Keep denial letters and score alerts when something changes.",
+      "body": "Those dates help explain what shifted, and when the problem started affecting you."
+    },
+    {
+      "id": "priorities",
+      "category": "Next step",
+      "title": "Start with what is hurting you the most right now.",
+      "body": "The best first move is usually the item tied to a recent denial, collection, or very high balance."
+    },
+    {
+      "id": "autopay",
+      "category": "Money habits",
+      "title": "Autopay the minimum if you struggle to remember due dates.",
+      "body": "You can still pay extra manually, but a missed date usually costs more than setting up a safety net."
+    },
+    {
+      "id": "utilization",
+      "category": "Card usage",
+      "title": "A card can be paid on time and still hurt your score if it reports too high.",
+      "body": "Try to keep revolving balances lower before the statement closes, not just before the due date."
+    },
+    {
+      "id": "emergency-fund",
+      "category": "Financial literacy",
+      "title": "A small emergency buffer can protect your credit from one bad week.",
+      "body": "Even a few hundred dollars can keep a car repair or medical bill from turning into a new late payment."
+    },
+    {
+      "id": "budget-review",
+      "category": "Budgeting",
+      "title": "Review subscriptions and small recurring charges before cutting essentials.",
+      "body": "Quick monthly leaks are easier to fix than rent, food, or transportation, and they add up faster than most people think."
+    },
+    {
+      "id": "hard-inquiries",
+      "category": "Applications",
+      "title": "Do not apply everywhere at once when money feels tight.",
+      "body": "Too many new applications in a short window can make a rough situation look even riskier."
+    },
+    {
+      "id": "credit-builder",
+      "category": "Credit building",
+      "title": "One steady positive account can help more than chasing five quick fixes.",
+      "body": "Consistency matters. A simple account managed well over time is stronger than constant account hopping."
+    },
+    {
+      "id": "statement-dates",
+      "category": "Timing",
+      "title": "Know your statement date, not just your payment date.",
+      "body": "That is usually the balance the bureaus see, and it helps explain why your score can move even when you paid on time."
+    },
+    {
+      "id": "collection-notes",
+      "category": "Collections",
+      "title": "Save screenshots and letters when a collector changes their story.",
+      "body": "A paper trail makes it easier to challenge confusing balances, dates, and account ownership later."
+    },
+    {
+      "id": "goal-planning",
+      "category": "Financial literacy",
+      "title": "Tie your credit work to one real goal.",
+      "body": "Buying a car, renting a home, or lowering interest costs gives the work a clearer order and helps you avoid random decisions."
+    },
+    {
+      "id": "identity-watch",
+      "category": "Personal information",
+      "title": "A wrong address or unfamiliar employer can be more than a typo.",
+      "body": "If personal details look off, flag them early because mixed information can affect the rest of the file."
+    },
+    {
+      "id": "password-manager",
+      "category": "Identity protection",
+      "title": "It is 2026. If you can remember your password, it is probably not secure.",
+      "body": "Let your device generate and store strong passwords for you. You are working on your credit, so protect your identity the same way."
+    },
+    {
+      "id": "cash-flow",
+      "category": "Budgeting",
+      "title": "A payment plan only works if it matches your pay cycle.",
+      "body": "When due dates and pay dates fight each other every month, the budget needs a timing fix, not just more discipline."
+    }
+  ]
+}
