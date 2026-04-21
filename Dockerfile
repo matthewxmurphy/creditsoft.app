@@ -94,6 +94,8 @@ RUN docker-php-ext-install intl pdo_pgsql zip \
     && docker-php-ext-enable imap apcu redis \
     && { \
         echo 'memory_limit=512M'; \
+        echo 'post_max_size=1024M'; \
+        echo 'upload_max_filesize=1024M'; \
         echo 'opcache.enable=1'; \
         echo 'opcache.enable_cli=1'; \
         echo 'opcache.memory_consumption=192'; \

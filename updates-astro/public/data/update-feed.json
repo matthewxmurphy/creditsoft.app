@@ -1,12 +1,17 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.21.41",
-    "latest_build": "2026.04.21.210357",
-    "published_at": "2026-04-21T21:03:57+00:00",
-    "headline": "CreditSoft 2026.4.21.41 is ready",
-    "summary": "Fixes office-node 500s caused by stale dev-provider cache after self-update.",
+    "latest_version": "2026.4.21.43",
+    "latest_build": "2026.04.21.222312",
+    "published_at": "2026-04-21T22:23:12+00:00",
+    "headline": "CreditSoft 2026.4.21.43 is ready",
+    "summary": "Raises office backup upload limits and keeps production update packages clean.",
     "notes": [
+        "CreditSoft 2026.4.21.43 keeps office update archives production-only by excluding every Composer dev package from the vendor payload.",
+        "CreditSoft 2026.4.21.43 marks Boost MCP Roster Pail Sail and Collision as never-discovered in office production builds so queue scheduler and web containers share safe bootstrap cache.",
+        "CreditSoft 2026.4.21.43 raises PHP post body and upload limits to 1024M so cluster backup mirroring can receive real office archives instead of falling into 413 errors.",
+        "CreditSoft 2026.4.21.42 keeps office update archives production-only by excluding every Composer dev package from the vendor payload.",
+        "CreditSoft 2026.4.21.42 marks Boost MCP Roster Pail Sail and Collision as never-discovered in office production builds so queue scheduler and web containers share safe bootstrap cache.",
         "CreditSoft 2026.4.21.41 prevents dev-only Laravel providers from being discovered in production office builds so web, queue, and scheduler containers share a safe bootstrap cache.",
         "CreditSoft 2026.4.21.41 raises the default Docker PHP memory limit to 512 MB while keeping it configurable through PHP_MEMORY_LIMIT.",
         "CreditSoft 2026.4.21.41 keeps office update packages from shipping dev-only Laravel vendor packages that can poison shared bootstrap cache.",
@@ -273,7 +278,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.21.41.zip",
+    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.21.43.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",

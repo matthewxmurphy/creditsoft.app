@@ -21,9 +21,13 @@ php_opcache_memory="${PHP_OPCACHE_MEMORY_CONSUMPTION:-192}"
 php_opcache_files="${PHP_OPCACHE_MAX_ACCELERATED_FILES:-20000}"
 php_opcache_validate="${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-0}"
 php_memory_limit="${PHP_MEMORY_LIMIT:-512M}"
+php_post_max_size="${PHP_POST_MAX_SIZE:-1024M}"
+php_upload_max_filesize="${PHP_UPLOAD_MAX_FILESIZE:-1024M}"
 
 cat > /usr/local/etc/php/conf.d/zz-creditsoft-cache.ini <<EOF
 memory_limit=${php_memory_limit}
+post_max_size=${php_post_max_size}
+upload_max_filesize=${php_upload_max_filesize}
 opcache.enable=1
 opcache.enable_cli=1
 opcache.memory_consumption=${php_opcache_memory}

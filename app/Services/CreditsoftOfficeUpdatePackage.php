@@ -10,6 +10,11 @@ use ZipArchive;
 
 class CreditsoftOfficeUpdatePackage
 {
+    /**
+     * @var array<int, string>|null
+     */
+    protected ?array $devVendorPrefixes = null;
+
     public function build(?string $version = null, ?string $build = null): array
     {
         $version = trim($version ?: $this->releaseVersion());
@@ -176,10 +181,7 @@ class CreditsoftOfficeUpdatePackage
             'public/hot',
             'storage/',
             'test-results/',
-            'vendor/laravel/boost/',
-            'vendor/laravel/pail/',
-            'vendor/laravel/sail/',
-            'vendor/nunomaduro/collision/',
+            ...$this->devVendorPrefixes(),
         ] as $prefix) {
             $normalizedPrefix = str_replace('\\', '/', $prefix);
 
@@ -191,6 +193,34 @@ class CreditsoftOfficeUpdatePackage
         }
 
         return false;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function devVendorPrefixes(): array
+    {
+        if (is_array($this->devVendorPrefixes)) {
+            return $this->devVendorPrefixes;
+        }
+
+        $path = base_path('composer.lock');
+
+        if (! File::exists($path)) {
+            return $this->devVendorPrefixes = [];
+        }
+
+        $lock = json_decode((string) File::get($path), true);
+
+        if (! is_array($lock)) {
+            return $this->devVendorPrefixes = [];
+        }
+
+        return $this->devVendorPrefixes = collect($lock['packages-dev'] ?? [])
+            ->map(fn (array $package): string => 'vendor/'.trim((string) ($package['name'] ?? ''), '/').'/')
+            ->filter(fn (string $prefix): bool => $prefix !== 'vendor//')
+            ->values()
+            ->all();
     }
 
     /**
