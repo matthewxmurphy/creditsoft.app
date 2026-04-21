@@ -664,7 +664,7 @@ const clientProcessingDotClass = (client: ClientRow) => {
         return 'bg-amber-400 ring-2 ring-amber-100';
     }
 
-    return 'bg-stone-300 ring-2 ring-stone-100';
+    return 'bg-sky-400 ring-2 ring-sky-100';
 };
 
 const clientProcessingLabel = (client: ClientRow) => {
@@ -679,7 +679,7 @@ const clientProcessingLabel = (client: ClientRow) => {
     }
 
     if (state === 'inactive') {
-        return `${sourceKindLabel(client)} record is not in the active processing queue.`;
+        return `${sourceKindLabel(client)} record is archived outside the active processing queue.`;
     }
 
     if (client.import_audit.needs_provider_credentials) {

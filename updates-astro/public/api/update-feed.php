@@ -1,12 +1,13 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.21.39",
-    "latest_build": "2026.04.21.193908",
-    "published_at": "2026-04-21T19:40:18+00:00",
-    "headline": "CreditSoft 2026.4.21.39 is ready",
-    "summary": "Client roster processing dots now show who needs work.",
+    "latest_version": "2026.4.21.40",
+    "latest_build": "2026.04.21.194420",
+    "published_at": "2026-04-21T19:44:20+00:00",
+    "headline": "CreditSoft 2026.4.21.40 is ready",
+    "summary": "Roster processing dots no longer use disabled-looking grey.",
     "notes": [
+        "CreditSoft 2026.4.21.40 changes archived lifecycle processing dots from grey to blue so grey no longer reads as disabled while hover text explains the archived state.",
         "CreditSoft 2026.4.21.39 changes the client-name roster dot from vague billing grey to processing status: green for ready/current, red for work needed, amber for intake, and neutral for inactive lifecycle records.",
         "CreditSoft 2026.4.21.38 moves the roster stage links back to the right of search and tightens the client table width.",
         "CreditSoft 2026.4.21.38 adds date-based release versions using YYYY.M.D.N for update packages and feed publishing.",
@@ -269,7 +270,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.21.39.zip",
+    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.21.40.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",
