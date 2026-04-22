@@ -11,6 +11,14 @@ use Throwable;
 class CreditsoftUpdateFeed
 {
     /**
+     * @var array<int, string>
+     */
+    protected const CANONICAL_REMOTE_FEEDS = [
+        'https://updates.creditsoft.app/api/update-feed.php',
+        'https://updates.creditsoft.app/api/update-feed',
+    ];
+
+    /**
      * @return array<string, mixed>
      */
     public function current(): array
@@ -118,6 +126,8 @@ class CreditsoftUpdateFeed
 
         /** @var array<string, mixed> $feed */
         $feed = Cache::remember($cacheKey, now()->addMinutes($cacheMinutes), function () use ($urls, $localFeed): array {
+            $feeds = [];
+
             foreach ($urls as $url) {
                 try {
                     $response = Http::timeout(3)
@@ -126,7 +136,7 @@ class CreditsoftUpdateFeed
                         ->get($url);
 
                     if ($response->successful() && is_array($response->json())) {
-                        return $this->normalizeFeed($response->json(), 'remote', $url);
+                        $feeds[] = $this->normalizeFeed($response->json(), 'remote', $url);
                     }
                 } catch (Throwable) {
                     continue;
@@ -134,7 +144,11 @@ class CreditsoftUpdateFeed
             }
 
             if ($localFeed !== null) {
-                return $localFeed;
+                $feeds[] = $localFeed;
+            }
+
+            if ($feeds !== []) {
+                return $this->newestFeed($feeds);
             }
 
             return [
@@ -213,10 +227,15 @@ class CreditsoftUpdateFeed
      */
     protected function remoteUrls(): array
     {
-        return array_values(array_filter([
+        return collect([
             trim((string) config('creditsoft.updates.feed_url', '')),
             trim((string) config('creditsoft.updates.fallback_feed_url', '')),
-        ]));
+            ...self::CANONICAL_REMOTE_FEEDS,
+        ])
+            ->filter(fn (string $url): bool => $url !== '' && ! str_starts_with($url, 'file://'))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     protected function cacheKey(array $urls): string
@@ -288,14 +307,57 @@ class CreditsoftUpdateFeed
 
     protected function isVersionLessThan(string $current, string $target): bool
     {
-        $current = $this->normalizeVersion($current);
-        $target = $this->normalizeVersion($target);
+        $current = $this->comparableVersion($current);
+        $target = $this->comparableVersion($target);
 
         if ($current === null || $target === null) {
             return false;
         }
 
         return version_compare($current, $target, '<');
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $feeds
+     * @return array<string, mixed>
+     */
+    protected function newestFeed(array $feeds): array
+    {
+        return collect($feeds)
+            ->sort(function (array $left, array $right): int {
+                $leftVersion = (string) ($left['latest_version'] ?? '');
+                $rightVersion = (string) ($right['latest_version'] ?? '');
+
+                if ($this->isVersionLessThan($leftVersion, $rightVersion)) {
+                    return 1;
+                }
+
+                if ($this->isVersionLessThan($rightVersion, $leftVersion)) {
+                    return -1;
+                }
+
+                return strcmp(
+                    (string) ($right['published_at'] ?? ''),
+                    (string) ($left['published_at'] ?? ''),
+                );
+            })
+            ->values()
+            ->first() ?? $feeds[0];
+    }
+
+    protected function comparableVersion(string $value): ?string
+    {
+        $version = $this->normalizeVersion($value);
+
+        if ($version === null) {
+            return null;
+        }
+
+        if (preg_match('/^20\d{2}\.\d{1,2}\.\d{1,2}\.\d+$/', $version) === 1) {
+            return '2.'.$version;
+        }
+
+        return '1.'.$version;
     }
 
     protected function normalizeVersion(string $value): ?string

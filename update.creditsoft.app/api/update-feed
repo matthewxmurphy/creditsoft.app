@@ -1,12 +1,14 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.21.44",
-    "latest_build": "2026.4.21.44",
-    "published_at": "2026-04-21T22:41:32+00:00",
-    "headline": "CreditSoft 2026.4.21.44 is ready",
-    "summary": "Keeps CreditSoft build and version identifiers aligned.",
+    "latest_version": "2026.4.22.1",
+    "latest_build": "2026.4.22.1",
+    "published_at": "2026-04-22T00:44:28+00:00",
+    "headline": "CreditSoft 2026.4.22.1 is ready",
+    "summary": "Keeps old 0.9.x server nodes moving into the 2026 calendar release line.",
     "notes": [
+        "CreditSoft 2026.4.22.1 treats 2026 calendar releases as the continuation after 0.9.x so server nodes can see the upgrade path instead of thinking 0.9.37 is current.",
+        "CreditSoft 2026.4.22.1 always checks the canonical public update feed even when a node has a bundled local feed, then chooses the newest available feed between public and local sources.",
         "CreditSoft 2026.4.21.44 uses the public release version as the build identifier so CTO diagnostics, installers, update feeds, and package manifests all show the same number.",
         "CreditSoft 2026.4.21.43 keeps office update archives production-only by excluding every Composer dev package from the vendor payload.",
         "CreditSoft 2026.4.21.43 marks Boost MCP Roster Pail Sail and Collision as never-discovered in office production builds so queue scheduler and web containers share safe bootstrap cache.",
@@ -279,7 +281,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.21.44.zip",
+    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.22.1.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",

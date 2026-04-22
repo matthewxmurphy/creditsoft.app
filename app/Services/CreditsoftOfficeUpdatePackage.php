@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\File;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
+use Symfony\Component\Process\Process;
 use ZipArchive;
 
 class CreditsoftOfficeUpdatePackage
@@ -38,20 +39,33 @@ class CreditsoftOfficeUpdatePackage
             throw new RuntimeException('The PHP zip extension is required to build the office update package.');
         }
 
+        $this->dumpComposerAutoload(noDev: true);
+
         $zip = new ZipArchive;
+        $zipOpen = false;
 
-        if ($zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new RuntimeException('CreditSoft could not create the office update archive.');
+        try {
+            if ($zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+                throw new RuntimeException('CreditSoft could not create the office update archive.');
+            }
+
+            $zipOpen = true;
+            $zip->addFromString($packageName.'/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $zip->addFromString($packageName.'/README.txt', $readme);
+
+            foreach ($this->sourceFiles() as $relativePath => $absolutePath) {
+                $zip->addFile($absolutePath, $packageName.DIRECTORY_SEPARATOR.$relativePath);
+            }
+
+            $zip->close();
+            $zipOpen = false;
+        } finally {
+            if ($zipOpen) {
+                $zip->close();
+            }
+
+            $this->dumpComposerAutoload(noDev: false);
         }
-
-        $zip->addFromString($packageName.'/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-        $zip->addFromString($packageName.'/README.txt', $readme);
-
-        foreach ($this->sourceFiles() as $relativePath => $absolutePath) {
-            $zip->addFile($absolutePath, $packageName.DIRECTORY_SEPARATOR.$relativePath);
-        }
-
-        $zip->close();
 
         File::put($manifestDirectory.DIRECTORY_SEPARATOR.'manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         File::put($manifestDirectory.DIRECTORY_SEPARATOR.'README.txt', $readme);
@@ -83,6 +97,32 @@ class CreditsoftOfficeUpdatePackage
         return is_array($decoded) && filled((string) ($decoded['latest_version'] ?? ''))
             ? trim((string) $decoded['latest_version'])
             : '0.5.1';
+    }
+
+    protected function dumpComposerAutoload(bool $noDev): void
+    {
+        $composerJson = base_path('composer.json');
+
+        if (! File::exists($composerJson)) {
+            return;
+        }
+
+        $process = new Process([
+            'composer',
+            'dump-autoload',
+            $noDev ? '--no-dev' : '--dev',
+            '--optimize',
+            '--no-interaction',
+        ], base_path());
+        $process->setTimeout(900);
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            throw new RuntimeException(trim(
+                'CreditSoft could not prepare the Composer autoloader for the office package. '.
+                $process->getErrorOutput().' '.$process->getOutput()
+            ));
+        }
     }
 
     /**
