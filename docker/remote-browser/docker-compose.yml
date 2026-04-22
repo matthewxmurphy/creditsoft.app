@@ -1,0 +1,67 @@
+name: ${REMOTE_BROWSER_PROJECT:-creditsoft-client-browser}
+
+services:
+  tailscale:
+    image: tailscale/tailscale:stable
+    container_name: ${REMOTE_BROWSER_CONTAINER_PREFIX:-creditsoft-client-browser}-tailscale
+    hostname: ${TAILSCALE_HOSTNAME:-creditsoft-client-browser}
+    restart: unless-stopped
+    environment:
+      TS_AUTHKEY: ${TAILSCALE_AUTHKEY:?Set the client's Tailscale auth key}
+      TS_HOSTNAME: ${TAILSCALE_HOSTNAME:-creditsoft-client-browser}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_EXTRA_ARGS: ${TAILSCALE_EXTRA_ARGS:---accept-routes=false --ssh=false}
+    volumes:
+      - ${REMOTE_BROWSER_STATE_DIR:?Set REMOTE_BROWSER_STATE_DIR}/tailscale:/var/lib/tailscale
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      net.ipv4.ip_forward: "0"
+      net.ipv6.conf.all.forwarding: "0"
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  chromium:
+    image: lscr.io/linuxserver/chromium:latest
+    container_name: ${REMOTE_BROWSER_CONTAINER_PREFIX:-creditsoft-client-browser}-chromium
+    restart: unless-stopped
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
+    shm_size: "2gb"
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      PUID: ${REMOTE_BROWSER_PUID:-1000}
+      PGID: ${REMOTE_BROWSER_PGID:-1000}
+      TZ: ${TZ:-America/Los_Angeles}
+      CUSTOM_USER: ${REMOTE_BROWSER_USER:-creditsoft}
+      PASSWORD: ${REMOTE_BROWSER_PASSWORD:?Set a remote browser password}
+      TITLE: ${REMOTE_BROWSER_TITLE:-CreditSoft Remote Browser}
+      CHROME_CLI: ${REMOTE_BROWSER_START_URL:-http://host.docker.internal:8877/dashboard?source=client-remote-browser}
+    volumes:
+      - ${REMOTE_BROWSER_STATE_DIR:?Set REMOTE_BROWSER_STATE_DIR}/chromium:/config
+      - ${REMOTE_BROWSER_STATE_DIR:?Set REMOTE_BROWSER_STATE_DIR}/downloads:/downloads
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ${REMOTE_BROWSER_CONTAINER_PREFIX:-creditsoft-client-browser}-ngrok
+    restart: unless-stopped
+    network_mode: service:tailscale
+    depends_on:
+      - tailscale
+      - chromium
+    command:
+      - start
+      - --all
+      - --config
+      - /etc/ngrok.yml
+    volumes:
+      - ${REMOTE_BROWSER_NGROK_CONFIG:?Set REMOTE_BROWSER_NGROK_CONFIG}:/etc/ngrok.yml:ro
+    extra_hosts:
+      - host.docker.internal:host-gateway
