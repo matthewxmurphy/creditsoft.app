@@ -57,6 +57,9 @@ const props = defineProps<{
             file_size_bytes: number;
             file_size_label: string;
             has_files: boolean;
+            missing_required: string[];
+            missing_required_count: number;
+            present_required: string[];
         };
         import_audit: {
             pulse_imported: boolean;
@@ -340,6 +343,12 @@ const documentStorageDetail = computed(() => {
 });
 
 const clientDocumentStorageClass = (client: ClientRow) => {
+    if (client.document_storage.missing_required_count > 0) {
+        return client.document_storage.has_files
+            ? 'text-amber-700'
+            : 'text-rose-700';
+    }
+
     if (client.document_storage.has_files) {
         return 'text-emerald-700';
     }
@@ -352,6 +361,10 @@ const clientDocumentStorageClass = (client: ClientRow) => {
 };
 
 const clientDocumentStorageLabel = (client: ClientRow) => {
+    if (client.document_storage.missing_required_count > 0) {
+        return `${client.document_storage.missing_required_count} missing`;
+    }
+
     if (client.document_storage.has_files) {
         return client.document_storage.file_size_label;
     }
@@ -365,6 +378,10 @@ const clientDocumentStorageLabel = (client: ClientRow) => {
 
 const clientDocumentStorageDetail = (client: ClientRow) => {
     const storage = client.document_storage;
+
+    if (storage.missing_required_count > 0) {
+        return `Needs ${storage.missing_required.join(', ')}`;
+    }
 
     if (!storage.document_count) {
         return '0 docs';

@@ -2447,9 +2447,9 @@ async function captureActiveTab() {
 
                 for (const row of Array.from(
                     document.querySelectorAll(
-                        '#RequiredIdentificationDiv .documents-row1, #clientUploadedDocumentsDiv .documents-row1, #progressCreditReportUploadedDiv .documents-row1',
+                        '#RequiredIdentificationDiv .documents-row1, #RequiredIdentificationDiv .documents-row2, #clientUploadedDocumentsDiv .documents-row1, #clientUploadedDocumentsDiv .documents-row2, #progressCreditReportUploadedDiv .documents-row1, #progressCreditReportUploadedDiv .documents-row2, .documents-row1:has(a[href*="/document"][href*="method=clientDocument"]), .documents-row2:has(a[href*="/document"][href*="method=clientDocument"])',
                     ),
-                ).slice(0, 160)) {
+                ).slice(0, 220)) {
                     const downloadLink = row.querySelector(
                         'a[href*="/document"][href*="method=clientDocument"], a[href*="/document"][href*="method=downloadCreditAuditReport"], a.documents-email-link[href*="/document"]',
                     );
@@ -4954,6 +4954,32 @@ function pulseDocumentCandidateUrls(documentRecord) {
     );
 }
 
+function pulseDocumentUrlLooksLikePreview(url) {
+    const value = String(url || '').toLowerCase();
+
+    return (
+        value.includes('/static-resources/client_documents/') ||
+        /\.(?:gif|jpe?g|png|webp)(?:[?#]|$)/i.test(value)
+    );
+}
+
+function pulseDocumentHasFullDownloadUrl(documentRecord, candidateUrls = []) {
+    const values = [
+        documentRecord?.download_url,
+        documentRecord?.source_path,
+        ...candidateUrls,
+    ]
+        .map((value) => String(value || '').toLowerCase())
+        .filter(Boolean);
+
+    return values.some((value) => (
+        value.includes('/document?') ||
+        value.includes('method=clientdocument') ||
+        value.includes('clientdocument') ||
+        value.includes('.pdf')
+    ));
+}
+
 async function pulseDocumentBlobLooksLikeThumbnail(blob, contentType) {
     const normalizedType = String(contentType || blob?.type || '').toLowerCase();
 
@@ -5027,6 +5053,10 @@ async function fetchPulseDocumentFile(documentRecord) {
 
     let lastError = null;
     let tinyPreviewSeen = false;
+    const hasFullDownloadUrl = pulseDocumentHasFullDownloadUrl(
+        documentRecord,
+        candidateUrls,
+    );
 
     for (const url of candidateUrls) {
         try {
@@ -5054,7 +5084,8 @@ async function fetchPulseDocumentFile(documentRecord) {
             }
 
             if (
-                candidateUrls.length > 1 &&
+                (candidateUrls.length > 1 || hasFullDownloadUrl) &&
+                (pulseDocumentUrlLooksLikePreview(url) || hasFullDownloadUrl) &&
                 (await pulseDocumentBlobLooksLikeThumbnail(blob, contentType))
             ) {
                 tinyPreviewSeen = true;

@@ -625,7 +625,7 @@ async function captureActiveTab() {
                 };
                 const clientUid = clientUidFromPage();
 
-                for (const row of Array.from(document.querySelectorAll('#RequiredIdentificationDiv .documents-row1, #clientUploadedDocumentsDiv .documents-row1, #progressCreditReportUploadedDiv .documents-row1')).slice(0, 160)) {
+                for (const row of Array.from(document.querySelectorAll('#RequiredIdentificationDiv .documents-row1, #RequiredIdentificationDiv .documents-row2, #clientUploadedDocumentsDiv .documents-row1, #clientUploadedDocumentsDiv .documents-row2, #progressCreditReportUploadedDiv .documents-row1, #progressCreditReportUploadedDiv .documents-row2, .documents-row1:has(a[href*="/document"][href*="method=clientDocument"]), .documents-row2:has(a[href*="/document"][href*="method=clientDocument"])')).slice(0, 220)) {
                     const downloadLink = row.querySelector('a[href*="/document"][href*="method=clientDocument"], a[href*="/document"][href*="method=downloadCreditAuditReport"], a.documents-email-link[href*="/document"]');
                     const downloadHref = downloadLink?.getAttribute('href') || '';
                     const downloadUrl = pulseDownloadUrl(downloadHref);

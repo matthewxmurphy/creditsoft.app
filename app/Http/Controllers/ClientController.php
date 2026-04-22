@@ -130,6 +130,7 @@ class ClientController extends Controller
             ->with([
                 'assignedUser',
                 'billingProfile',
+                'documents:id,client_id,title,file_size,metadata',
                 'payments',
                 'providerAccounts',
                 'reportingCycles' => fn ($query) => $query->latest('started_at')->limit(2),
@@ -161,6 +162,7 @@ class ClientController extends Controller
             $documentCount = max((int) ($client->document_record_count ?? 0), 0);
             $fileCount = max((int) ($client->document_file_count ?? 0), 0);
             $metadataOnlyCount = max((int) ($client->metadata_only_document_count ?? 0), 0);
+            $requiredDocumentStatus = $this->requiredDocumentStatus($client);
 
             return [
                 'id' => $client->getKey(),
@@ -182,6 +184,9 @@ class ClientController extends Controller
                     'file_size_bytes' => $documentBytes,
                     'file_size_label' => $this->humanBytes($documentBytes),
                     'has_files' => $fileCount > 0 && $documentBytes > 0,
+                    'missing_required' => $requiredDocumentStatus['missing'],
+                    'missing_required_count' => count($requiredDocumentStatus['missing']),
+                    'present_required' => $requiredDocumentStatus['present'],
                 ],
             ];
         }));
@@ -369,6 +374,57 @@ class ClientController extends Controller
         return number_format($value, $power === 0 ? 0 : 1).' '.$units[$power];
     }
 
+    /**
+     * @return array{present:list<string>,missing:list<string>}
+     */
+    protected function requiredDocumentStatus(Client $client): array
+    {
+        $requirements = [
+            'Photo ID' => ['photo id', 'photo of drivers license', 'driver license', 'drivers license', 'driver’s license', 'photo'],
+            'Proof of address' => ['proof of address', 'utility bill', 'bill', 'lease', 'address verification'],
+            'W2/SS card' => ['w2', 'w-2', 'social security card', 'ss card'],
+        ];
+        $matches = array_fill_keys(array_keys($requirements), false);
+
+        $client->documents
+            ->filter(fn ($document): bool => (int) ($document->file_size ?? 0) > 0)
+            ->each(function ($document) use (&$matches, $requirements): void {
+                $metadata = is_array($document->metadata ?? null) ? $document->metadata : [];
+                $haystack = Str::lower(implode(' ', array_filter([
+                    (string) ($document->title ?? ''),
+                    (string) data_get($metadata, 'source_title', ''),
+                    (string) data_get($metadata, 'document_type', ''),
+                    (string) data_get($metadata, 'imports.disputefox.document.doc_name', ''),
+                    (string) data_get($metadata, 'imports.disputefox.document.title', ''),
+                ])));
+
+                foreach ($requirements as $label => $needles) {
+                    if ($matches[$label]) {
+                        continue;
+                    }
+
+                    foreach ($needles as $needle) {
+                        if (str_contains($haystack, $needle)) {
+                            $matches[$label] = true;
+
+                            break;
+                        }
+                    }
+                }
+            });
+
+        return [
+            'present' => array_values(array_filter(
+                array_keys($matches),
+                fn (string $label): bool => (bool) $matches[$label],
+            )),
+            'missing' => array_values(array_filter(
+                array_keys($matches),
+                fn (string $label): bool => ! (bool) $matches[$label],
+            )),
+        ];
+    }
+
     protected function applyRosterViewFilter(Builder $query, string $view, array $disputeFoxCaptureIndex = []): void
     {
         if ($view === 'all') {
@@ -422,6 +478,7 @@ class ClientController extends Controller
             "(
                 (metadata::jsonb #> '{imports,disputefox}') is null
                 and lower(coalesce(status, '')) in ('active', 'active_review', 'monitoring')
+                and (".$this->activeClientEvidenceExistsSql().")
             )",
             "(
                 (metadata::jsonb #> '{imports,disputefox}') is null
@@ -438,10 +495,22 @@ class ClientController extends Controller
     protected function leadPredicateSql(): string
     {
         return implode(' or ', [
-            "lower(coalesce(status, '')) = 'lead'",
-            "coalesce(metadata::jsonb #>> '{crm,source_kind}', '') = 'lead'",
-            "coalesce(metadata::jsonb #>> '{source_kind}', '') = 'lead'",
-            "(metadata::jsonb #> '{imports,disputefox,lists,leads}') is not null",
+            "(
+                (metadata::jsonb #> '{imports,disputefox,lists,clients}') is null
+                and lower(coalesce(status, '')) = 'lead'
+            )",
+            "(
+                (metadata::jsonb #> '{imports,disputefox,lists,clients}') is null
+                and coalesce(metadata::jsonb #>> '{crm,source_kind}', '') = 'lead'
+            )",
+            "(
+                (metadata::jsonb #> '{imports,disputefox,lists,clients}') is null
+                and coalesce(metadata::jsonb #>> '{source_kind}', '') = 'lead'
+            )",
+            "(
+                (metadata::jsonb #> '{imports,disputefox,lists,clients}') is null
+                and (metadata::jsonb #> '{imports,disputefox,lists,leads}') is not null
+            )",
             "lower(coalesce(metadata::jsonb #>> '{imports,disputefox,regular_companion_sync,source_page_url}', '')) like '%type=leads%'",
             "(
                 (metadata::jsonb #> '{imports,disputefox,lists,clients}') is null
@@ -490,10 +559,26 @@ class ClientController extends Controller
                 "lower(coalesce(metadata::jsonb #>> '{imports,disputefox,lists,clients,raw_row,Stage in Processs}', '')) similar to '%(closed|archived|terminated)%'",
                 "lower(coalesce(metadata::jsonb #>> '{imports,disputefox,lists,clients,raw_row,Stage in Process}', '')) similar to '%(closed|archived|terminated)%'",
                 $leadWithHistorySql,
-                $this->inactiveServicePredicateSql(),
+                "(
+                    lower(coalesce(status, '')) not in ('active', 'active_review', 'monitoring')
+                    and ".$this->inactiveServicePredicateSql()."
+                )",
                 $this->legacyImportedProfileWithoutActiveClientSql(),
             ])
             .") and {$notFiredOrFinal}";
+    }
+
+    protected function activeClientEvidenceExistsSql(): string
+    {
+        return '('.implode(' or ', [
+            $this->providerLoginExistsSql(),
+            $this->billingSignalExistsSql(),
+            "exists (
+                select 1
+                from client_documents
+                where client_documents.client_id = clients.id
+            )",
+        ]).')';
     }
 
     protected function providerLoginExistsSql(): string

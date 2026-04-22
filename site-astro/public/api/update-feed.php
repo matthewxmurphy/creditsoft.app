@@ -1,12 +1,15 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.22.5",
-    "latest_build": "2026.4.22.5",
-    "published_at": "2026-04-22T06:49:39+00:00",
-    "headline": "CreditSoft 2026.4.22.5 is ready",
-    "summary": "Cluster backups now stream between server nodes and document sync preserves file paths.",
+    "latest_version": "2026.4.22.6",
+    "latest_build": "2026.4.22.6",
+    "published_at": "2026-04-22T17:42:22+00:00",
+    "headline": "Client document inventory and active roster repair",
+    "summary": "Repairs active client classification, inventories DisputeFox document rows, and avoids saving preview thumbnails as real files.",
     "notes": [
+        "CreditSoft 2026.4.22.6 Clients with DisputeFox document links now show metadata-only inventory separately from real file bytes.",
+        "CreditSoft 2026.4.22.6 The roster now lists missing required documents instead of treating links or thumbnails as complete files.",
+        "CreditSoft 2026.4.22.6 The companion document capture scans more DisputeFox document rows and skips tiny preview/thumbnail payloads when a real download URL exists.",
         "CreditSoft 2026.4.22.5 streams cluster backup uploads so large database archives do not exhaust PHP memory.",
         "CreditSoft 2026.4.22.5 keeps cluster document sync from inserting metadata-only document records with a null file path.",
         "CreditSoft 2026.4.22.4 keeps cluster document sync from inserting metadata-only document records with a null file path.",
@@ -286,7 +289,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.22.5.zip",
+    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.22.6.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",
