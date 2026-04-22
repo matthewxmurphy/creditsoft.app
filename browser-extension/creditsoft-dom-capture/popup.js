@@ -563,6 +563,21 @@ async function captureActiveTab() {
                         return 'audit_report';
                     }
 
+                    if (
+                        ['letter', 'letters', 'letter_pdf', 'client_letters'].includes(rawCategory) ||
+                        [
+                            'letter',
+                            'lexisnexis',
+                            'lexis nexis',
+                            'innovis',
+                            'credco',
+                            'creditor statement',
+                            'investigation results',
+                        ].some((needle) => text.includes(needle))
+                    ) {
+                        return 'letter_pdf';
+                    }
+
                     return rawCategory || 'client_documents';
                 })();
 
@@ -1356,6 +1371,32 @@ function pulseDocumentCandidateUrls(documentRecord) {
     return Array.from(new Set(candidates.map((value) => String(value || '').trim()).filter(Boolean)));
 }
 
+function pulseDocumentUrlLooksLikePreview(url) {
+    const value = String(url || '').toLowerCase();
+
+    return (
+        value.includes('/static-resources/client_documents/') ||
+        /\.(?:gif|jpe?g|png|webp)(?:[?#]|$)/i.test(value)
+    );
+}
+
+function pulseDocumentHasFullDownloadUrl(documentRecord, candidateUrls = []) {
+    const values = [
+        documentRecord?.download_url,
+        documentRecord?.source_path,
+        ...candidateUrls,
+    ]
+        .map((value) => String(value || '').toLowerCase())
+        .filter(Boolean);
+
+    return values.some((value) => (
+        value.includes('/document?') ||
+        value.includes('method=clientdocument') ||
+        value.includes('clientdocument') ||
+        value.includes('.pdf')
+    ));
+}
+
 async function pulseDocumentBlobLooksLikeThumbnail(blob, contentType) {
     const normalizedType = String(contentType || blob?.type || '').toLowerCase();
 
@@ -1411,6 +1452,7 @@ async function fetchPulseDocumentFile(documentRecord) {
 
     let lastError = null;
     let tinyPreviewSeen = false;
+    const hasFullDownloadUrl = pulseDocumentHasFullDownloadUrl(documentRecord, candidateUrls);
 
     for (const url of candidateUrls) {
         try {
@@ -1430,7 +1472,11 @@ async function fetchPulseDocumentFile(documentRecord) {
                 throw new Error('DisputeFox returned a page instead of the document file. Open the document drawer and try again.');
             }
 
-            if (candidateUrls.length > 1 && (await pulseDocumentBlobLooksLikeThumbnail(blob, contentType))) {
+            if (
+                (candidateUrls.length > 1 || hasFullDownloadUrl) &&
+                (pulseDocumentUrlLooksLikePreview(url) || hasFullDownloadUrl) &&
+                (await pulseDocumentBlobLooksLikeThumbnail(blob, contentType))
+            ) {
                 tinyPreviewSeen = true;
                 continue;
             }

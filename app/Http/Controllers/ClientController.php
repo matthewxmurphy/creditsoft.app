@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\ClientProviderAccount;
 use App\Models\MigrationOperatorCapture;
 use App\Models\SopTemplate;
+use App\Models\User;
 use App\Services\AuditRetentionPolicy;
 use App\Services\AuditTrail;
 use App\Services\BrowserCaptureCleanupService;
@@ -109,6 +110,8 @@ class ClientController extends Controller
             ->limit(120, '')
             ->value();
         $perPage = min(100, max(10, (int) $request->integer('per_page', 25)));
+        $sort = $this->rosterSort((string) $request->query('sort', 'newest'));
+        $direction = $this->rosterSortDirection((string) $request->query('direction', $sort === 'newest' ? 'desc' : 'asc'));
         $companyProfile = $growth->companyProfile();
         $crmFields = collect([...$growth->crmFields('lead'), ...$growth->crmFields('client')])
             ->unique('key')
@@ -117,6 +120,13 @@ class ClientController extends Controller
         $disputeFoxCaptureIndex = $this->disputeFoxCaptureSourceIndex();
 
         $clientQuery = Client::query()
+            ->select('clients.*')
+            ->addSelect([
+                'assigned_user_sort_name' => User::query()
+                    ->select('name')
+                    ->whereColumn('users.id', 'clients.assigned_to')
+                    ->limit(1),
+            ])
             ->with([
                 'assignedUser',
                 'billingProfile',
@@ -131,13 +141,16 @@ class ClientController extends Controller
                     ->where(fn (Builder $scope) => $scope
                         ->whereNull('file_size')
                         ->orWhere('file_size', '<=', 0)),
+                'providerAccounts as provider_account_count',
+                'reportingCycles as reporting_cycle_count',
             ])
+            ->withMax('reportingCycles as latest_reporting_cycle_started_at', 'started_at')
             ->withSum('documents as document_file_size_bytes', 'file_size');
         $this->applyRosterViewFilter($clientQuery, $view, $disputeFoxCaptureIndex);
         $this->applyRosterSearch($clientQuery, $search);
+        $this->applyRosterSort($clientQuery, $sort, $direction);
 
         $clients = $clientQuery
-            ->latest('id')
             ->paginate($perPage)
             ->withQueryString();
 
@@ -156,7 +169,7 @@ class ClientController extends Controller
                 'status' => $client->status,
                 'current_score' => $client->current_score,
                 'assigned_user' => $client->assignedUser?->name,
-                'cycle_count' => $client->reportingCycles->count(),
+                'cycle_count' => max((int) ($client->reporting_cycle_count ?? $client->reportingCycles->count()), 0),
                 'latest_cycle' => $client->reportingCycles->first()?->cycle_label,
                 'client_health' => $healthSignal,
                 'billing_signal' => $healthSignal,
@@ -195,6 +208,8 @@ class ClientController extends Controller
                 'view' => $view,
                 'search' => $search,
                 'per_page' => $perPage,
+                'sort' => $sort,
+                'direction' => $direction,
             ],
             'pagination' => [
                 'current_page' => $clients->currentPage(),
@@ -242,6 +257,63 @@ class ClientController extends Controller
     protected function rosterView(string $view): string
     {
         return in_array($view, ['clients', 'leads', 'terminated', 'fired', 'canceled', 'graduated', 'all'], true) ? $view : 'clients';
+    }
+
+    protected function rosterSort(string $sort): string
+    {
+        return in_array($sort, ['newest', 'person', 'status', 'provider', 'files', 'score', 'owner', 'cycle'], true)
+            ? $sort
+            : 'newest';
+    }
+
+    protected function rosterSortDirection(string $direction): string
+    {
+        return strtolower($direction) === 'desc' ? 'desc' : 'asc';
+    }
+
+    protected function applyRosterSort(Builder $query, string $sort, string $direction): void
+    {
+        $direction = $this->rosterSortDirection($direction);
+
+        if ($sort === 'person') {
+            $query
+                ->orderByRaw("lower(coalesce(last_name, '')) {$direction}")
+                ->orderByRaw("lower(coalesce(first_name, '')) {$direction}")
+                ->orderBy('clients.id');
+
+            return;
+        }
+
+        if ($sort === 'status') {
+            $query->orderByRaw("lower(coalesce(status, '')) {$direction}");
+        } elseif ($sort === 'provider') {
+            $query->orderByRaw("coalesce(provider_account_count, 0) {$direction}");
+        } elseif ($sort === 'files') {
+            $query
+                ->orderByRaw("coalesce(document_file_size_bytes, 0) {$direction}")
+                ->orderByRaw("coalesce(document_file_count, 0) {$direction}")
+                ->orderByRaw("coalesce(document_record_count, 0) {$direction}");
+        } elseif ($sort === 'score') {
+            $query
+                ->orderByRaw('current_score is null asc')
+                ->orderBy('current_score', $direction);
+        } elseif ($sort === 'owner') {
+            $query->orderByRaw("lower(coalesce(assigned_user_sort_name, '')) {$direction}");
+        } elseif ($sort === 'cycle') {
+            $query
+                ->orderByRaw('latest_reporting_cycle_started_at is null asc')
+                ->orderBy('latest_reporting_cycle_started_at', $direction)
+                ->orderBy('reporting_cycle_count', $direction);
+        } else {
+            $query->latest('clients.id');
+
+            return;
+        }
+
+        $query
+            ->orderByRaw("lower(coalesce(last_name, '')) asc")
+            ->orderByRaw("lower(coalesce(first_name, '')) asc")
+            ->orderBy('clients.id');
     }
 
     protected function rosterBaseQuery(): Builder

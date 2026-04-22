@@ -153,6 +153,8 @@ const props = defineProps<{
             | 'all';
         search?: string | null;
         per_page: number;
+        sort?: RosterSort | string | null;
+        direction?: SortDirection | string | null;
     };
     pagination: {
         current_page: number;
@@ -174,6 +176,16 @@ type RosterMode =
     | 'canceled'
     | 'graduated'
     | 'all';
+type RosterSort =
+    | 'newest'
+    | 'person'
+    | 'status'
+    | 'provider'
+    | 'files'
+    | 'score'
+    | 'owner'
+    | 'cycle';
+type SortDirection = 'asc' | 'desc';
 
 const coerceRosterMode = (view?: string | null): RosterMode => {
     return view === 'leads' ||
@@ -185,6 +197,21 @@ const coerceRosterMode = (view?: string | null): RosterMode => {
         ? view
         : 'clients';
 };
+
+const coerceRosterSort = (sort?: string | null): RosterSort => {
+    return sort === 'person' ||
+        sort === 'status' ||
+        sort === 'provider' ||
+        sort === 'files' ||
+        sort === 'score' ||
+        sort === 'owner' ||
+        sort === 'cycle'
+        ? sort
+        : 'newest';
+};
+
+const coerceSortDirection = (direction?: string | null): SortDirection =>
+    direction === 'desc' ? 'desc' : 'asc';
 
 const rosterTabs: Array<{ label: string; value: RosterMode }> = [
     { label: 'Clients', value: 'clients' },
@@ -199,6 +226,10 @@ const rosterTabs: Array<{ label: string; value: RosterMode }> = [
 const rosterMode = ref<RosterMode>(coerceRosterMode(props.filters.view));
 const searchQuery = ref(props.filters.search ?? '');
 const perPage = ref(props.filters.per_page);
+const sortKey = ref<RosterSort>(coerceRosterSort(props.filters.sort));
+const sortDirection = ref<SortDirection>(
+    coerceSortDirection(props.filters.direction),
+);
 const showAdvancedCreate = ref(false);
 const addClientDialogOpen = ref(false);
 const addClientSaved = ref(false);
@@ -920,12 +951,61 @@ const clearSelection = () => {
     selectedClientIds.value = new Set();
 };
 
+const defaultSortDirection = (sort: RosterSort): SortDirection =>
+    ['newest', 'provider', 'files', 'score', 'cycle'].includes(sort)
+        ? 'desc'
+        : 'asc';
+
+const sortIndicator = (sort: RosterSort) => {
+    if (sortKey.value !== sort) {
+        return '';
+    }
+
+    return sortDirection.value === 'asc' ? '^' : 'v';
+};
+
+const sortLabel = (sort: RosterSort, label: string) => {
+    if (sortKey.value !== sort) {
+        return `Sort by ${label}`;
+    }
+
+    return `Sorted by ${label} ${sortDirection.value === 'asc' ? 'ascending' : 'descending'}`;
+};
+
+const sortHeaderClass = (sort: RosterSort) =>
+    sortKey.value === sort
+        ? 'text-stone-950'
+        : 'text-stone-500 hover:text-stone-950';
+
+const ariaSort = (sort: RosterSort) => {
+    if (sortKey.value !== sort) {
+        return 'none';
+    }
+
+    return sortDirection.value === 'asc' ? 'ascending' : 'descending';
+};
+
+const setRosterSort = (sort: RosterSort) => {
+    const nextDirection =
+        sortKey.value === sort
+            ? sortDirection.value === 'asc'
+                ? 'desc'
+                : 'asc'
+            : defaultSortDirection(sort);
+
+    sortKey.value = sort;
+    sortDirection.value = nextDirection;
+    visitRoster({ sort, direction: nextDirection, page: 1 });
+};
+
 const visitRoster = (
     overrides: Partial<{
         view: RosterMode;
         search: string;
         page: number;
         per_page: number;
+        sort: RosterSort;
+        direction: SortDirection;
     }> = {},
     debounceMs = 0,
 ) => {
@@ -939,6 +1019,8 @@ const visitRoster = (
         search: (overrides.search ?? searchQuery.value).trim(),
         page: overrides.page ?? 1,
         per_page: overrides.per_page ?? perPage.value,
+        sort: overrides.sort ?? sortKey.value,
+        direction: overrides.direction ?? sortDirection.value,
     };
 
     const run = () => {
@@ -981,6 +1063,8 @@ watch(
         rosterMode.value = coerceRosterMode(filters.view);
         searchQuery.value = filters.search ?? '';
         perPage.value = filters.per_page;
+        sortKey.value = coerceRosterSort(filters.sort);
+        sortDirection.value = coerceSortDirection(filters.direction);
         window.queueMicrotask(() => {
             syncingFilters = false;
         });
@@ -1846,13 +1930,126 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         @change="handleVisibleSelection"
                                     />
                                 </th>
-                                <th class="w-[23%] px-4 py-2.5">Person</th>
-                                <th class="w-[9%] px-4 py-2.5">Status</th>
-                                <th class="w-[22%] px-4 py-2.5">Provider</th>
-                                <th class="w-[11%] px-4 py-2.5">Files</th>
-                                <th class="w-[7%] px-4 py-2.5">Score</th>
-                                <th class="w-[10%] px-4 py-2.5">Owner</th>
-                                <th class="w-[6%] px-4 py-2.5">Cycle</th>
+                                <th
+                                    class="w-[23%] px-4 py-2.5"
+                                    :aria-sort="ariaSort('person')"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 font-semibold transition"
+                                        :class="sortHeaderClass('person')"
+                                        :aria-label="sortLabel('person', 'person')"
+                                        @click="setRosterSort('person')"
+                                    >
+                                        <span>Person</span>
+                                        <span class="w-2 text-[10px]">{{
+                                            sortIndicator('person')
+                                        }}</span>
+                                    </button>
+                                </th>
+                                <th
+                                    class="w-[9%] px-4 py-2.5"
+                                    :aria-sort="ariaSort('status')"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 font-semibold transition"
+                                        :class="sortHeaderClass('status')"
+                                        :aria-label="sortLabel('status', 'status')"
+                                        @click="setRosterSort('status')"
+                                    >
+                                        <span>Status</span>
+                                        <span class="w-2 text-[10px]">{{
+                                            sortIndicator('status')
+                                        }}</span>
+                                    </button>
+                                </th>
+                                <th
+                                    class="w-[22%] px-4 py-2.5"
+                                    :aria-sort="ariaSort('provider')"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 font-semibold transition"
+                                        :class="sortHeaderClass('provider')"
+                                        :aria-label="sortLabel('provider', 'provider count')"
+                                        @click="setRosterSort('provider')"
+                                    >
+                                        <span>Provider</span>
+                                        <span class="w-2 text-[10px]">{{
+                                            sortIndicator('provider')
+                                        }}</span>
+                                    </button>
+                                </th>
+                                <th
+                                    class="w-[11%] px-4 py-2.5"
+                                    :aria-sort="ariaSort('files')"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 font-semibold transition"
+                                        :class="sortHeaderClass('files')"
+                                        aria-label="Sort by real stored file size"
+                                        title="Sort by real stored file size, then file count"
+                                        @click="setRosterSort('files')"
+                                    >
+                                        <span>Files</span>
+                                        <span class="w-2 text-[10px]">{{
+                                            sortIndicator('files')
+                                        }}</span>
+                                    </button>
+                                </th>
+                                <th
+                                    class="w-[7%] px-4 py-2.5"
+                                    :aria-sort="ariaSort('score')"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 font-semibold transition"
+                                        :class="sortHeaderClass('score')"
+                                        :aria-label="sortLabel('score', 'score')"
+                                        @click="setRosterSort('score')"
+                                    >
+                                        <span>Score</span>
+                                        <span class="w-2 text-[10px]">{{
+                                            sortIndicator('score')
+                                        }}</span>
+                                    </button>
+                                </th>
+                                <th
+                                    class="w-[10%] px-4 py-2.5"
+                                    :aria-sort="ariaSort('owner')"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 font-semibold transition"
+                                        :class="sortHeaderClass('owner')"
+                                        :aria-label="sortLabel('owner', 'owner')"
+                                        @click="setRosterSort('owner')"
+                                    >
+                                        <span>Owner</span>
+                                        <span class="w-2 text-[10px]">{{
+                                            sortIndicator('owner')
+                                        }}</span>
+                                    </button>
+                                </th>
+                                <th
+                                    class="w-[6%] px-4 py-2.5"
+                                    :aria-sort="ariaSort('cycle')"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 font-semibold transition"
+                                        :class="sortHeaderClass('cycle')"
+                                        :aria-label="sortLabel('cycle', 'cycle')"
+                                        @click="setRosterSort('cycle')"
+                                    >
+                                        <span>Cycle</span>
+                                        <span class="w-2 text-[10px]">{{
+                                            sortIndicator('cycle')
+                                        }}</span>
+                                    </button>
+                                </th>
                                 <th class="w-[6%] px-4 py-2.5">Action</th>
                             </tr>
                         </thead>

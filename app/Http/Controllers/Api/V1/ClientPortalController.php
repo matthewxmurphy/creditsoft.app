@@ -1336,6 +1336,11 @@ class ClientPortalController extends Controller
         /** @var UploadedFile|null $documentFile */
         $documentFile = $request->file('document_file');
         $stored = $documentFile ? $this->storeClientDocumentFile($client, $documentFile) : null;
+        if ($stored && $this->companionStoredFileLooksLikeTinyPreview($stored, $documentPayload)) {
+            $this->discardStoredClientDocumentFile($stored);
+            $stored = null;
+            $documentPayload['tiny_preview_rejected'] = true;
+        }
         $result = $this->upsertCompanionClientDocument(
             client: $client,
             sourceDocument: $documentPayload,
@@ -2043,6 +2048,7 @@ class ClientPortalController extends Controller
                 'mime_type',
                 'file_size',
                 'is_credit_report',
+                'tiny_preview_rejected',
             ]),
         ]);
 
@@ -2101,7 +2107,51 @@ class ClientPortalController extends Controller
             return 'audit_report';
         }
 
+        if (in_array($rawCategory, ['letter', 'letters', 'letter_pdf', 'client_letters'], true)
+            || Str::contains($text, ['letter', 'lexisnexis', 'lexis nexis', 'innovis', 'credco', 'creditor statement', 'investigation results'])
+        ) {
+            return 'letter_pdf';
+        }
+
         return $rawCategory !== '' ? $rawCategory : 'client_documents';
+    }
+
+    protected function companionStoredFileLooksLikeTinyPreview(array $stored, array $sourceDocument): bool
+    {
+        $size = (int) ($stored['file_size'] ?? 0);
+        $mimeType = Str::lower((string) ($stored['mime_type'] ?? ''));
+
+        if ($size <= 0 || $size > 65536 || ! Str::startsWith($mimeType, 'image/')) {
+            return false;
+        }
+
+        if ($size < 8192) {
+            return true;
+        }
+
+        $sourceText = Str::lower(implode(' ', array_filter([
+            $this->companionDocumentValue($sourceDocument, ['download_url', 'client_document_full_url']),
+            $this->companionDocumentValue($sourceDocument, ['preview_url']),
+            $this->companionDocumentValue($sourceDocument, ['source_path', 'client_document_url']),
+            $stored['file_name'] ?? '',
+        ])));
+
+        return Str::contains($sourceText, [
+            '/static-resources/client_documents/',
+            '/document?',
+            'method=clientdocument',
+            'clientdocument',
+            '.pdf',
+        ]);
+    }
+
+    protected function discardStoredClientDocumentFile(array $stored): void
+    {
+        $path = (string) ($stored['file_path'] ?? '');
+
+        if ($path !== '' && File::exists($path)) {
+            File::delete($path);
+        }
     }
 
     protected function findCompanionClientDocument(Client $client, string $sourceDocumentUid, string $downloadUrl, string $title): ?ClientDocument
