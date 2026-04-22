@@ -24,7 +24,8 @@ class ClientDocumentController extends Controller
 
         $mimeType = $document->mime_type ?: File::mimeType($document->file_path);
         $fileName = $document->file_name ?: basename((string) $document->file_path);
-        $disposition = Str::startsWith((string) $mimeType, 'image/') || $mimeType === 'application/pdf'
+        $forcePreview = $request->boolean('preview');
+        $disposition = $forcePreview || Str::startsWith((string) $mimeType, 'image/') || $mimeType === 'application/pdf'
             ? 'inline'
             : 'attachment';
 

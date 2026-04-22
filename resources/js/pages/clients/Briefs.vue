@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import AiSetupPrompt from '@/components/creditsoft/AiSetupPrompt.vue';
+import ClientDocumentLightbox from '@/components/creditsoft/ClientDocumentLightbox.vue';
 import ClientHealthSummary from '@/components/creditsoft/ClientHealthSummary.vue';
 import ClientWorkspaceNav from '@/components/creditsoft/ClientWorkspaceNav.vue';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,19 @@ const page = usePage<{
 }>();
 
 const showAiSetup = ref(page.props.creditsoft.ai.needsSetup);
+const activeDocumentPreview = ref<NonNullable<
+    (typeof props.briefs)[number]['pdf_document']
+> | null>(null);
+
+const openDocumentPreview = (
+    document: NonNullable<(typeof props.briefs)[number]['pdf_document']>,
+) => {
+    activeDocumentPreview.value = document;
+};
+
+const closeDocumentPreview = () => {
+    activeDocumentPreview.value = null;
+};
 
 const form = useForm({
     reporting_cycle_id: props.cycles[0]?.id?.toString() ?? '',
@@ -98,7 +112,10 @@ const generateAiDraft = () => {
     <h1 class="sr-only">{{ client.display_name }} briefs</h1>
 
     <div class="space-y-8">
-        <ClientWorkspaceNav :client-id="client.id" :health-signal="clientHealth" />
+        <ClientWorkspaceNav
+            :client-id="client.id"
+            :health-signal="clientHealth"
+        />
 
         <ClientHealthSummary :client="client" :health-signal="clientHealth" />
 
@@ -106,61 +123,127 @@ const generateAiDraft = () => {
 
         <section class="grid gap-8 xl:grid-cols-[0.85fr_1.15fr]">
             <div class="space-y-6">
-                <form class="space-y-3 rounded-[28px] border border-stone-300/70 bg-stone-50/75 p-4" @submit.prevent="generateAiDraft">
+                <form
+                    class="space-y-3 rounded-[28px] border border-stone-300/70 bg-stone-50/75 p-4"
+                    @submit.prevent="generateAiDraft"
+                >
                     <div class="border-b border-stone-300/70 pb-3">
-                        <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-3"
+                        >
                             <div>
-                                <p class="text-[11px] font-medium uppercase tracking-[0.32em] text-stone-500">AI brief lane</p>
-                                <p class="text-sm text-stone-600">Generate a supervised shareable brief from the latest cycle and browser evidence.</p>
+                                <p
+                                    class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"
+                                >
+                                    AI brief lane
+                                </p>
+                                <p class="text-sm text-stone-600">
+                                    Generate a supervised shareable brief from
+                                    the latest cycle and browser evidence.
+                                </p>
                             </div>
-                            <span class="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-stone-600">
+                            <span
+                                class="rounded-full border border-stone-300 bg-white px-3 py-1.5 text-[11px] tracking-[0.18em] text-stone-600 uppercase"
+                            >
                                 {{ aiBadge }}
                             </span>
                         </div>
                     </div>
-                    <select v-model="aiForm.reporting_cycle_id" class="border-input h-9 rounded-md border bg-transparent px-3 text-sm">
-                        <option v-for="cycle in cycles" :key="cycle.id" :value="cycle.id.toString()">
+                    <select
+                        v-model="aiForm.reporting_cycle_id"
+                        class="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                    >
+                        <option
+                            v-for="cycle in cycles"
+                            :key="cycle.id"
+                            :value="cycle.id.toString()"
+                        >
                             {{ cycle.cycle_label }}
                         </option>
                     </select>
                     <div class="grid gap-3 md:grid-cols-2">
-                        <select v-model="aiForm.period" class="border-input h-9 rounded-md border bg-transparent px-3 text-sm">
+                        <select
+                            v-model="aiForm.period"
+                            class="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                        >
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                         </select>
-                        <button type="button" class="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-stone-700 transition hover:border-stone-500" @click="showAiSetup = true">
+                        <button
+                            type="button"
+                            class="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium tracking-[0.22em] text-stone-700 uppercase transition hover:border-stone-500"
+                            @click="showAiSetup = true"
+                        >
                             AI settings
                         </button>
                     </div>
-                    <Textarea v-model="aiForm.operator_focus" placeholder="Optional: add operator guidance for tone, priorities, or what to emphasize." />
-                    <button type="submit" class="rounded-full bg-amber-400 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-stone-950 transition hover:bg-amber-300">
+                    <Textarea
+                        v-model="aiForm.operator_focus"
+                        placeholder="Optional: add operator guidance for tone, priorities, or what to emphasize."
+                    />
+                    <button
+                        type="submit"
+                        class="rounded-full bg-amber-400 px-4 py-2 text-xs font-medium tracking-[0.22em] text-stone-950 uppercase transition hover:bg-amber-300"
+                    >
                         Generate AI brief
                     </button>
                 </form>
 
                 <form class="space-y-3" @submit.prevent="submit">
                     <div class="border-b border-stone-300/70 pb-3">
-                        <p class="text-[11px] font-medium uppercase tracking-[0.32em] text-stone-500">Shareable case brief</p>
-                        <p class="text-sm text-stone-600">Approved briefs can enter the sanitized signal outbox.</p>
+                        <p
+                            class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"
+                        >
+                            Shareable case brief
+                        </p>
+                        <p class="text-sm text-stone-600">
+                            Approved briefs can enter the sanitized signal
+                            outbox.
+                        </p>
                     </div>
-                    <select v-model="form.reporting_cycle_id" class="border-input h-9 rounded-md border bg-transparent px-3 text-sm">
-                        <option v-for="cycle in cycles" :key="cycle.id" :value="cycle.id.toString()">
+                    <select
+                        v-model="form.reporting_cycle_id"
+                        class="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                    >
+                        <option
+                            v-for="cycle in cycles"
+                            :key="cycle.id"
+                            :value="cycle.id.toString()"
+                        >
                             {{ cycle.cycle_label }}
                         </option>
                     </select>
                     <div class="grid gap-3 md:grid-cols-2">
-                        <select v-model="form.period" class="border-input h-9 rounded-md border bg-transparent px-3 text-sm">
+                        <select
+                            v-model="form.period"
+                            class="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+                        >
                             <option value="weekly">Weekly</option>
                             <option value="monthly">Monthly</option>
                         </select>
-                        <Input v-model="form.title" placeholder="April weekly brief" />
+                        <Input
+                            v-model="form.title"
+                            placeholder="April weekly brief"
+                        />
                     </div>
-                    <Textarea v-model="form.content" placeholder="Summarize progress, focus items, and next actions in clean language." />
-                    <label class="flex items-center gap-2 text-sm text-stone-600">
-                        <input v-model="form.approve_now" type="checkbox" class="rounded border-stone-300" />
+                    <Textarea
+                        v-model="form.content"
+                        placeholder="Summarize progress, focus items, and next actions in clean language."
+                    />
+                    <label
+                        class="flex items-center gap-2 text-sm text-stone-600"
+                    >
+                        <input
+                            v-model="form.approve_now"
+                            type="checkbox"
+                            class="rounded border-stone-300"
+                        />
                         Approve immediately and queue sanitized signal
                     </label>
-                    <button type="submit" class="rounded-full bg-stone-950 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-stone-50 transition hover:bg-stone-800">
+                    <button
+                        type="submit"
+                        class="rounded-full bg-stone-950 px-4 py-2 text-xs font-medium tracking-[0.22em] text-stone-50 uppercase transition hover:bg-stone-800"
+                    >
                         Save brief
                     </button>
                 </form>
@@ -168,43 +251,99 @@ const generateAiDraft = () => {
 
             <section class="space-y-3">
                 <div class="border-b border-stone-300/70 pb-3">
-                    <p class="text-[11px] font-medium uppercase tracking-[0.32em] text-stone-500">Approved narrative</p>
-                    <p class="text-sm text-stone-600">If the queue was empty, CreditSoft seeded the first brief and saved a PDF packet for review.</p>
+                    <p
+                        class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"
+                    >
+                        Approved narrative
+                    </p>
+                    <p class="text-sm text-stone-600">
+                        If the queue was empty, CreditSoft seeded the first
+                        brief and saved a PDF packet for review.
+                    </p>
                 </div>
 
                 <div class="space-y-3">
-                    <div v-for="brief in briefs" :key="brief.id" class="rounded-[24px] border border-stone-300/70 bg-stone-50/70 p-4">
+                    <div
+                        v-for="brief in briefs"
+                        :key="brief.id"
+                        class="rounded-[24px] border border-stone-300/70 bg-stone-50/70 p-4"
+                    >
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <p class="font-medium text-stone-950">{{ brief.title }}</p>
-                                <p class="text-xs uppercase tracking-[0.22em] text-stone-500">{{ brief.period }}</p>
-                                <p v-if="brief.reporting_cycle" class="mt-2 text-[11px] uppercase tracking-[0.18em] text-stone-500">
+                                <p class="font-medium text-stone-950">
+                                    {{ brief.title }}
+                                </p>
+                                <p
+                                    class="text-xs tracking-[0.22em] text-stone-500 uppercase"
+                                >
+                                    {{ brief.period }}
+                                </p>
+                                <p
+                                    v-if="brief.reporting_cycle"
+                                    class="mt-2 text-[11px] tracking-[0.18em] text-stone-500 uppercase"
+                                >
                                     {{ brief.reporting_cycle }}
                                 </p>
-                                <p v-if="brief.generated_by_ai" class="mt-2 text-[11px] uppercase tracking-[0.18em] text-amber-700">
-                                    AI drafted via {{ brief.ai_metadata?.provider ?? 'configured provider' }} / {{ brief.ai_metadata?.model ?? 'default model' }}
+                                <p
+                                    v-if="brief.generated_by_ai"
+                                    class="mt-2 text-[11px] tracking-[0.18em] text-amber-700 uppercase"
+                                >
+                                    AI drafted via
+                                    {{
+                                        brief.ai_metadata?.provider ??
+                                        'configured provider'
+                                    }}
+                                    /
+                                    {{
+                                        brief.ai_metadata?.model ??
+                                        'default model'
+                                    }}
                                 </p>
                             </div>
-                            <p class="text-[11px] uppercase tracking-[0.22em] text-stone-500">
-                                {{ brief.approved_at ? `Approved ${formatDate(brief.approved_at)}` : 'Draft' }}
+                            <p
+                                class="text-[11px] tracking-[0.22em] text-stone-500 uppercase"
+                            >
+                                {{
+                                    brief.approved_at
+                                        ? `Approved ${formatDate(brief.approved_at)}`
+                                        : 'Draft'
+                                }}
                             </p>
                         </div>
-                        <p class="mt-3 text-sm text-stone-700">{{ brief.content }}</p>
-                        <div v-if="brief.pdf_document" class="mt-4 rounded-[20px] border border-stone-200/80 bg-white/90 px-3 py-2 text-sm text-stone-600">
-                            <p class="text-[11px] font-medium uppercase tracking-[0.24em] text-stone-500">Review packet PDF</p>
+                        <p class="mt-3 text-sm text-stone-700">
+                            {{ brief.content }}
+                        </p>
+                        <div
+                            v-if="brief.pdf_document"
+                            class="mt-4 rounded-[20px] border border-stone-200/80 bg-white/90 px-3 py-2 text-sm text-stone-600"
+                        >
+                            <p
+                                class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                            >
+                                Review packet PDF
+                            </p>
                             <div class="mt-2 flex flex-wrap items-center gap-3">
                                 <span>{{ brief.pdf_document.file_name }}</span>
-                                <a
-                                    :href="brief.pdf_document.download_url"
-                                    class="rounded-full border border-stone-300 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-stone-700 transition hover:border-stone-500"
+                                <button
+                                    type="button"
+                                    class="rounded-full border border-stone-300 px-3 py-1.5 text-[11px] tracking-[0.18em] text-stone-700 uppercase transition hover:border-stone-500"
+                                    @click="
+                                        openDocumentPreview(brief.pdf_document)
+                                    "
                                 >
-                                    Download PDF
-                                </a>
+                                    Open PDF
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
         </section>
+
+        <ClientDocumentLightbox
+            :open="Boolean(activeDocumentPreview)"
+            :document="activeDocumentPreview"
+            @close="closeDocumentPreview"
+        />
     </div>
 </template>

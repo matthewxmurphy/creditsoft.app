@@ -6,6 +6,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
 import AiSetupPrompt from '@/components/creditsoft/AiSetupPrompt.vue';
 import BureauWordmark from '@/components/creditsoft/BureauWordmark.vue';
+import ClientDocumentLightbox from '@/components/creditsoft/ClientDocumentLightbox.vue';
 import ClientWorkspaceNav from '@/components/creditsoft/ClientWorkspaceNav.vue';
 import MultiLineTrendChart from '@/components/creditsoft/MultiLineTrendChart.vue';
 import ReviewSignalLabel from '@/components/creditsoft/ReviewSignalLabel.vue';
@@ -433,6 +434,20 @@ const props = defineProps<{
 
 type ClientDocumentRecord = (typeof props.client.documents)[number];
 
+const activeDocumentPreview = ref<ClientDocumentRecord | null>(null);
+
+const openDocumentPreview = (document: ClientDocumentRecord) => {
+    if (!document.download_url) {
+        return;
+    }
+
+    activeDocumentPreview.value = document;
+};
+
+const closeDocumentPreview = () => {
+    activeDocumentPreview.value = null;
+};
+
 const page = usePage<{
     auth: {
         role?: string | null;
@@ -510,7 +525,9 @@ const reviewLabelStyle = computed(() =>
 const currentSearchParams = computed(() => {
     const queryIndex = page.url.indexOf('?');
 
-    return new URLSearchParams(queryIndex >= 0 ? page.url.slice(queryIndex) : '');
+    return new URLSearchParams(
+        queryIndex >= 0 ? page.url.slice(queryIndex) : '',
+    );
 });
 const currentRosterView = computed(() => currentSearchParams.value.get('view'));
 const clientProfileHref = (suffix = '') => {
@@ -873,9 +890,7 @@ const reportDocumentKind = (document: ClientDocumentRecord) => {
 
     if (
         ['audit', 'audit_report'].includes(category) ||
-        ['audit report', 'credit audit'].some((needle) =>
-            text.includes(needle),
-        )
+        ['audit report', 'credit audit'].some((needle) => text.includes(needle))
     ) {
         return 'Audit';
     }
@@ -918,15 +933,16 @@ const hasCreditReportDocument = computed(() =>
         (document) => reportDocumentKind(document) === 'Credit report',
     ),
 );
-const creditReportImported = computed(() =>
-    hasCreditReportDocument.value ||
-    props.client.browser_captures.some((capture) =>
-        Boolean(
-            capture.metadata?.provider_capture ||
+const creditReportImported = computed(
+    () =>
+        hasCreditReportDocument.value ||
+        props.client.browser_captures.some((capture) =>
+            Boolean(
+                capture.metadata?.provider_capture ||
                 capture.metadata?.smartcredit ||
                 capture.metadata?.credit_karma,
+            ),
         ),
-    ),
 );
 const roundOneDisputesReady = computed(
     () =>
@@ -966,7 +982,7 @@ const clientProcessChecklist = computed<ClientProcessChecklistItem[]>(() => [
             ? `Assigned to ${props.client.assigned_user?.name}.`
             : sourceAssignedTo.value
               ? `Source owner ${sourceAssignedTo.value} needs a matching CreditSoft staff account.`
-            : 'No assigned operator is visible on this file yet.',
+              : 'No assigned operator is visible on this file yet.',
         actionLabel: 'Edit',
         action: 'assignment',
     },
@@ -1065,7 +1081,8 @@ const documentCategoryLabel = (category?: string | null) =>
         credit_report: 'credit report',
         progress_report: 'progress report',
         client_documents: 'client document',
-    })[String(category || '')] ?? String(category || 'document').replaceAll('_', ' ');
+    })[String(category || '')] ??
+    String(category || 'document').replaceAll('_', ' ');
 const formatFileSize = (bytes?: number | null) => {
     if (!bytes || bytes < 1) {
         return null;
@@ -1084,18 +1101,16 @@ const formatFileSize = (bytes?: number | null) => {
 };
 const latestProgressReportDocument = computed(
     () =>
-        progressReportDocuments.value
-            .slice()
-            .sort((left, right) => {
-                const leftTime = left.uploaded_at
-                    ? new Date(left.uploaded_at).getTime()
-                    : 0;
-                const rightTime = right.uploaded_at
-                    ? new Date(right.uploaded_at).getTime()
-                    : 0;
+        progressReportDocuments.value.slice().sort((left, right) => {
+            const leftTime = left.uploaded_at
+                ? new Date(left.uploaded_at).getTime()
+                : 0;
+            const rightTime = right.uploaded_at
+                ? new Date(right.uploaded_at).getTime()
+                : 0;
 
-                return rightTime - leftTime;
-            })[0] ?? null,
+            return rightTime - leftTime;
+        })[0] ?? null,
 );
 const reportCycleNextStep = computed(() => {
     const reviewed = props.reviewState.reviewed_signatures.length;
@@ -1122,12 +1137,13 @@ const reportCycleNextStep = computed(() => {
 const reportCyclePatternCards = computed(() => [
     {
         label: 'Latest file',
-        value:
-            latestProgressReportDocument.value?.uploaded_at
-                ? formatDate(latestProgressReportDocument.value.uploaded_at)
-                : latestSmartCreditThreeBureauCapture.value?.imported_at
-                  ? formatDate(latestSmartCreditThreeBureauCapture.value.imported_at)
-                  : 'Pending',
+        value: latestProgressReportDocument.value?.uploaded_at
+            ? formatDate(latestProgressReportDocument.value.uploaded_at)
+            : latestSmartCreditThreeBureauCapture.value?.imported_at
+              ? formatDate(
+                    latestSmartCreditThreeBureauCapture.value.imported_at,
+                )
+              : 'Pending',
         hint:
             latestProgressReportDocument.value?.title ??
             latestSmartCreditThreeBureauCapture.value?.page_title ??
@@ -1516,9 +1532,7 @@ const captureReportKind = (
 
     if (
         ['audit', 'audit_report'].includes(profile) ||
-        ['audit report', 'credit audit'].some((needle) =>
-            text.includes(needle),
-        )
+        ['audit report', 'credit audit'].some((needle) => text.includes(needle))
     ) {
         return 'Audit';
     }
@@ -1534,7 +1548,8 @@ const progressReportCaptures = computed(() =>
 );
 
 const progressReportArtifactCount = computed(
-    () => visibleReportDocumentCount.value + progressReportCaptures.value.length,
+    () =>
+        visibleReportDocumentCount.value + progressReportCaptures.value.length,
 );
 
 const activeReviewCycleId = computed(
@@ -2574,7 +2589,7 @@ const pruneBrowserCaptureDuplicates = () => {
         <ClientWorkspaceNav
             :client-id="client.id"
             :health-signal="clientHealth"
-            class="isolate relative z-50 -mt-[10px] -mb-[22px] ml-10 mr-8 w-auto overflow-visible"
+            class="relative isolate z-50 -mt-[10px] mr-8 -mb-[22px] ml-10 w-auto overflow-visible"
         />
 
         <AiSetupPrompt v-if="showAiSetup && !focusPanelMode" compact />
@@ -4701,21 +4716,16 @@ const pruneBrowserCaptureDuplicates = () => {
                     "
                     class="mt-3 divide-y divide-stone-200/80"
                 >
-                    <component
-                        :is="document.download_url ? 'a' : 'div'"
+                    <button
                         v-for="document in progressReportDocuments"
                         :key="`report-document-${document.id}`"
-                        :href="document.download_url || undefined"
-                        :target="document.download_url ? '_blank' : undefined"
-                        :rel="
-                            document.download_url
-                                ? 'noopener noreferrer'
-                                : undefined
-                        "
-                        class="block py-3 transition"
+                        type="button"
+                        class="block w-full py-3 text-left transition"
                         :class="
                             document.download_url ? 'hover:text-amber-700' : ''
                         "
+                        :disabled="!document.download_url"
+                        @click="openDocumentPreview(document)"
                     >
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
@@ -4761,7 +4771,7 @@ const pruneBrowserCaptureDuplicates = () => {
                                 · {{ formatDate(document.uploaded_at) }}</span
                             >
                         </p>
-                    </component>
+                    </button>
                     <div
                         v-for="capture in progressReportCaptures"
                         :key="`report-capture-${capture.id}`"
@@ -4784,12 +4794,19 @@ const pruneBrowserCaptureDuplicates = () => {
                                     capture
                                 </p>
                             </div>
-                            <p class="shrink-0 text-xs font-medium text-stone-500">
-                                {{ formatCaptureTimestamp(capture.imported_at) }}
+                            <p
+                                class="shrink-0 text-xs font-medium text-stone-500"
+                            >
+                                {{
+                                    formatCaptureTimestamp(capture.imported_at)
+                                }}
                             </p>
                         </div>
                         <p class="mt-2 truncate text-sm text-stone-600">
-                            {{ capture.page_url || 'Stored from companion import' }}
+                            {{
+                                capture.page_url ||
+                                'Stored from companion import'
+                            }}
                         </p>
                     </div>
                 </div>
@@ -4805,8 +4822,8 @@ const pruneBrowserCaptureDuplicates = () => {
                         No report-cycle files attached yet.
                     </p>
                     <p class="mt-2 text-sm leading-6 text-stone-600">
-                        The next imported audit, progress file, or credit
-                        report will land here.
+                        The next imported audit, progress file, or credit report
+                        will land here.
                     </p>
                 </div>
             </div>
@@ -4857,21 +4874,16 @@ const pruneBrowserCaptureDuplicates = () => {
                     v-if="clientFileDocuments.length"
                     class="mt-3 divide-y divide-stone-200/80"
                 >
-                    <component
-                        :is="document.download_url ? 'a' : 'div'"
+                    <button
                         v-for="document in clientFileDocuments"
                         :key="document.id"
-                        :href="document.download_url || undefined"
-                        :target="document.download_url ? '_blank' : undefined"
-                        :rel="
-                            document.download_url
-                                ? 'noopener noreferrer'
-                                : undefined
-                        "
-                        class="block py-3 transition"
+                        type="button"
+                        class="block w-full py-3 text-left transition"
                         :class="
                             document.download_url ? 'hover:text-amber-700' : ''
                         "
+                        :disabled="!document.download_url"
+                        @click="openDocumentPreview(document)"
                     >
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
@@ -4926,7 +4938,7 @@ const pruneBrowserCaptureDuplicates = () => {
                             File metadata imported. Re-run companion document
                             upload to attach the actual local file.
                         </p>
-                    </component>
+                    </button>
                 </div>
 
                 <div
@@ -5214,5 +5226,11 @@ const pruneBrowserCaptureDuplicates = () => {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+
+        <ClientDocumentLightbox
+            :open="Boolean(activeDocumentPreview)"
+            :document="activeDocumentPreview"
+            @close="closeDocumentPreview"
+        />
     </div>
 </template>
