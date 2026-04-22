@@ -274,6 +274,13 @@ class ClientController extends Controller
     protected function applyRosterSort(Builder $query, string $sort, string $direction): void
     {
         $direction = $this->rosterSortDirection($direction);
+        $providerAccountCountSql = '(select count(*) from client_provider_accounts where client_provider_accounts.client_id = clients.id)';
+        $documentFileSizeSql = '(select coalesce(sum(file_size), 0) from client_documents where client_documents.client_id = clients.id)';
+        $documentFileCountSql = '(select count(*) from client_documents where client_documents.client_id = clients.id and file_size > 0)';
+        $documentRecordCountSql = '(select count(*) from client_documents where client_documents.client_id = clients.id)';
+        $assignedUserNameSql = "(select name from users where users.id = clients.assigned_to limit 1)";
+        $latestCycleSql = '(select max(started_at) from reporting_cycles where reporting_cycles.client_id = clients.id)';
+        $cycleCountSql = '(select count(*) from reporting_cycles where reporting_cycles.client_id = clients.id)';
 
         if ($sort === 'person') {
             $query
@@ -287,23 +294,23 @@ class ClientController extends Controller
         if ($sort === 'status') {
             $query->orderByRaw("lower(coalesce(status, '')) {$direction}");
         } elseif ($sort === 'provider') {
-            $query->orderByRaw("coalesce(provider_account_count, 0) {$direction}");
+            $query->orderByRaw("{$providerAccountCountSql} {$direction}");
         } elseif ($sort === 'files') {
             $query
-                ->orderByRaw("coalesce(document_file_size_bytes, 0) {$direction}")
-                ->orderByRaw("coalesce(document_file_count, 0) {$direction}")
-                ->orderByRaw("coalesce(document_record_count, 0) {$direction}");
+                ->orderByRaw("{$documentFileSizeSql} {$direction}")
+                ->orderByRaw("{$documentFileCountSql} {$direction}")
+                ->orderByRaw("{$documentRecordCountSql} {$direction}");
         } elseif ($sort === 'score') {
             $query
                 ->orderByRaw('current_score is null asc')
                 ->orderBy('current_score', $direction);
         } elseif ($sort === 'owner') {
-            $query->orderByRaw("lower(coalesce(assigned_user_sort_name, '')) {$direction}");
+            $query->orderByRaw("lower(coalesce({$assignedUserNameSql}, '')) {$direction}");
         } elseif ($sort === 'cycle') {
             $query
-                ->orderByRaw('latest_reporting_cycle_started_at is null asc')
-                ->orderBy('latest_reporting_cycle_started_at', $direction)
-                ->orderBy('reporting_cycle_count', $direction);
+                ->orderByRaw("{$latestCycleSql} is null asc")
+                ->orderByRaw("{$latestCycleSql} {$direction}")
+                ->orderByRaw("{$cycleCountSql} {$direction}");
         } else {
             $query->latest('clients.id');
 

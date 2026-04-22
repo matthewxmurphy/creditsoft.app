@@ -1,12 +1,13 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.22.2",
-    "latest_build": "2026.4.22.2",
-    "published_at": "2026-04-22T03:20:08+00:00",
-    "headline": "CreditSoft 2026.4.22.2 is ready",
-    "summary": "Keeps client rolodex menus above the customer health card.",
+    "latest_version": "2026.4.22.3",
+    "latest_build": "2026.4.22.3",
+    "published_at": "2026-04-22T05:54:45+00:00",
+    "headline": "CreditSoft 2026.4.22.3 is ready",
+    "summary": "Fixes client roster sorting on PostgreSQL.",
     "notes": [
+        "CreditSoft 2026.4.22.3 fixes client roster sorting on PostgreSQL for Files, Provider, Owner, and Cycle headers.",
         "CreditSoft 2026.4.22.2 updates the office build.",
         "CreditSoft 2026.4.22.1 treats 2026 calendar releases as the continuation after 0.9.x so server nodes can see the upgrade path instead of thinking 0.9.37 is current.",
         "CreditSoft 2026.4.22.1 always checks the canonical public update feed even when a node has a bundled local feed, then chooses the newest available feed between public and local sources.",
@@ -282,7 +283,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.22.2.zip",
+    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.22.3.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",
