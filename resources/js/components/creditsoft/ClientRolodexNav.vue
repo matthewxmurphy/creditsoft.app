@@ -263,11 +263,11 @@ watch(nameMode, (mode) => {
 <template>
     <nav
         v-if="navigator && sortedOptions.length > 0"
-        class="relative min-w-0 translate-y-[4px]"
+        class="isolate relative z-50 min-w-0 translate-y-[4px] overflow-visible"
         aria-label="Client rolodex"
     >
         <div
-            class="absolute top-[calc(100%+1.45rem)] left-0 z-30 flex -translate-x-full flex-col gap-0"
+            class="absolute top-[calc(100%+1.45rem)] left-0 z-[60] flex -translate-x-full flex-col gap-0"
             aria-label="Name sort mode"
         >
             <button
@@ -291,14 +291,14 @@ watch(nameMode, (mode) => {
         </div>
 
         <div
-            class="flex min-w-0 flex-col items-center"
+            class="relative z-50 flex min-w-0 flex-col items-center overflow-visible"
             aria-label="Client rolodex tabs"
         >
             <div
-                class="relative z-0 mt-[5px] flex w-full min-w-0 justify-center overflow-hidden px-4"
+                class="relative z-50 mt-[5px] flex w-full min-w-0 justify-center overflow-visible px-4"
             >
                 <div
-                    class="inline-flex max-w-full min-w-0 items-end gap-0 overflow-x-auto border-b border-stone-300/80"
+                    class="inline-flex max-w-full min-w-0 items-end gap-0 overflow-x-auto overflow-y-visible border-b border-stone-300/80"
                     aria-label="Client rolodex alphabet"
                 >
                     <button
@@ -326,13 +326,13 @@ watch(nameMode, (mode) => {
             </div>
 
             <div
-                class="relative z-10 -mt-[10px] flex w-full min-w-0 justify-center overflow-hidden px-4"
+                class="relative z-[55] -mt-[10px] flex w-full min-w-0 justify-center overflow-visible px-4"
             >
                 <div
-                    class="inline-flex max-w-full min-w-0 items-end gap-0 border-b border-stone-300/80"
+                    class="inline-flex max-w-full min-w-0 items-end gap-0 overflow-visible border-b border-stone-300/80"
                 >
                     <div
-                        class="flex max-w-full min-w-0 gap-0 overflow-x-auto"
+                        class="flex max-w-full min-w-0 gap-0 overflow-x-auto overflow-y-visible"
                         aria-label="Client rolodex people tabs"
                     >
                         <Link

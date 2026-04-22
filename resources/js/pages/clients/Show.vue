@@ -2574,14 +2574,14 @@ const pruneBrowserCaptureDuplicates = () => {
         <ClientWorkspaceNav
             :client-id="client.id"
             :health-signal="clientHealth"
-            class="relative z-20 -mt-[10px] -mb-[22px] ml-10 mr-8 w-auto"
+            class="isolate relative z-50 -mt-[10px] -mb-[22px] ml-10 mr-8 w-auto overflow-visible"
         />
 
         <AiSetupPrompt v-if="showAiSetup && !focusPanelMode" compact />
 
         <section
             v-if="!focusPanelMode"
-            class="mt-[25px] mr-5 ml-10 rounded-[28px] border p-5 shadow-sm"
+            class="relative z-0 mt-[25px] mr-5 ml-10 rounded-[28px] border p-5 shadow-sm"
             :class="clientHealthPanelClass(clientHealth)"
         >
             <div class="flex flex-wrap items-start justify-between gap-5">
