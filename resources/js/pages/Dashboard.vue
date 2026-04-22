@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import DashboardWorkspaceNav from '@/components/creditsoft/DashboardWorkspaceNav.vue';
 import LineTrendChart from '@/components/creditsoft/LineTrendChart.vue';
@@ -240,6 +240,7 @@ const trendLabels = computed(() => props.trendLine.map((point) => formatDate(poi
 const trendValues = computed(() => props.trendLine.map((point) => Number(point.value)));
 const trendStartValue = computed(() => trendValues.value[0] ?? 0);
 const trendEndValue = computed(() => trendValues.value[trendValues.value.length - 1] ?? 0);
+const websiteWidgetCopied = ref(false);
 const trendDirectionLabel = computed(() => {
     if (trendEndValue.value > trendStartValue.value) {
         return 'Up from the first checkpoint';
@@ -260,6 +261,93 @@ const avgScoreLiftTooltip = 'Average credit score increase across clients with i
 const minScoreLiftTooltip = 'Smallest positive score gain among clients who improved.';
 const maxScoreLiftTooltip = 'Largest score gain among clients with imported score history.';
 const lifespanTooltip = 'Average time clients stay in CreditSoft, using their start date and either now or the best known ending date.';
+
+const websiteImpactWidgetSnippet = computed(() => `<!-- CreditSoft website proof metrics -->
+<section class="creditsoft-impact-widget" data-creditsoft-impact data-creditsoft-endpoint="/api/creditsoft-office-stats.php">
+  <p class="creditsoft-impact-widget__eyebrow">Credit repair impact</p>
+  <h2 class="creditsoft-impact-widget__title">Real office results, updated from CreditSoft.</h2>
+  <div class="creditsoft-impact-widget__grid">
+    <article>
+      <strong data-creditsoft-field="debt_removed">${formatCurrency(props.impact.debt_removed)}</strong>
+      <span>Debt removed</span>
+    </article>
+    <article>
+      <strong data-creditsoft-field="negative_items_removed">${formatNumber(props.impact.negative_items_removed)}</strong>
+      <span>Negative items removed</span>
+    </article>
+    <article>
+      <strong data-creditsoft-field="average_score_lift">${formatNumber(props.impact.average_score_lift)}</strong>
+      <span>Average score raise</span>
+    </article>
+    <article>
+      <strong data-creditsoft-field="clients_served">${formatNumber(props.impact.clients_served)}</strong>
+      <span>Clients served</span>
+    </article>
+  </div>
+  <p class="creditsoft-impact-widget__status" data-creditsoft-status>Source-backed metrics from CreditSoft.</p>
+</section>
+<script>
+(() => {
+  const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+  const formatters = {
+    debt_removed: (value) => currency.format(Number(value || 0)),
+    negative_items_removed: (value) => number.format(Number(value || 0)),
+    average_score_lift: (value) => number.format(Number(value || 0)),
+    clients_served: (value) => number.format(Number(value || 0)),
+  };
+
+  document.querySelectorAll('[data-creditsoft-impact]').forEach(async (widget) => {
+    const endpoint = widget.getAttribute('data-creditsoft-endpoint') || '/api/creditsoft-office-stats.php';
+    const status = widget.querySelector('[data-creditsoft-status]');
+
+    try {
+      const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+      const payload = await response.json();
+
+      if (!response.ok || payload.ok === false) {
+        throw new Error(payload.error || 'CreditSoft metrics unavailable');
+      }
+
+      const data = payload.data || payload;
+      Object.keys(formatters).forEach((field) => {
+        const node = widget.querySelector('[data-creditsoft-field="' + field + '"]');
+        if (node) node.textContent = formatters[field](data[field]);
+      });
+
+      if (status) status.textContent = 'Updated from CreditSoft.';
+    } catch (_error) {
+      if (status) status.textContent = 'Impact numbers update when CreditSoft is connected.';
+    }
+  });
+})();
+<\\/script>`);
+
+const copyTextToClipboard = async (value: string) => {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', 'readonly');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+};
+
+const copyWebsiteImpactWidget = async () => {
+    await copyTextToClipboard(websiteImpactWidgetSnippet.value);
+    websiteWidgetCopied.value = true;
+    window.setTimeout(() => {
+        websiteWidgetCopied.value = false;
+    }, 2200);
+};
 </script>
 
 <template>
@@ -286,9 +374,18 @@ const lifespanTooltip = 'Average time clients stay in CreditSoft, using their st
         </section>
 
         <section class="space-y-4">
-            <div class="border-b border-stone-300/70 pb-3">
-                <p class="text-[11px] font-medium uppercase tracking-[0.32em] text-stone-500">Brag rights</p>
-                <p class="text-sm text-stone-600">Source-backed impact numbers the office can reuse on the website and in sales conversations.</p>
+            <div class="flex flex-col gap-3 border-b border-stone-300/70 pb-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p class="text-[11px] font-medium uppercase tracking-[0.32em] text-stone-500">Website proof metrics</p>
+                    <p class="text-sm text-stone-600">Source-backed impact numbers the office can reuse on the website and in sales conversations.</p>
+                </div>
+                <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-full border border-stone-300 bg-stone-950 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white shadow-sm transition hover:bg-stone-800"
+                    @click="copyWebsiteImpactWidget"
+                >
+                    {{ websiteWidgetCopied ? 'Copied widget' : 'Copy website widget' }}
+                </button>
             </div>
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

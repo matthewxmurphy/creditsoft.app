@@ -1,12 +1,14 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.22.6",
-    "latest_build": "2026.4.22.6",
-    "published_at": "2026-04-22T17:42:22+00:00",
-    "headline": "Client document inventory and active roster repair",
-    "summary": "Repairs active client classification, inventories DisputeFox document rows, and avoids saving preview thumbnails as real files.",
+    "latest_version": "2026.4.22.7",
+    "latest_build": "2026.4.22.7",
+    "published_at": "2026-04-22T18:16:43+00:00",
+    "headline": "Website proof metrics bridge",
+    "summary": "Renames dashboard proof metrics, adds a copyable website widget, and wires Credit Sense to pull impact stats through a server-side bridge.",
     "notes": [
+        "CreditSoft 2026.4.22.7 Dashboard Brag rights is now Website proof metrics with a copyable widget snippet.",
+        "CreditSoft 2026.4.22.7 Credit Sense can proxy office impact stats through /api/creditsoft-office-stats.php without exposing an API token in browser code.",
         "CreditSoft 2026.4.22.6 Clients with DisputeFox document links now show metadata-only inventory separately from real file bytes.",
         "CreditSoft 2026.4.22.6 The roster now lists missing required documents instead of treating links or thumbnails as complete files.",
         "CreditSoft 2026.4.22.6 The companion document capture scans more DisputeFox document rows and skips tiny preview/thumbnail payloads when a real download URL exists.",
@@ -289,7 +291,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.22.6.zip",
+    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.22.7.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",

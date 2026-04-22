@@ -67,7 +67,7 @@ class ApiDocsController extends Controller
                     [
                         'method' => 'GET',
                         'path' => '/office-stats',
-                        'summary' => 'Read public-safe office brag metrics for website hero cards and dashboards.',
+                        'summary' => 'Read website-safe office impact metrics for proof cards and dashboards.',
                     ],
                     [
                         'method' => 'POST',
