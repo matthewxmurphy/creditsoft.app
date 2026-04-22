@@ -318,6 +318,8 @@ class CreditsoftClusterDatabaseSyncService
                 ];
             }
 
+            $attributes = $this->prepareAttributesForWrite($modelType, $attributes, $existing);
+
             if ($existing) {
                 DB::table($table)->where($primaryKey, $recordKey)->update(Arr::except($attributes, [$primaryKey]));
             } else {
@@ -336,6 +338,33 @@ class CreditsoftClusterDatabaseSyncService
                 'file_restored' => $fileRestored,
             ];
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<string, mixed>
+     */
+    protected function prepareAttributesForWrite(string $modelType, array $attributes, mixed $existing): array
+    {
+        if ($modelType !== ClientDocument::class) {
+            return $attributes;
+        }
+
+        $incomingPath = trim((string) ($attributes['file_path'] ?? ''));
+
+        if ($incomingPath !== '') {
+            return $attributes;
+        }
+
+        if ($existing && filled((string) ($existing->file_path ?? ''))) {
+            unset($attributes['file_path']);
+
+            return $attributes;
+        }
+
+        $attributes['file_path'] = '';
+
+        return $attributes;
     }
 
     /**

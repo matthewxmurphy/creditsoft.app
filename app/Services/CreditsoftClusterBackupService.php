@@ -65,10 +65,22 @@ class CreditsoftClusterBackupService
                 continue;
             }
 
+            $archiveHandle = @fopen($archivePath, 'rb');
+
+            if (! is_resource($archiveHandle)) {
+                $deliveries[] = [
+                    'label' => $label,
+                    'base_url' => $baseUrl,
+                    'status' => 'failed',
+                ];
+
+                continue;
+            }
+
             try {
                 $response = Http::timeout(20)
                     ->acceptJson()
-                    ->attach('archive', File::get($archivePath), basename($archivePath))
+                    ->attach('archive', $archiveHandle, basename($archivePath))
                     ->post($baseUrl.'/api/v1/cluster-backups/receive', [
                         'shared_secret' => $sharedSecret,
                         'source_office' => $sourceOffice,
@@ -98,6 +110,8 @@ class CreditsoftClusterBackupService
                     'base_url' => $baseUrl,
                     'status' => 'failed',
                 ];
+            } finally {
+                fclose($archiveHandle);
             }
         }
 
