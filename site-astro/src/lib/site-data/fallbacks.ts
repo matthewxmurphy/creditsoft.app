@@ -206,8 +206,8 @@ export const fallbackUpdateFeed: SiteUpdateFeed = {
     downloadUrl:
         'https://updates.creditsoft.app/downloads/creditsoft-office-v0.9.25.zip',
     browserCompanionUrl:
-        'https://updates.creditsoft.app/downloads/creditsoft-browser-companion-v0.5.6.zip',
-    notes: 'CreditSoft Office 0.9.25 with browser companion 0.5.6, recovery-sweep queueing, real activity date checks, report-aware document capture, guarded provider queueing, and the 7-day companion trial.',
+        'https://update.creditsoft.app/downloads/creditsoft-browser-companion-v0.5.11.zip',
+    notes: 'CreditSoft Office 0.9.25 with browser companion 0.5.11, Clients + files DisputeFox profile/document import, recovery-sweep queueing, report-aware document capture, guarded provider queueing, and the 7-day companion trial.',
     supportUrl: 'https://creditsoft.app/login',
 };
 

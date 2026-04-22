@@ -20,7 +20,7 @@ export const GET: APIRoute = async ({ cookies }) => {
 		download_url: feed.downloadUrl,
 		browser_companion: {
 			label: 'CreditSoft Browser Companion',
-			latest_version: '0.5.6',
+			latest_version: '0.5.11',
 			download_url: feed.browserCompanionUrl,
 			trial_days: 7,
 			trial_label: '7-day companion trial',

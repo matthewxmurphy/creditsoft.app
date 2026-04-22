@@ -81,9 +81,9 @@ if ($officeVersion === '') {
                 <h2>Customer browser companion</h2>
                 <p>The customer companion package now lives in the same update lane so downloads and recovery paths stay together.</p>
                 <div class="hero-links">
-                    <a class="hero-link" href="<?= htmlspecialchars(update_creditsoft_site_url('downloads/creditsoft-browser-companion-v0.5.10.zip'), ENT_QUOTES, 'UTF-8') ?>">
-                        <strong>Download browser companion 0.5.10</strong>
-                        <span>Report-first companion build with thumbnail-safe document capture, SmartCredit invalid-login handling, IdentityIQ report-pull lanes, guarded queueing, local router autodetection, and a 7-day setup trial controlled by the office license.</span>
+                    <a class="hero-link" href="<?= htmlspecialchars(update_creditsoft_site_url('downloads/creditsoft-browser-companion-v0.5.11.zip'), ENT_QUOTES, 'UTF-8') ?>">
+                        <strong>Download browser companion 0.5.11</strong>
+                        <span>Report-first companion build with Clients + files DisputeFox profile/document import, SmartCredit invalid-login handling, IdentityIQ report-pull lanes, guarded queueing, local router autodetection, and a 7-day setup trial controlled by the office license.</span>
                     </a>
                 </div>
             </section>

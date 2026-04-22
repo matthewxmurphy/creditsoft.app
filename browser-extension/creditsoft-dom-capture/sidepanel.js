@@ -5441,7 +5441,7 @@ async function syncDisputeFoxProfile() {
 
     const result = await postClientSync(
         {
-            client_cuid: nextReadyAccount?.client?.cuid || null,
+            client_cuid: null,
             client_profile: profile,
             source_system: 'disputefox',
             page_title: capture.title,
@@ -5780,7 +5780,7 @@ async function ensurePulseMigrationReady() {
 }
 
 function finishPulseMigrationMode(
-    message = 'DisputeFox import complete. Companion is back to provider report pulls.',
+    message = 'DisputeFox import complete.',
     tone = 'success',
 ) {
     disputeFoxImportOpen = false;
@@ -5912,6 +5912,7 @@ async function importPulseMigrationLane(lane, settings) {
 async function runPulseMigration(
     lanes = PULSE_MIGRATION_LANES,
     title = 'list import',
+    options = {},
 ) {
     beginCompanionOperation();
     disputeFoxImportOpen = true;
@@ -5952,9 +5953,93 @@ async function runPulseMigration(
             }
         }
 
+        if (importedAny && options.processProfilesAfterList) {
+            const profileLanes = (
+                Array.isArray(options.profileLanes) && options.profileLanes.length
+                    ? options.profileLanes
+                    : lanes
+            ).filter((lane) =>
+                PULSE_PROFILE_PROCESS_LANES.some(
+                    (profileLane) => profileLane.key === lane.key,
+                ),
+            );
+
+            if (profileLanes.length > 0) {
+                const seenUrls = new Set();
+                const profileSummaries = [];
+                const failedProfiles = [];
+                let totalProcessed = 0;
+                let totalFailed = 0;
+
+                pushActivity(
+                    'Client rows saved. Opening those DisputeFox client profiles now to collect billing history, provider details, and full document files.',
+                    'info',
+                );
+                setStatus(
+                    'Client list saved. Now opening client profiles for files and history...',
+                    'info',
+                );
+
+                for (const lane of profileLanes) {
+                    throwIfCompanionStopped();
+                    const result = await processPulseProfilesForLane(
+                        lane,
+                        settings,
+                        seenUrls,
+                    );
+
+                    if (result.blocked) {
+                        setStatus(
+                            'DisputeFox profile import paused by a session prompt.',
+                            'warn',
+                        );
+                        return;
+                    }
+
+                    totalProcessed += result.processed;
+                    totalFailed += result.failed;
+                    failedProfiles.push(
+                        ...(result.failures || []).map((failure) => ({
+                            ...failure,
+                            lane: lane.label,
+                        })),
+                    );
+                    profileSummaries.push(
+                        `${lane.label}: ${result.processed}/${result.targets} profiles`,
+                    );
+                }
+
+                if (failedProfiles.length > 0) {
+                    pushActivity(
+                        `DisputeFox profiles needing retry: ${failedProfiles.map((failure) => `${failure.lane} ${failure.name}`).join('; ')}.`,
+                        'warn',
+                    );
+                }
+
+                const failureSummary =
+                    failedProfiles.length > 0
+                        ? ` Failed: ${failedProfiles
+                              .slice(0, 5)
+                              .map(
+                                  (failure) =>
+                                      `${failure.lane} ${failure.name}`,
+                              )
+                              .join('; ')}${failedProfiles.length > 5 ? `; plus ${failedProfiles.length - 5} more` : ''}.`
+                        : '';
+
+                finishPulseMigrationMode(
+                    totalProcessed > 0
+                        ? `DisputeFox ${title} complete. ${importedSummaries.join(' | ')}. Profiles checked: ${profileSummaries.join(' | ')}. Documents were staged and full files were downloaded where DisputeFox exposed a real file URL.${totalFailed > 0 ? ` ${totalFailed} failed.` : ''}${failureSummary}`
+                        : `DisputeFox ${title} saved roster rows, but no client profile links were visible for document import. Open the Clients list in DisputeFox and run Clients again.`,
+                    totalProcessed > 0 ? 'success' : 'warn',
+                );
+                return;
+            }
+        }
+
         finishPulseMigrationMode(
             importedAny
-                ? `DisputeFox ${title} complete. ${importedSummaries.join(' | ')}. Companion is back to provider report pulls.`
+                ? `DisputeFox ${title} complete. ${importedSummaries.join(' | ')}.`
                 : `DisputeFox ${title} finished, but no visible rows were imported. Check the active filters and try again.`,
             importedAny ? 'success' : 'warn',
         );
@@ -6517,7 +6602,7 @@ elements.openDisputeFoxImport?.addEventListener('click', async () => {
     }
 
     const message =
-        'DisputeFox import is active. Use Import all lists for roster rows, Import client profiles for profile billing/history/files, or Import current page for this screen.';
+        'DisputeFox import is active. Use Clients + files for active client profiles and documents, Import all lists for supporting rows, or Import current page for this screen.';
     resetActivity(message, 'info');
     setStatus(message, 'info');
 });
@@ -6550,11 +6635,12 @@ async function runDisputeFoxListImportFromButton(
     lanes,
     activeLabel,
     restingLabel,
+    options = {},
 ) {
     try {
         button.disabled = true;
         button.textContent = 'Importing...';
-        await runPulseMigration(lanes, activeLabel);
+        await runPulseMigration(lanes, activeLabel, options);
     } catch (error) {
         const message = isCompanionStopError(error)
             ? 'Stopped. No more DisputeFox lists will open from this run.'
@@ -6579,11 +6665,19 @@ elements.importDisputeFoxAll?.addEventListener('click', async () => {
 });
 
 elements.importDisputeFoxClients?.addEventListener('click', async () => {
+    const clientLanes = PULSE_MIGRATION_LANES.filter(
+        (lane) => lane.key === 'clients',
+    );
+
     await runDisputeFoxListImportFromButton(
         elements.importDisputeFoxClients,
-        PULSE_MIGRATION_LANES.filter((lane) => lane.key === 'clients'),
-        'Clients import',
-        'Clients',
+        clientLanes,
+        'Clients + files import',
+        'Clients + files',
+        {
+            processProfilesAfterList: true,
+            profileLanes: clientLanes,
+        },
     );
 });
 

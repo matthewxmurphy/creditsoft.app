@@ -7,6 +7,7 @@
     "headline": "Website proof metrics bridge",
     "summary": "Renames dashboard proof metrics, adds a copyable website widget, and wires Credit Sense to pull impact stats through a server-side bridge.",
     "notes": [
+        "Browser companion 0.5.11 makes Clients + files save the active client list and then open those DisputeFox profiles for billing history, provider details, and real document file downloads.",
         "CreditSoft 2026.4.22.7 Dashboard Brag rights is now Website proof metrics with a copyable widget snippet.",
         "CreditSoft 2026.4.22.7 Credit Sense can proxy office impact stats through /api/creditsoft-office-stats.php without exposing an API token in browser code.",
         "CreditSoft 2026.4.22.6 Clients with DisputeFox document links now show metadata-only inventory separately from real file bytes.",
@@ -300,8 +301,8 @@
     },
     "browser_companion": {
         "label": "CreditSoft Browser Companion",
-        "latest_version": "0.5.10",
-        "download_url": "https://updates.creditsoft.app/downloads/creditsoft-browser-companion-v0.5.10.zip",
+        "latest_version": "0.5.11",
+        "download_url": "https://update.creditsoft.app/downloads/creditsoft-browser-companion-v0.5.11.zip",
         "trial_days": 7,
         "trial_label": "7-day companion trial",
         "renewal_url": "https://updates.creditsoft.app/renewal/"
@@ -312,7 +313,7 @@
         "download_url": "https://updates.creditsoft.app/downloads/creditsoft-intranet-client-installer-v0.1.2.zip",
         "router_url": "http://127.0.0.1/dashboard?source=intranet-client"
     },
-    "browser_companion_url": "https://updates.creditsoft.app/downloads/creditsoft-browser-companion-v0.5.10.zip",
+    "browser_companion_url": "https://update.creditsoft.app/downloads/creditsoft-browser-companion-v0.5.11.zip",
     "renewal_url": "https://updates.creditsoft.app/renewal/",
     "support_url": "https://creditsoft.app/",
     "minimum_version": "0.5.3",

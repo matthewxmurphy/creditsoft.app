@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "CreditSoft Companion Capture",
     "description": "Pull provider credit reports into CreditSoft and import legacy CRM data from approved browser sessions.",
-    "version": "0.5.10",
+    "version": "0.5.11",
     "permissions": [
         "activeTab",
         "downloads",
