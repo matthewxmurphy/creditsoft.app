@@ -280,6 +280,7 @@ const props = defineProps<{
             uploaded_at?: string | null;
             reporting_cycle_id?: number | null;
             reporting_cycle?: string | null;
+            file_available?: boolean;
             download_url?: string | null;
         }>;
         portal_events: Array<{
@@ -4770,7 +4771,7 @@ const pruneBrowserCaptureDuplicates = () => {
                                     v-else-if="!document.download_url"
                                     class="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold tracking-[0.16em] text-amber-800 uppercase"
                                 >
-                                    Staged only
+                                    Missing file
                                 </p>
                             </div>
                         </div>
@@ -4930,7 +4931,7 @@ const pruneBrowserCaptureDuplicates = () => {
                                     v-else-if="!document.download_url"
                                     class="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold tracking-[0.16em] text-amber-800 uppercase"
                                 >
-                                    Staged only
+                                    Missing file
                                 </p>
                             </div>
                         </div>
@@ -4947,8 +4948,9 @@ const pruneBrowserCaptureDuplicates = () => {
                             v-if="!document.download_url"
                             class="mt-2 text-xs leading-5 text-amber-800"
                         >
-                            File metadata imported. Re-run companion document
-                            upload to attach the actual local file.
+                            CreditSoft has the DisputeFox record, but the file
+                            is not attached yet. The local inbox will attach it
+                            automatically when the download is available.
                         </p>
                     </button>
                 </div>

@@ -27,11 +27,12 @@ class LetterPdfDocumentService
 
         $title = $this->presentation->title($letter);
         $content = $this->presentation->content($letter);
+        $pdfProfile = $this->pdfProfile($letter);
 
         if ($existing && filled($existing->file_path) && File::exists($existing->file_path)) {
             $existingPdf = (string) File::get($existing->file_path);
 
-            if (! $this->needsRefresh($existing, $letter, $existingPdf, $title, $content)) {
+            if (! $this->needsRefresh($existing, $letter, $existingPdf, $title, $content, $pdfProfile)) {
                 return $existing;
             }
         }
@@ -46,6 +47,7 @@ class LetterPdfDocumentService
             $title,
             $this->renderMetaLines($letter),
             $content,
+            $pdfProfile,
         );
 
         File::put($filePath, $pdf);
@@ -64,6 +66,7 @@ class LetterPdfDocumentService
                 'source' => 'letters',
                 'letter_draft_id' => $letter->getKey(),
                 'letter_type' => $letter->letter_type,
+                'pdf_profile' => $pdfProfile,
             ],
             'uploaded_at' => now(),
         ];
@@ -100,8 +103,13 @@ class LetterPdfDocumentService
         string $existingPdf,
         string $title,
         string $content,
+        array $pdfProfile,
     ): bool
     {
+        if ((array) data_get($document->metadata, 'pdf_profile', []) !== $pdfProfile) {
+            return true;
+        }
+
         if ($document->updated_at?->lt($letter->updated_at)) {
             return true;
         }
@@ -125,5 +133,19 @@ class LetterPdfDocumentService
         }
 
         return false;
+    }
+
+    /**
+     * @return array{style:string,typo_rate:string}
+     */
+    protected function pdfProfile(LetterDraft $letter): array
+    {
+        $style = (string) data_get($letter->ai_metadata, 'pdf_profile.style', 'typed');
+        $typoRate = (string) data_get($letter->ai_metadata, 'pdf_profile.typo_rate', 'none');
+
+        return [
+            'style' => in_array($style, ['typed', 'typed_typos', 'handwritten_right', 'handwritten_left'], true) ? $style : 'typed',
+            'typo_rate' => in_array($typoRate, ['none', 'light', 'medium'], true) ? $typoRate : 'none',
+        ];
     }
 }

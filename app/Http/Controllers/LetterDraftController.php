@@ -230,10 +230,22 @@ class LetterDraftController extends Controller
 
         $validated = $request->validate([
             'status' => ['required', 'in:draft,approved,exported'],
+            'pdf_profile' => ['nullable', 'array'],
+            'pdf_profile.style' => ['nullable', 'in:typed,typed_typos,handwritten_right,handwritten_left'],
+            'pdf_profile.typo_rate' => ['nullable', 'in:none,light,medium'],
         ]);
+        $metadata = $letterDraft->ai_metadata ?? [];
+
+        if (array_key_exists('pdf_profile', $validated)) {
+            data_set($metadata, 'pdf_profile', [
+                'style' => data_get($validated, 'pdf_profile.style', 'typed'),
+                'typo_rate' => data_get($validated, 'pdf_profile.typo_rate', 'none'),
+            ]);
+        }
 
         $letterDraft->update([
             'status' => $validated['status'],
+            'ai_metadata' => $metadata,
             'approved_at' => $validated['status'] === 'approved' ? now() : $letterDraft->approved_at,
             'approved_by' => $validated['status'] === 'approved' ? $request->user()?->getKey() : $letterDraft->approved_by,
             'exported_at' => $validated['status'] === 'exported' ? now() : $letterDraft->exported_at,

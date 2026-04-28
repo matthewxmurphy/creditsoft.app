@@ -23,6 +23,7 @@ use App\Services\BrowserCaptureIntake;
 use App\Services\ClientAssignmentService;
 use App\Services\ClientScoreTimeline;
 use App\Services\CreditReportComparisonService;
+use App\Services\DisputeFoxDocumentInboxService;
 use App\Services\InstallerState;
 use App\Services\LeadCaptureGuard;
 use App\Services\OfficeGrowthRuntime;
@@ -1462,7 +1463,12 @@ class ClientPortalController extends Controller
         ], 201);
     }
 
-    public function storeCompanionClientDocument(Request $request, AuditTrail $auditTrail, OfficeGrowthRuntime $growth): JsonResponse
+    public function storeCompanionClientDocument(
+        Request $request,
+        AuditTrail $auditTrail,
+        OfficeGrowthRuntime $growth,
+        DisputeFoxDocumentInboxService $disputeFoxDocumentInbox,
+    ): JsonResponse
     {
         $validated = $request->validate([
             'client_cuid' => ['required', 'string', 'max:255'],
@@ -1517,6 +1523,15 @@ class ClientPortalController extends Controller
 
         /** @var ClientDocument $document */
         $document = $result['document'];
+        $inboxAttachment = ['attached' => false, 'deleted_sources' => 0];
+
+        if (! $stored) {
+            $inboxAttachment = $disputeFoxDocumentInbox->attachToDocument($document);
+            $document = $document->refresh();
+        }
+
+        $fileUploaded = $stored !== null || (bool) $inboxAttachment['attached'];
+
         $auditTrail->record(
             $request->user(),
             $result['created'] ? 'api.browser_companion.document_created' : 'api.browser_companion.document_synced',
@@ -1527,7 +1542,9 @@ class ClientPortalController extends Controller
                 'source_system' => $sourceSystem,
                 'client_cuid' => $client->cuid,
                 'source_document_uid' => data_get($document->metadata, 'imports.disputefox.document.source_document_uid'),
-                'file_uploaded' => $stored !== null,
+                'file_uploaded' => $fileUploaded,
+                'local_inbox_attached' => (bool) $inboxAttachment['attached'],
+                'local_inbox_deleted_sources' => (int) $inboxAttachment['deleted_sources'],
             ],
         );
 
@@ -1541,7 +1558,8 @@ class ClientPortalController extends Controller
                 'file_size' => $document->file_size,
                 'portal_visible' => $document->portal_visible,
                 'created' => $result['created'],
-                'file_uploaded' => $stored !== null,
+                'file_uploaded' => $fileUploaded,
+                'local_inbox_attached' => (bool) $inboxAttachment['attached'],
                 'uploaded_at' => optional($document->uploaded_at)?->toIso8601String(),
             ],
             'meta' => $this->officeResponseMeta($growth),
@@ -2104,7 +2122,7 @@ class ClientPortalController extends Controller
     /**
      * @param  list<array<string, mixed>>  $documents
      * @param  array<string, mixed>  $validated
-     * @return array{total:int,created:int,updated:int,skipped:int,files_uploaded:int}
+     * @return array{total:int,created:int,updated:int,skipped:int,files_uploaded:int,local_inbox_attached:int}
      */
     protected function syncPulseClientDocuments(Client $client, array $documents, array $validated, string $sourceSystem, Request $request): array
     {
@@ -2114,6 +2132,7 @@ class ClientPortalController extends Controller
             'updated' => 0,
             'skipped' => 0,
             'files_uploaded' => 0,
+            'local_inbox_attached' => 0,
         ];
 
         foreach (collect($documents)->filter(fn ($document) => is_array($document))->take(100) as $document) {
@@ -2145,6 +2164,10 @@ class ClientPortalController extends Controller
             }
         }
 
+        $inboxStats = app(DisputeFoxDocumentInboxService::class)->reconcile($client);
+        $stats['files_uploaded'] += $inboxStats['attached'];
+        $stats['local_inbox_attached'] = $inboxStats['attached'];
+
         return $stats;
     }
 
@@ -2171,6 +2194,8 @@ class ClientPortalController extends Controller
             $title = $fileName !== '' ? pathinfo($fileName, PATHINFO_FILENAME) : 'DisputeFox document';
         }
 
+        $uploadedAt = $this->parseCompanionDocumentDate($this->companionDocumentValue($sourceDocument, ['uploaded_at_label', 'client_document_date']));
+        $stored = $stored ? $this->renameStoredCompanionDocumentFile($client, $stored, $title, $uploadedAt) : null;
         $document = $this->findCompanionClientDocument($client, $sourceDocumentUid, $downloadUrl, $title);
         $created = ! $document;
         $metadata = $document?->metadata ?? [];
@@ -2224,7 +2249,7 @@ class ClientPortalController extends Controller
             'file_size' => $stored['file_size'] ?? ((int) ($sourceDocument['file_size'] ?? 0) ?: $document?->file_size),
             'portal_visible' => $hasFile ? true : (bool) ($document?->portal_visible ?? false),
             'metadata' => $metadata,
-            'uploaded_at' => $this->parseCompanionDocumentDate($this->companionDocumentValue($sourceDocument, ['uploaded_at_label', 'client_document_date']))
+            'uploaded_at' => $uploadedAt
                 ?? $document?->uploaded_at
                 ?? now(),
         ];
@@ -2313,6 +2338,60 @@ class ClientPortalController extends Controller
         if ($path !== '' && File::exists($path)) {
             File::delete($path);
         }
+    }
+
+    /**
+     * @param  array{file_name:string,file_path:string,mime_type:?string,file_size:int}  $stored
+     * @return array{file_name:string,file_path:string,mime_type:?string,file_size:int}
+     */
+    protected function renameStoredCompanionDocumentFile(Client $client, array $stored, string $title, ?Carbon $uploadedAt): array
+    {
+        $path = (string) $stored['file_path'];
+
+        if ($path === '' || ! File::exists($path)) {
+            return $stored;
+        }
+
+        $extension = Str::lower(pathinfo($stored['file_name'], PATHINFO_EXTENSION) ?: pathinfo($path, PATHINFO_EXTENSION) ?: 'bin');
+        $clientName = Str::slug($client->display_name ?: 'Client', '-');
+        $documentTitle = Str::slug($title ?: pathinfo($stored['file_name'], PATHINFO_FILENAME) ?: 'Document', '-');
+        $date = ($uploadedAt ?: now())->timezone(config('app.timezone'))->format('Y-m-d');
+        $directory = dirname($path);
+        $fileName = sprintf('client-%s-%s_%s_%s.%s', $client->getKey(), $clientName, $documentTitle, $date, $extension);
+        $targetPath = $this->uniqueDocumentPath($directory, $fileName);
+
+        if ($targetPath !== $path) {
+            File::move($path, $targetPath);
+        }
+
+        return [
+            ...$stored,
+            'file_name' => basename($targetPath),
+            'file_path' => $targetPath,
+            'file_size' => (int) (File::size($targetPath) ?: 0),
+        ];
+    }
+
+    protected function uniqueDocumentPath(string $directory, string $fileName): string
+    {
+        $path = $directory.DIRECTORY_SEPARATOR.$fileName;
+
+        if (! File::exists($path)) {
+            return $path;
+        }
+
+        $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+        $stem = pathinfo($fileName, PATHINFO_FILENAME);
+
+        for ($index = 2; $index < 1000; $index++) {
+            $candidate = $directory.DIRECTORY_SEPARATOR.$stem.'-'.$index.($extension ? '.'.$extension : '');
+
+            if (! File::exists($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return $directory.DIRECTORY_SEPARATOR.$stem.'-'.Str::random(6).($extension ? '.'.$extension : '');
     }
 
     protected function findCompanionClientDocument(Client $client, string $sourceDocumentUid, string $downloadUrl, string $title): ?ClientDocument

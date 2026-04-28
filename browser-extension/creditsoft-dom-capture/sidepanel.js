@@ -3063,6 +3063,14 @@ function contentDispositionFilename(value) {
 function safePulseDocumentFilename(documentRecord, response) {
     const headerName = contentDispositionFilename(response?.headers?.get?.('content-disposition'));
     const fallback = documentRecord?.file_name || documentRecord?.title || 'pulse-document';
+    const fromQuery = (() => {
+        try {
+            const url = new URL(documentRecord?.download_url || documentRecord?.preview_url || '');
+            return decodeURIComponent(url.searchParams.get('file') || url.searchParams.get('filename') || '');
+        } catch (_) {
+            return '';
+        }
+    })();
     const fromUrl = (() => {
         try {
             const url = new URL(documentRecord?.download_url || documentRecord?.preview_url || '');
@@ -3071,9 +3079,28 @@ function safePulseDocumentFilename(documentRecord, response) {
             return '';
         }
     })();
-    const candidate = String(headerName || fromUrl || fallback).replace(/[\\/:*?"<>|]+/g, '-').trim();
+    const candidate = String(headerName || fromQuery || fromUrl || fallback).replace(/[\\/:*?"<>|]+/g, '-').trim();
 
     return candidate || 'pulse-document';
+}
+
+async function downloadPulseDocumentToInbox(documentRecord) {
+    const url = documentRecord?.download_url || documentRecord?.preview_url || '';
+
+    if (!url || !chrome?.downloads?.download) {
+        return false;
+    }
+
+    const filename = `CreditSoft DisputeFox/${safePulseDocumentFilename(documentRecord, null)}`;
+
+    await chrome.downloads.download({
+        url,
+        filename,
+        conflictAction: 'uniquify',
+        saveAs: false,
+    });
+
+    return true;
 }
 
 async function fetchPulseDocumentFile(documentRecord) {
@@ -3155,10 +3182,11 @@ async function postClientDocument(clientCuid, documentRecord, filePayload, setti
 async function uploadPulseDocumentsForClient(documents, clientCuid, settings, capture) {
     const records = (Array.isArray(documents) ? documents : [])
         .filter((documentRecord) => documentRecord?.download_url || documentRecord?.preview_url)
-        .slice(0, 25);
+        .slice(0, 100);
     const stats = {
         attempted: records.length,
         uploaded: 0,
+        downloaded: 0,
         failed: 0,
         last_error: '',
     };
@@ -3174,8 +3202,18 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
             }, filePayload, settings, capture);
             stats.uploaded++;
         } catch (error) {
+            try {
+                if (await downloadPulseDocumentToInbox(documentRecord)) {
+                    stats.downloaded++;
+
+                    continue;
+                }
+            } catch (downloadError) {
+                stats.last_error = downloadError instanceof Error ? downloadError.message : '';
+            }
+
             stats.failed++;
-            stats.last_error = error instanceof Error ? error.message.replace(/\bPulse\b/g, 'DisputeFox') : 'Could not import a DisputeFox document.';
+            stats.last_error = stats.last_error || (error instanceof Error ? error.message.replace(/\bPulse\b/g, 'DisputeFox') : 'Could not import a DisputeFox document.');
         }
     }
 
@@ -3393,15 +3431,17 @@ async function syncDisputeFoxProfile() {
 
         if (uploadStats.uploaded > 0) {
             documentMessage = ` Imported ${uploadStats.uploaded} file${uploadStats.uploaded === 1 ? '' : 's'}.`;
+        } else if (uploadStats.downloaded > 0) {
+            documentMessage = ` Downloaded ${uploadStats.downloaded} file${uploadStats.downloaded === 1 ? '' : 's'} for the CreditSoft inbox.`;
         } else if (Number(syncedDocuments.total || 0) > 0) {
-            documentMessage = ` Staged ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}; open the DisputeFox document drawer if file downloads are blocked.`;
+            documentMessage = ` Recorded ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}; waiting for the local document inbox.`;
         }
 
         if (uploadStats.failed > 0 && uploadStats.uploaded === 0 && uploadStats.last_error) {
             pushActivity(uploadStats.last_error, 'warn');
         }
     } else if (Number(syncedDocuments.total || 0) > 0) {
-        documentMessage = ` Staged ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}.`;
+        documentMessage = ` Recorded ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}.`;
     }
 
     const providerMessage = providerAccounts.length > 0
@@ -4029,7 +4069,7 @@ async function runPulseProfileProcessing() {
 
     finishPulseMigrationMode(
         totalProcessed > 0
-            ? `DisputeFox profile import complete. ${summaries.join(' | ')}. Legacy reports/documents were staged and downloaded where DisputeFox allowed file access.${supportingSummary}${totalFailed > 0 ? ` ${totalFailed} failed.` : ''}${failureSummary}`
+            ? `DisputeFox profile import complete. ${summaries.join(' | ')}. Legacy reports/documents were uploaded or queued for the local CreditSoft inbox where browser access allowed it.${supportingSummary}${totalFailed > 0 ? ` ${totalFailed} failed.` : ''}${failureSummary}`
             : 'DisputeFox profile import finished, but no profile links were visible to import.',
         totalProcessed > 0 ? 'success' : 'warn',
     );

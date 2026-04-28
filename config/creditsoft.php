@@ -533,8 +533,8 @@ return [
         'verification_window_days' => (int) env('CREDITSOFT_LICENSE_VERIFICATION_WINDOW_DAYS', 7),
     ],
     'updates' => [
-        'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.27.1'),
-        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.27.1')),
+        'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.28.7'),
+        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.28.7')),
         'channel' => env('CREDITSOFT_UPDATE_CHANNEL', 'stable'),
         'release_timezone' => env('CREDITSOFT_RELEASE_TIMEZONE', 'America/Los_Angeles'),
         'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://updates.creditsoft.app/api/update-feed'),
@@ -545,6 +545,11 @@ return [
     ],
     'browser_capture_path' => env('CREDITSOFT_BROWSER_CAPTURE_PATH', storage_path('app/private/browser-captures')),
     'document_path' => env('CREDITSOFT_DOCUMENT_PATH', storage_path('app/private/client-documents')),
+    'disputefox_document_inbox_paths' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', env('CREDITSOFT_DISPUTEFOX_DOCUMENT_INBOX_PATHS', storage_path('app/private/companion-inbox/disputefox'))),
+    ))),
+    'disputefox_document_inbox_prune_tiny_previews' => (bool) env('CREDITSOFT_DISPUTEFOX_DOCUMENT_INBOX_PRUNE_TINY_PREVIEWS', true),
     'ai' => [
         'providers' => [
             'opencode_zen' => [

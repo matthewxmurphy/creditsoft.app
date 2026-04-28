@@ -25,6 +25,11 @@ type TemplateEntry = {
     availability_reason?: string | null;
 };
 
+type PdfProfile = {
+    style: 'typed' | 'typed_typos' | 'handwritten_right' | 'handwritten_left';
+    typo_rate: 'none' | 'light' | 'medium';
+};
+
 const props = defineProps<{
     client: {
         id: number;
@@ -49,6 +54,7 @@ const props = defineProps<{
         ai_metadata?: {
             provider?: string | null;
             model?: string | null;
+            pdf_profile?: Partial<PdfProfile> | null;
         } | null;
         recipient_bureau?: string | null;
         pdf_document?: {
@@ -94,6 +100,7 @@ const page = usePage<{
 }>();
 
 const showAiSetup = ref(page.props.creditsoft.ai.needsSetup);
+const pdfProfiles = ref<Record<number, PdfProfile>>({});
 const activeDocumentPreview = ref<NonNullable<
     (typeof props.letters)[number]['pdf_document']
 > | null>(null);
@@ -182,6 +189,20 @@ const manualTemplateOptions = computed(() =>
 const aiTemplateOptions = computed(() =>
     props.templates.filter((entry) => entry.letter_type === aiForm.letter_type),
 );
+const pdfStyleOptions: Array<{ value: PdfProfile['style']; label: string }> = [
+    { value: 'typed', label: 'Typed clean' },
+    { value: 'typed_typos', label: 'Typed human typos' },
+    { value: 'handwritten_right', label: 'Handwritten right' },
+    { value: 'handwritten_left', label: 'Handwritten left' },
+];
+const typoRateOptions: Array<{
+    value: PdfProfile['typo_rate'];
+    label: string;
+}> = [
+    { value: 'none', label: 'No typos' },
+    { value: 'light', label: 'Light typos' },
+    { value: 'medium', label: 'Medium typos' },
+];
 
 const mergeFieldGroups = [
     {
@@ -330,6 +351,67 @@ const setStatus = (id: number, status: string) => {
         { preserveScroll: true },
     );
 };
+
+const defaultPdfProfile = (): PdfProfile => ({
+    style: 'typed',
+    typo_rate: 'none',
+});
+
+const normalizePdfProfile = (
+    profile?: Partial<PdfProfile> | null,
+): PdfProfile => {
+    const style = profile?.style ?? 'typed';
+    const typoRate = profile?.typo_rate ?? 'none';
+
+    return {
+        style: pdfStyleOptions.some((option) => option.value === style)
+            ? style
+            : 'typed',
+        typo_rate: typoRateOptions.some((option) => option.value === typoRate)
+            ? typoRate
+            : 'none',
+    };
+};
+
+const pdfProfileFor = (letter: (typeof props.letters)[number]) =>
+    pdfProfiles.value[letter.id] ?? defaultPdfProfile();
+
+const exportPdf = (letter: (typeof props.letters)[number]) => {
+    const profile = pdfProfileFor(letter);
+
+    router.patch(
+        `/clients/${props.client.id}/letters/${letter.id}`,
+        {
+            status: 'exported',
+            pdf_profile: {
+                style: profile.style,
+                typo_rate:
+                    profile.style === 'typed_typos'
+                        ? profile.typo_rate === 'none'
+                            ? 'light'
+                            : profile.typo_rate
+                        : 'none',
+            },
+        },
+        { preserveScroll: true },
+    );
+};
+
+watch(
+    () => props.letters,
+    (letters) => {
+        const nextProfiles = { ...pdfProfiles.value };
+
+        for (const letter of letters) {
+            nextProfiles[letter.id] =
+                nextProfiles[letter.id] ??
+                normalizePdfProfile(letter.ai_metadata?.pdf_profile);
+        }
+
+        pdfProfiles.value = nextProfiles;
+    },
+    { immediate: true },
+);
 
 watch(
     () => form.letter_type,
@@ -1045,6 +1127,53 @@ watch(
                                 </button>
                             </div>
                         </div>
+                        <div
+                            v-if="pdfProfiles[letter.id]"
+                            class="mt-4 grid gap-2 rounded-[20px] border border-stone-200/80 bg-stone-50/80 p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+                        >
+                            <label class="space-y-1">
+                                <span
+                                    class="text-[10px] font-medium tracking-[0.18em] text-stone-500 uppercase"
+                                    >PDF style</span
+                                >
+                                <select
+                                    v-model="pdfProfiles[letter.id].style"
+                                    class="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
+                                >
+                                    <option
+                                        v-for="option in pdfStyleOptions"
+                                        :key="option.value"
+                                        :value="option.value"
+                                    >
+                                        {{ option.label }}
+                                    </option>
+                                </select>
+                            </label>
+                            <label
+                                v-if="
+                                    pdfProfiles[letter.id].style ===
+                                    'typed_typos'
+                                "
+                                class="space-y-1"
+                            >
+                                <span
+                                    class="text-[10px] font-medium tracking-[0.18em] text-stone-500 uppercase"
+                                    >Typo pass</span
+                                >
+                                <select
+                                    v-model="pdfProfiles[letter.id].typo_rate"
+                                    class="h-9 w-full rounded-md border border-input bg-white px-3 text-sm"
+                                >
+                                    <option
+                                        v-for="option in typoRateOptions"
+                                        :key="option.value"
+                                        :value="option.value"
+                                    >
+                                        {{ option.label }}
+                                    </option>
+                                </select>
+                            </label>
+                        </div>
                         <div class="mt-4 flex flex-wrap gap-2">
                             <button
                                 type="button"
@@ -1056,7 +1185,7 @@ watch(
                             <button
                                 type="button"
                                 class="rounded-full border border-stone-300 px-3 py-1.5 text-[11px] tracking-[0.18em] text-stone-600 uppercase"
-                                @click="setStatus(letter.id, 'exported')"
+                                @click="exportPdf(letter)"
                             >
                                 {{
                                     letter.pdf_document

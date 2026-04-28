@@ -27,6 +27,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -1726,7 +1727,10 @@ class ClientController extends Controller
             && ! $user->isReadOnlyDemo()
             && $user->hasAnyRole(['owner_admin', 'admin', 'manager', 'case_manager']);
         $documentRecords = $client->documents;
-        $reportDocumentCount = $documentRecords
+        $availableDocumentRecords = $documentRecords
+            ->filter(fn ($document): bool => filled($document->file_path) && File::exists($document->file_path))
+            ->values();
+        $reportDocumentCount = $availableDocumentRecords
             ->filter(function ($document): bool {
                 $category = Str::lower((string) $document->category);
                 $text = Str::lower(implode(' ', array_filter([
@@ -1740,20 +1744,18 @@ class ClientController extends Controller
                     || Str::contains($text, ['audit report', 'credit report', '3-bureau', '3 bureau', 'progress report', 'client progress']);
             })
             ->count();
-        $documentFileCount = $documentRecords
-            ->filter(fn ($document): bool => filled($document->file_path))
-            ->count();
-        $documentTotalBytes = (int) $documentRecords->sum(fn ($document): int => max((int) ($document->file_size ?? 0), 0));
+        $documentFileCount = $availableDocumentRecords->count();
+        $documentTotalBytes = (int) $availableDocumentRecords->sum(fn ($document): int => max((int) ($document->file_size ?? 0), 0));
         $healthSignal = $clientHealth->signal($client);
         $importAudit = $this->clientImportAudit($client, $this->disputeFoxCaptureSourceIndex());
         $clientPayload['client_health'] = $healthSignal;
         $clientPayload['billing_signal'] = $healthSignal;
         $clientPayload['document_access'] = [
             'can_view_files' => $canViewCustomerDocuments,
-            'document_count' => $documentRecords->count(),
+            'document_count' => $availableDocumentRecords->count(),
             'file_count' => $documentFileCount,
             'report_count' => $reportDocumentCount,
-            'client_file_count' => max($documentRecords->count() - $reportDocumentCount, 0),
+            'client_file_count' => max($availableDocumentRecords->count() - $reportDocumentCount, 0),
             'total_bytes' => $documentTotalBytes,
             'total_label' => $this->humanBytes($documentTotalBytes),
         ];
@@ -1773,21 +1775,26 @@ class ClientController extends Controller
             'metadata' => $this->hydrateBrowserCaptureMetadata($capture->metadata ?? [], $capture->content_html, $capture->page_title, $capture->page_url, $smartCreditCaptureParser),
             'imported_at' => optional($capture->imported_at)?->toIso8601String(),
         ])->values()->all();
-        $clientPayload['documents'] = $canViewCustomerDocuments ? $client->documents->map(fn ($document) => [
-            'id' => $document->getKey(),
-            'title' => $document->title,
-            'category' => $document->category,
-            'notes' => $document->notes,
-            'file_name' => $document->file_name,
-            'mime_type' => $document->mime_type,
-            'file_size' => $document->file_size,
-            'uploaded_at' => optional($document->uploaded_at)?->toIso8601String(),
-            'reporting_cycle_id' => $document->reporting_cycle_id,
-            'reporting_cycle' => $document->reportingCycle?->cycle_label,
-            'download_url' => filled($document->file_path)
-                ? route('clients.documents.download', [$client, $document])
-                : null,
-        ])->values()->all() : [];
+        $clientPayload['documents'] = $canViewCustomerDocuments ? $availableDocumentRecords->map(function ($document) use ($client): array {
+            $fileAvailable = filled($document->file_path) && File::exists($document->file_path);
+
+            return [
+                'id' => $document->getKey(),
+                'title' => $document->title,
+                'category' => $document->category,
+                'notes' => $document->notes,
+                'file_name' => $document->file_name,
+                'mime_type' => $document->mime_type,
+                'file_size' => $document->file_size,
+                'uploaded_at' => optional($document->uploaded_at)?->toIso8601String(),
+                'reporting_cycle_id' => $document->reporting_cycle_id,
+                'reporting_cycle' => $document->reportingCycle?->cycle_label,
+                'file_available' => $fileAvailable,
+                'download_url' => $fileAvailable
+                    ? route('clients.documents.download', [$client, $document])
+                    : null,
+            ];
+        })->values()->all() : [];
         $clientPayload['portal_events'] = $client->portalEvents->map(fn ($event) => [
             'id' => $event->getKey(),
             'source' => $event->source,
