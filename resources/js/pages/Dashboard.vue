@@ -126,6 +126,8 @@ const props = defineProps<{
         current_version?: string | null;
         latest_version?: string | null;
         latest_build?: string | null;
+        published_latest_version?: string | null;
+        local_build_ahead?: boolean;
         headline?: string | null;
         summary?: string | null;
         notes?: string[];
@@ -322,6 +324,7 @@ const lifespanTooltip = 'Average time clients stay in CreditSoft, using their st
                         <span>Current {{ updates.current_version ?? 'unknown' }}</span>
                         <span v-if="updates.latest_version">Latest {{ updates.latest_version }}</span>
                         <span v-if="updates.latest_build">Build {{ updates.latest_build }}</span>
+                        <span v-if="updates.local_build_ahead && updates.published_latest_version">Published feed {{ updates.published_latest_version }}</span>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-3">

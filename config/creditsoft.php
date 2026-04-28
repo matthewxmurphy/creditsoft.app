@@ -533,8 +533,8 @@ return [
         'verification_window_days' => (int) env('CREDITSOFT_LICENSE_VERIFICATION_WINDOW_DAYS', 7),
     ],
     'updates' => [
-        'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.28.8'),
-        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.28.8')),
+        'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.28.9'),
+        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.28.9')),
         'channel' => env('CREDITSOFT_UPDATE_CHANNEL', 'stable'),
         'release_timezone' => env('CREDITSOFT_RELEASE_TIMEZONE', 'America/Los_Angeles'),
         'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://updates.creditsoft.app/api/update-feed'),

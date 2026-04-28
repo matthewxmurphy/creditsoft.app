@@ -114,6 +114,8 @@ type SharedProps = {
             current_build?: string | null;
             latest_version?: string | null;
             latest_build?: string | null;
+            published_latest_version?: string | null;
+            local_build_ahead?: boolean;
             update_available?: boolean;
             update_required?: boolean;
             download_url?: string | null;

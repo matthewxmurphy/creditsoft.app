@@ -30,7 +30,7 @@ class CreditsoftUpdateFeed
         $latestVersion = trim((string) ($feed['latest_version'] ?? ''));
         $latestBuild = trim((string) ($feed['latest_build'] ?? ''));
         $minimumVersion = trim((string) ($feed['minimum_version'] ?? ''));
-        $requiresUpdate = (bool) ($feed['update_required'] ?? false);
+        $feedRequiresUpdate = (bool) ($feed['update_required'] ?? false);
 
         if ($currentBuild === '') {
             $currentBuild = $currentVersion;
@@ -40,10 +40,14 @@ class CreditsoftUpdateFeed
             $latestBuild = $latestVersion;
         }
 
+        $currentAheadOfFeed = $latestVersion !== '' && $this->isVersionLessThan($latestVersion, $currentVersion);
         $versionBehind = $this->isVersionLessThan($currentVersion, $latestVersion);
         $belowMinimum = $this->isVersionLessThan($currentVersion, $minimumVersion);
-        $buildChanged = $currentBuild !== '' && $latestBuild !== '' && $currentBuild !== $latestBuild;
+        $requiresUpdate = $feedRequiresUpdate && ! $currentAheadOfFeed;
+        $buildChanged = ! $currentAheadOfFeed && $currentBuild !== '' && $latestBuild !== '' && $currentBuild !== $latestBuild;
         $updateAvailable = $versionBehind || $belowMinimum || ($requiresUpdate && ($buildChanged || $latestVersion !== '' && $latestVersion !== $currentVersion));
+        $displayLatestVersion = $currentAheadOfFeed ? $currentVersion : $latestVersion;
+        $displayLatestBuild = $currentAheadOfFeed ? $currentBuild : $latestBuild;
 
         $payload = array_replace_recursive([
             'source' => 'none',
@@ -52,8 +56,11 @@ class CreditsoftUpdateFeed
             'current_version' => $currentVersion,
             'current_build' => $currentBuild !== '' ? $currentBuild : null,
             'channel' => $channel,
-            'latest_version' => $latestVersion !== '' ? $latestVersion : null,
-            'latest_build' => $latestBuild !== '' ? $latestBuild : null,
+            'latest_version' => $displayLatestVersion !== '' ? $displayLatestVersion : null,
+            'latest_build' => $displayLatestBuild !== '' ? $displayLatestBuild : null,
+            'published_latest_version' => $latestVersion !== '' ? $latestVersion : null,
+            'published_latest_build' => $latestBuild !== '' ? $latestBuild : null,
+            'local_build_ahead' => $currentAheadOfFeed,
             'minimum_version' => $minimumVersion !== '' ? $minimumVersion : null,
             'headline' => 'CreditSoft update status',
             'summary' => null,
@@ -68,11 +75,21 @@ class CreditsoftUpdateFeed
         ], $feed, [
             'current_version' => $currentVersion,
             'current_build' => $currentBuild !== '' ? $currentBuild : null,
+            'latest_version' => $displayLatestVersion !== '' ? $displayLatestVersion : null,
+            'latest_build' => $displayLatestBuild !== '' ? $displayLatestBuild : null,
+            'published_latest_version' => $latestVersion !== '' ? $latestVersion : null,
+            'published_latest_build' => $latestBuild !== '' ? $latestBuild : null,
+            'local_build_ahead' => $currentAheadOfFeed,
             'channel' => $channel,
             'update_available' => $updateAvailable,
             'update_required' => $requiresUpdate || $belowMinimum,
             'checked_at' => now()->toIso8601String(),
         ]);
+
+        if ($currentAheadOfFeed && ! $updateAvailable) {
+            $payload['download_url'] = null;
+            $payload['package_path'] = null;
+        }
 
         if (
             ! $updateAvailable
@@ -80,10 +97,16 @@ class CreditsoftUpdateFeed
             && ! in_array((string) ($payload['source'] ?? 'none'), ['none', 'unavailable'], true)
         ) {
             $payload['headline'] = 'CreditSoft is up to date';
-            $payload['summary'] = sprintf(
-                'This office is already on version %s and does not need a newer package right now.',
-                $currentVersion
-            );
+            $payload['summary'] = $currentAheadOfFeed
+                ? sprintf(
+                    'This office is on %s, which is newer than the published update feed (%s). No package should be applied right now.',
+                    $currentVersion,
+                    $latestVersion,
+                )
+                : sprintf(
+                    'This office is already on version %s and does not need a newer package right now.',
+                    $currentVersion
+                );
         }
 
         return $payload;

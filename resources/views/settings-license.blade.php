@@ -739,6 +739,9 @@
                     @if (!empty($updates['latest_version']))
                         <span>Latest {{ $updates['latest_version'] }}</span>
                     @endif
+                    @if (!empty($updates['local_build_ahead']) && !empty($updates['published_latest_version']))
+                        <span>Published feed {{ $updates['published_latest_version'] }}</span>
+                    @endif
                 </div>
             </div>
 
@@ -793,8 +796,14 @@
                     <p class="stat-value">{{ $updates['latest_build'] ?? 'Not set' }}</p>
                 </div>
                 <div class="stat">
-                    <p class="stat-label">Published</p>
-                    <p class="stat-value">{{ !empty($updates['published_at']) ? \Illuminate\Support\Carbon::parse($updates['published_at'])->timezone(config('app.timezone'))->format('M j, Y g:i A') : 'Not published yet' }}</p>
+                    <p class="stat-label">{{ !empty($updates['local_build_ahead']) ? 'Published feed' : 'Published' }}</p>
+                    <p class="stat-value">
+                        @if (!empty($updates['local_build_ahead']) && !empty($updates['published_latest_version']))
+                            {{ $updates['published_latest_version'] }}
+                        @else
+                            {{ !empty($updates['published_at']) ? \Illuminate\Support\Carbon::parse($updates['published_at'])->timezone(config('app.timezone'))->format('M j, Y g:i A') : 'Not published yet' }}
+                        @endif
+                    </p>
                 </div>
             </div>
             @if (!empty($changelog['versions']))
