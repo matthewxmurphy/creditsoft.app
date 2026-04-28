@@ -185,9 +185,9 @@
     },
     "intranet_client": {
         "label": "CreditSoft Employee Intranet Client",
-        "latest_version": "2026.4.28.6",
-        "download_url": "https://updates.creditsoft.app/downloads/creditsoft-intranet-client-installer-v2026.4.28.6.zip",
-        "router_url": "http://127.0.0.1/dashboard?source=intranet-client"
+        "latest_version": "2026.4.28.10",
+        "download_url": "https://updates.creditsoft.app/downloads/creditsoft-intranet-client-installer-v2026.4.28.10.zip",
+        "router_url": "http://127.0.0.1:8877/dashboard?source=intranet-client"
     },
     "browser_companion_url": "https://update.creditsoft.app/downloads/creditsoft-browser-companion-v2026.4.28.6.zip",
     "renewal_url": "https://updates.creditsoft.app/renewal/",

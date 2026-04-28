@@ -147,6 +147,7 @@ class IntranetClientInstallerBundle
 
         $this->addRequiredClientFile($zip, 'README.md', 'client/README.md');
         $this->addRequiredClientFile($zip, 'package.json', 'client/package.json');
+        $this->addRequiredClientFile($zip, 'install-windows-client.ps1', 'client/install-windows-client.ps1');
         $this->addRequiredClientFile($zip, 'bin/creditsoft-intranet-client.mjs', 'client/bin/creditsoft-intranet-client.mjs');
         $this->addRequiredClientFile($zip, 'bin/creditsoft-loopback-router.mjs', 'client/bin/creditsoft-loopback-router.mjs');
         $this->addRequiredClientFile($zip, 'examples/pairing-config.example.json', 'client/examples/pairing-config.example.json');
@@ -176,10 +177,10 @@ class IntranetClientInstallerBundle
                 'role' => 'employee-client',
                 'listen_host' => '127.0.0.1',
                 'listen_port' => 'auto',
-                'preferred_listen_ports' => [80, 8877, 8878, 8879, 8880, 8881, 8882, 8883, 8884, 8885, 8886, 8887, 8888, 8889, 8890, 8891, 8892, 8893, 8894, 8895, 8896, 8897, 8898, 8899],
-                'router_url' => 'http://127.0.0.1/dashboard?source=intranet-client',
+                'preferred_listen_ports' => [8877, 8878, 8879, 8880, 8881, 8882, 8883, 8884, 8885, 8886, 8887, 8888, 8889, 8890, 8891, 8892, 8893, 8894, 8895, 8896, 8897, 8898, 8899, 80],
+                'router_url' => 'http://127.0.0.1:8877/dashboard?source=intranet-client',
                 'dashboard_path' => '/dashboard?source=intranet-client',
-                'selection_strategy' => 'resource-aware',
+                'selection_strategy' => 'fastest',
             ],
             'api' => [
                 'candidate_base_urls' => $this->candidateApiBases(),
@@ -208,7 +209,7 @@ class IntranetClientInstallerBundle
         return [
             'officeName' => (string) data_get($manifest, 'office.name', 'CreditSoft Office'),
             'candidateBaseUrls' => data_get($manifest, 'api.candidate_base_urls', []),
-            'selectionStrategy' => data_get($manifest, 'runtime.selection_strategy', 'resource-aware'),
+            'selectionStrategy' => data_get($manifest, 'runtime.selection_strategy', 'fastest'),
             'dashboardPath' => data_get($manifest, 'runtime.dashboard_path', '/dashboard?source=intranet-client'),
             'notes' => 'Do not store a personal API key in this file. Pass it through CREDITSOFT_API_TOKEN, --token, or a future OS keychain wrapper.',
         ];
@@ -320,6 +321,7 @@ class IntranetClientInstallerBundle
             '.\\install.ps1',
             '.\\install.ps1 -ApiBase http://office-server:8001/api/v1',
             '.\\install.ps1 -ListenPort 8877',
+            '.\\install.ps1 -InstallTailscale -TailscaleAuthKey "paste-temporary-auth-key" -TailscaleHostname "creditsoft-client-name" -ApiBase http://tailnet-server:8001/api/v1 -StartNow',
             '$env:CREDITSOFT_API_TOKEN = "paste-staff-api-key"; .\\install.ps1',
             '```',
             '',
@@ -477,10 +479,10 @@ chmod +x "$INSTALL_DIR/bin/creditsoft-intranet-client.mjs" "$INSTALL_DIR/bin/cre
 API_BASES="$(node -e "const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); const extra=(process.argv[2]||'').split(',').map((v)=>v.trim()).filter(Boolean); const bases=[...(manifest.api?.candidate_base_urls||[]), ...extra]; console.log([...new Set(bases.filter(Boolean))].join(','));" "$MANIFEST_PATH" "$EXTRA_BASES")"
 LISTEN_HOST="$(node -e "const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(manifest.runtime?.listen_host || '127.0.0.1');" "$MANIFEST_PATH")"
 LISTEN_HOST="${REQUESTED_LISTEN_HOST:-$LISTEN_HOST}"
-PREFERRED_LISTEN_PORTS="$(node -e "const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); const ports=manifest.runtime?.preferred_listen_ports || [80,8877,8878,8879,8880,8881,8882,8883,8884,8885,8886,8887,8888,8889,8890,8891,8892,8893,8894,8895,8896,8897,8898,8899]; console.log(ports.join(' '));" "$MANIFEST_PATH")"
+PREFERRED_LISTEN_PORTS="$(node -e "const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); const ports=manifest.runtime?.preferred_listen_ports || [8877,8878,8879,8880,8881,8882,8883,8884,8885,8886,8887,8888,8889,8890,8891,8892,8893,8894,8895,8896,8897,8898,8899,80]; console.log(ports.join(' '));" "$MANIFEST_PATH")"
 # shellcheck disable=SC2086
 LISTEN_PORT="$(choose_listen_port "$LISTEN_HOST" "$REQUESTED_LISTEN_PORT" $PREFERRED_LISTEN_PORTS)"
-STRATEGY="$(node -e "const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); console.log(manifest.runtime?.selection_strategy || 'resource-aware');" "$MANIFEST_PATH")"
+STRATEGY="$(node -e "const fs=require('fs'); const manifest=JSON.parse(fs.readFileSync(process.argv[1], 'utf8')); const strategy=manifest.runtime?.selection_strategy || 'fastest'; console.log(['fastest','ordered'].includes(strategy) ? strategy : 'fastest');" "$MANIFEST_PATH")"
 ROUTER_URL="$(router_url_for "$LISTEN_HOST" "$LISTEN_PORT")"
 
 node -e "const fs=require('fs'); const path=process.argv[1]; const bases=(process.argv[2]||'').split(',').map((v)=>v.trim()).filter(Boolean); const config=JSON.parse(fs.readFileSync(path, 'utf8')); config.candidateBaseUrls=[...new Set(bases)]; fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');" "$INSTALL_DIR/pairing-config.json" "$API_BASES"
@@ -505,7 +507,7 @@ if [ -n "\$TOKEN_VALUE" ]; then
 else
   unset CREDITSOFT_API_TOKEN
 fi
-exec node '$INSTALL_DIR/bin/creditsoft-intranet-client.mjs' --serve --pair '$INSTALL_DIR/pairing-config.json' --listen '$LISTEN_HOST' --listen-port '$LISTEN_PORT' --strategy '$STRATEGY' --no-open --no-prompt-token --save
+exec node '$INSTALL_DIR/bin/creditsoft-intranet-client.mjs' --serve --pair '$INSTALL_DIR/pairing-config.json' --listen '$LISTEN_HOST' --listen-port '$LISTEN_PORT' --strategy '$STRATEGY' --no-open --save
 EOF
 chmod +x "$RUNNER"
 echo "CreditSoft local router port selected: $LISTEN_PORT on $LISTEN_HOST"
@@ -579,190 +581,96 @@ BASH;
     {
         return <<<'POWERSHELL'
 param(
-    [string]$ApiBase = "",
+    [string[]]$ApiBase = @(),
     [string]$Token = "",
+    [string]$ApiToken = "",
+    [string]$TailscaleAuthKey = "",
+    [string]$TailscaleHostname = "",
+    [string]$OfficeName = "",
     [string]$Listen = "",
     [Alias("ListenPort")]
     [int]$RequestedListenPort = 0,
-    [switch]$NoService
+    [ValidateSet("fastest", "ordered")]
+    [string]$Strategy = "",
+    [switch]$InstallTailscale,
+    [switch]$SkipTailscaleUp,
+    [switch]$NoService,
+    [switch]$StartNow
 )
 
 $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-if ($env:CREDITSOFT_CLIENT_INSTALL_DIR) {
-    $InstallDir = $env:CREDITSOFT_CLIENT_INSTALL_DIR
-} elseif ($env:OS -eq "Windows_NT" -and $env:ProgramData) {
-    $InstallDir = Join-Path $env:ProgramData "CreditSoft\IntranetClient"
-} elseif ((Get-Command uname -ErrorAction SilentlyContinue) -and ((& uname -s) -eq "Darwin")) {
-    $InstallDir = "/Library/Application Support/CreditSoft/IntranetClient"
-} else {
-    $InstallDir = "/opt/creditsoft/intranet-client"
-}
-$UserProfilePath = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
-$ConfigDir = Join-Path $UserProfilePath ".creditsoft"
-$TokenFile = if ($env:CREDITSOFT_API_TOKEN_FILE) { $env:CREDITSOFT_API_TOKEN_FILE } else { Join-Path $ConfigDir "intranet-client-api-token" }
 $ManifestPath = Join-Path $ScriptDir "manifest.json"
-$PairingPath = Join-Path $ScriptDir "pairing-config.json"
-$Runner = Join-Path $InstallDir "run-router.ps1"
-
-if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-    throw "Node.js 20 or newer is required for the CreditSoft employee client router."
-}
-
-$NodeMajor = [int](& node -p "Number(process.versions.node.split('.')[0])")
-if ($NodeMajor -lt 20) {
-    throw "Node.js 20 or newer is required. Found: $(& node --version)"
-}
+$ClientInstaller = Join-Path $ScriptDir "client\install-windows-client.ps1"
 
 if (-not (Test-Path $ManifestPath)) {
     throw "manifest.json was not found next to install.ps1."
 }
 
-function Test-CreditSoftCanBindPort {
-    param(
-        [string]$HostName,
-        [int]$Port
-    )
-
-    try {
-        $Address = [System.Net.IPAddress]::Parse($HostName)
-    } catch {
-        try {
-            $Address = [System.Net.Dns]::GetHostAddresses($HostName) |
-                Where-Object { $_.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork } |
-                Select-Object -First 1
-        } catch {
-            $Address = [System.Net.IPAddress]::Loopback
-        }
-    }
-
-    if (-not $Address) {
-        $Address = [System.Net.IPAddress]::Loopback
-    }
-
-    $Listener = $null
-    try {
-        $Listener = [System.Net.Sockets.TcpListener]::new($Address, $Port)
-        $Listener.Start()
-        return $true
-    } catch {
-        return $false
-    } finally {
-        if ($Listener) {
-            $Listener.Stop()
-        }
-    }
+if (-not (Test-Path $ClientInstaller)) {
+    throw "client\install-windows-client.ps1 was not found next to install.ps1."
 }
-
-function Select-CreditSoftListenPort {
-    param(
-        [string]$HostName,
-        [int]$Requested,
-        [int[]]$Candidates
-    )
-
-    if ($Requested -gt 0) {
-        if (Test-CreditSoftCanBindPort -HostName $HostName -Port $Requested) {
-            return $Requested
-        }
-
-        throw "Requested CreditSoft local router port $Requested is not available on $HostName."
-    }
-
-    foreach ($Port in $Candidates) {
-        if (Test-CreditSoftCanBindPort -HostName $HostName -Port $Port) {
-            return $Port
-        }
-    }
-
-    throw "No CreditSoft local router port was available on $HostName."
-}
-
-function Get-CreditSoftRouterUrl {
-    param(
-        [string]$HostName,
-        [int]$Port
-    )
-
-    if ($Port -eq 80) {
-        return "http://$HostName/dashboard?source=intranet-client"
-    }
-
-    return "http://$HostName`:$Port/dashboard?source=intranet-client"
-}
-
-New-Item -ItemType Directory -Force -Path $InstallDir, (Join-Path $InstallDir "bin"), (Join-Path $InstallDir "examples"), $ConfigDir | Out-Null
-Copy-Item (Join-Path $ScriptDir "client\README.md") (Join-Path $InstallDir "README.md") -Force
-Copy-Item (Join-Path $ScriptDir "client\package.json") (Join-Path $InstallDir "package.json") -Force
-Copy-Item (Join-Path $ScriptDir "client\bin\creditsoft-intranet-client.mjs") (Join-Path $InstallDir "bin\creditsoft-intranet-client.mjs") -Force
-Copy-Item (Join-Path $ScriptDir "client\bin\creditsoft-loopback-router.mjs") (Join-Path $InstallDir "bin\creditsoft-loopback-router.mjs") -Force
-Copy-Item (Join-Path $ScriptDir "client\examples\pairing-config.example.json") (Join-Path $InstallDir "examples\pairing-config.example.json") -Force
-Copy-Item $ManifestPath (Join-Path $InstallDir "manifest.json") -Force
-Copy-Item $PairingPath (Join-Path $InstallDir "pairing-config.json") -Force
 
 $Manifest = Get-Content $ManifestPath -Raw | ConvertFrom-Json
 $BaseList = @()
 if ($Manifest.api.candidate_base_urls) {
     $BaseList += @($Manifest.api.candidate_base_urls)
 }
-if ($ApiBase) {
-    $BaseList += $ApiBase.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-}
-$ApiBases = ($BaseList | Where-Object { $_ } | Select-Object -Unique) -join ","
-$ListenHost = if ($Listen) { $Listen } elseif ($Manifest.runtime.listen_host) { $Manifest.runtime.listen_host } else { "127.0.0.1" }
-$PreferredListenPorts = if ($Manifest.runtime.preferred_listen_ports) { @($Manifest.runtime.preferred_listen_ports | ForEach-Object { [int]$_ }) } else { @(80,8877,8878,8879,8880,8881,8882,8883,8884,8885,8886,8887,8888,8889,8890,8891,8892,8893,8894,8895,8896,8897,8898,8899) }
-$SelectedListenPort = Select-CreditSoftListenPort -HostName $ListenHost -Requested $RequestedListenPort -Candidates $PreferredListenPorts
-$Strategy = if ($Manifest.runtime.selection_strategy) { $Manifest.runtime.selection_strategy } else { "resource-aware" }
-$RouterUrl = Get-CreditSoftRouterUrl -HostName $ListenHost -Port $SelectedListenPort
-$InstalledPairingPath = Join-Path $InstallDir "pairing-config.json"
-$PairingConfig = Get-Content $InstalledPairingPath -Raw | ConvertFrom-Json
-$PairingConfig.candidateBaseUrls = @($BaseList | Where-Object { $_ } | Select-Object -Unique)
-$PairingConfig | ConvertTo-Json -Depth 5 | Set-Content -Path $InstalledPairingPath
 
-$ResolvedToken = if ($Token) { $Token } elseif ($env:CREDITSOFT_API_TOKEN) { $env:CREDITSOFT_API_TOKEN } else { "" }
+foreach ($Base in $ApiBase) {
+    if ($Base) {
+        $BaseList += $Base.Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+    }
+}
+
+$ResolvedOfficeName = if ($OfficeName) { $OfficeName } elseif ($Manifest.office.name) { $Manifest.office.name } else { "CreditSoft Office" }
+$ResolvedStrategy = if ($Strategy) { $Strategy } elseif ($Manifest.runtime.selection_strategy -in @("fastest", "ordered")) { $Manifest.runtime.selection_strategy } else { "fastest" }
+$ResolvedToken = if ($ApiToken) { $ApiToken } elseif ($Token) { $Token } elseif ($env:CREDITSOFT_API_TOKEN) { $env:CREDITSOFT_API_TOKEN } else { "" }
+$ResolvedPort = if ($RequestedListenPort -gt 0) { $RequestedListenPort } else { 8877 }
+$Arguments = @(
+    "-ExecutionPolicy", "Bypass",
+    "-File", $ClientInstaller,
+    "-OfficeName", $ResolvedOfficeName,
+    "-Strategy", $ResolvedStrategy,
+    "-RouterPort", $ResolvedPort
+)
+
+$UniqueBases = @($BaseList | Where-Object { $_ } | Select-Object -Unique)
+if ($UniqueBases.Count -gt 0) {
+    $Arguments += "-ApiBase"
+    $Arguments += $UniqueBases
+}
+
 if ($ResolvedToken) {
-    Set-Content -Path $TokenFile -Value $ResolvedToken -NoNewline
-} elseif (-not (Test-Path $TokenFile)) {
-    New-Item -ItemType File -Path $TokenFile -Force | Out-Null
+    $Arguments += @("-ApiToken", $ResolvedToken)
 }
 
-@"
-`$TokenValue = if (Test-Path "$TokenFile") { (Get-Content "$TokenFile" -Raw).Trim() } else { "" }
-if (`$TokenValue) {
-    `$env:CREDITSOFT_API_TOKEN = `$TokenValue
-} else {
-    Remove-Item Env:CREDITSOFT_API_TOKEN -ErrorAction SilentlyContinue
+if ($TailscaleAuthKey) {
+    $Arguments += @("-TailscaleAuthKey", $TailscaleAuthKey)
 }
-& node "$InstallDir\bin\creditsoft-intranet-client.mjs" --serve --pair "$InstallDir\pairing-config.json" --listen "$ListenHost" --listen-port "$SelectedListenPort" --strategy "$Strategy" --no-open --no-prompt-token --save
-"@ | Set-Content -Path $Runner
 
-Write-Host "CreditSoft local router port selected: $SelectedListenPort on $ListenHost"
-$PowerShellCommand = if ($IsWindows) { "powershell.exe" } else { "pwsh" }
+if ($TailscaleHostname) {
+    $Arguments += @("-TailscaleHostname", $TailscaleHostname)
+}
+
+if ($InstallTailscale) {
+    $Arguments += "-InstallTailscale"
+}
+
+if ($SkipTailscaleUp) {
+    $Arguments += "-SkipTailscaleUp"
+}
 
 if ($NoService) {
-    Write-Host "CreditSoft employee client installed without a service."
-    Write-Host "Run manually: $PowerShellCommand -NoProfile -ExecutionPolicy Bypass -File `"$Runner`""
-    Write-Host "Open: $RouterUrl"
-    exit 0
+    $Arguments += "-NoStartAtLogin"
 }
 
-if (-not $IsWindows) {
-    Write-Host "PowerShell service install is only automated on Windows."
-    Write-Host "Run manually: $PowerShellCommand -NoProfile -ExecutionPolicy Bypass -File `"$Runner`""
-    Write-Host "Open: $RouterUrl"
-    exit 0
+if ($StartNow) {
+    $Arguments += "-StartNow"
 }
 
-$TaskName = "CreditSoft Intranet Client"
-$Action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$Runner`""
-$Trigger = New-ScheduledTaskTrigger -AtLogOn
-$Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel LeastPrivilege
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Principal $Principal -Description "CreditSoft local employee router on $ListenHost`:$SelectedListenPort" -Force | Out-Null
-Start-ScheduledTask -TaskName $TaskName
-
-Write-Host "CreditSoft employee client installed."
-Write-Host "Open: $RouterUrl"
+& powershell.exe @Arguments
 POWERSHELL;
     }
 

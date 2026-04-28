@@ -66,6 +66,24 @@ For safety, the client does not save API keys to disk. A packaged desktop app sh
 
 If `tailscale` is installed, the runner reports local Tailscale status. Later installers can use the same lane to run `tailscale up --auth-key ...` after the owner approves the device enrollment flow.
 
+## Windows 11 Pilot Installer
+
+Use `install-windows-client.ps1` when a remote Windows 11 workstation should behave like the macOS loopback router setup:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\install-windows-client.ps1 `
+  -OfficeName "Client Office" `
+  -InstallTailscale `
+  -TailscaleAuthKey "paste-temporary-tailscale-auth-key" `
+  -TailscaleHostname "creditsoft-client-office" `
+  -ApiBase "http://100.80.51.78:8001/api/v1" `
+  -ApiToken "paste-staff-api-key" `
+  -StartNow
+```
+
+The script checks PowerShell through `winget`, installs Node.js LTS when needed, optionally installs/enrolls Tailscale, writes per-user client config under `%USERPROFILE%\.creditsoft`, and registers the local router to start at login. It does not install Docker, a database, or any server node pieces.
+
 ## CRM Sidecar
 
 The CRM should run as a sidecar window/service, not be merged into the Laravel app. CreditSoft can link out to the CRM, sync contacts/opportunities through the CRM API, and receive CRM webhooks through the CreditSoft bridge.
