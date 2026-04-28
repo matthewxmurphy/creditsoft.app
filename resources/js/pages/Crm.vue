@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faArrowUpRightFromSquare, faRotateRight, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import { faRotateRight, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 
 const props = defineProps<{
     launchUrl: string;
@@ -39,15 +39,6 @@ const reloadFrame = () => {
                     <FontAwesomeIcon :icon="faRotateRight" class="text-xs" />
                     Reload
                 </button>
-                <a
-                    :href="launchUrl"
-                    target="_blank"
-                    rel="noopener"
-                    class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-stone-950 px-3 text-sm font-semibold text-white transition hover:bg-stone-800"
-                >
-                    <FontAwesomeIcon :icon="faArrowUpRightFromSquare" class="text-xs" />
-                    Browser
-                </a>
             </div>
         </div>
 
@@ -56,6 +47,7 @@ const reloadFrame = () => {
             :src="launchUrl"
             title="CreditSoft CRM"
             referrerpolicy="no-referrer"
+            sandbox="allow-downloads allow-forms allow-same-origin allow-scripts"
             class="min-h-[720px] flex-1 border-0 bg-white"
         />
     </section>
