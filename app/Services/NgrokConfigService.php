@@ -25,8 +25,6 @@ class NgrokConfigService
     public function current(): array
     {
         $path = $this->configPath();
-        $this->ensureConfigFromSavedCredentials($path);
-
         $installed = $this->binaryExists();
         $exists = File::exists($path);
         $hasAuthtoken = $exists && $this->fileContainsAuthtoken($path);
@@ -85,14 +83,12 @@ class NgrokConfigService
 
         File::ensureDirectoryExists(dirname($path));
 
-        $binary = $this->binaryPath();
-
         if ($installed && $resolvedToken !== '') {
-            Process::timeout(5)->run([$binary, 'config', 'add-authtoken', $resolvedToken, '--config', $path]);
+            Process::timeout(5)->run(['ngrok', 'config', 'add-authtoken', $resolvedToken, '--config', $path]);
         }
 
         if ($installed && $resolvedApiKey !== '') {
-            Process::timeout(5)->run([$binary, 'config', 'add-api-key', $resolvedApiKey, '--config', $path]);
+            Process::timeout(5)->run(['ngrok', 'config', 'add-api-key', $resolvedApiKey, '--config', $path]);
         }
 
         // Normalize the final file ourselves so the host config exactly matches
@@ -141,35 +137,14 @@ class NgrokConfigService
         };
     }
 
-    protected function ensureConfigFromSavedCredentials(string $path): void
-    {
-        $authtoken = trim((string) config('creditsoft.tunnels.ngrok.authtoken'));
-        $apiKey = trim((string) config('creditsoft.tunnels.ngrok.api_key'));
-
-        if ($authtoken === '' && $apiKey === '') {
-            return;
-        }
-
-        if (
-            File::exists($path)
-            && ($authtoken === '' || $this->fileContainsAuthtoken($path))
-            && ($apiKey === '' || $this->fileContainsApiKey($path))
-        ) {
-            return;
-        }
-
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, $this->configContents($authtoken, $apiKey));
-    }
-
     protected function binaryExists(): bool
     {
-        return Process::timeout(1)->run(['sh', '-lc', 'command -v ngrok >/dev/null 2>&1 || test -x /opt/homebrew/bin/ngrok'])->successful();
+        return Process::timeout(1)->run(['sh', '-lc', 'command -v ngrok >/dev/null 2>&1'])->successful();
     }
 
     protected function validateConfig(string $path): bool
     {
-        return Process::timeout(3)->run([$this->binaryPath(), 'config', 'check', '--config', $path])->successful();
+        return Process::timeout(3)->run(['ngrok', 'config', 'check', '--config', $path])->successful();
     }
 
     protected function fileContainsAuthtoken(string $path): bool
@@ -233,14 +208,6 @@ class NgrokConfigService
         }
 
         return null;
-    }
-
-    protected function binaryPath(): string
-    {
-        $result = Process::timeout(1)->run(['sh', '-lc', 'command -v ngrok || { test -x /opt/homebrew/bin/ngrok && printf /opt/homebrew/bin/ngrok; }']);
-        $path = trim($result->output());
-
-        return $result->successful() && $path !== '' ? $path : 'ngrok';
     }
 
     protected function statusMessage(bool $installed, bool $exists, bool $hasAuthtoken, bool $hasApiKey, bool $validated, ?string $activePublicUrl): string

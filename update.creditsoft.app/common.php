@@ -116,6 +116,11 @@ function update_creditsoft_qr_uri(string $payload): string
         return update_creditsoft_site_url('assets/payments/zelle.png');
     }
 
+    return update_creditsoft_generated_qr_uri($payload);
+}
+
+function update_creditsoft_generated_qr_uri(string $payload): string
+{
     $autoload = dirname(__DIR__).'/vendor/autoload.php';
 
     if (is_file($autoload)) {
@@ -154,7 +159,7 @@ function update_creditsoft_detect_base_url(): string
         return $scheme.'://'.$host;
     }
 
-    return 'https://updates.creditsoft.app';
+    return 'https://www.creditsoft.app/updates.creditsoft.app';
 }
 
 function update_creditsoft_site_url(string $path = ''): string

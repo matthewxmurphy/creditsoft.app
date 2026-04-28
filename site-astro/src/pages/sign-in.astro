@@ -1,0 +1,85 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+---
+
+<BaseLayout title="Sign in | CreditSoft" description="Sign in to CreditSoft at admin.creditsoft.app.">
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main>
+    <section class="section page-hero">
+      <div class="page-wrap sign-shell">
+        <div class="info-card panel sign-card">
+          <span class="eyebrow">Sign in</span>
+          <h1>One login lane that routes the right people to the right place.</h1>
+          <p>
+            The protected office system lives under admin.creditsoft.app. This page keeps the public site
+            simple so the visual system still feels like the main site.
+          </p>
+          <form class="sign-form" action="https://admin.creditsoft.app/login" method="get">
+            <label>
+              <span>Email</span>
+              <input type="email" name="email" placeholder="you@company.com" />
+            </label>
+            <button class="button primary" type="submit">Continue to login</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+</BaseLayout>
+
+<style>
+  .sign-shell {
+    display: grid;
+    place-items: center;
+  }
+
+  .sign-card {
+    width: min(560px, 100%);
+    padding: 34px;
+  }
+
+  .sign-card h1 {
+    margin: 16px 0 14px;
+    font-size: clamp(2rem, 5vw, 3.3rem);
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+  }
+
+  .sign-card p {
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .sign-form {
+    display: grid;
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .sign-form label {
+    display: grid;
+    gap: 8px;
+  }
+
+  .sign-form span {
+    color: var(--text-soft);
+    font-weight: 600;
+  }
+
+  .sign-form input {
+    min-height: 58px;
+    padding: 0 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+  }
+</style>

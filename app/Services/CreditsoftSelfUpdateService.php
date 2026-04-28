@@ -16,6 +16,7 @@ class CreditsoftSelfUpdateService
 {
     public function __construct(
         protected CreditsoftUpdateFeed $updateFeed,
+        protected EnvironmentEditor $environmentEditor,
         protected InstallerState $installerState,
     ) {}
 
@@ -66,20 +67,16 @@ class CreditsoftSelfUpdateService
         $packageRoot = $this->detectPackageRoot($extractDirectory);
         $manifest = $this->readManifest($packageRoot);
         $version = trim((string) ($manifest['version'] ?? $status['latest_version'] ?? ''));
-        $build = trim((string) ($manifest['build'] ?? $status['latest_build'] ?? $version));
+        $build = trim((string) ($manifest['build'] ?? $status['latest_build'] ?? now()->format('Y.m.d.His')));
 
         if ($version === '') {
             throw new RuntimeException('The update package is missing a valid version.');
         }
 
-        if ($build === '') {
-            $build = $version;
-        }
-
         $this->syncPackage($packageRoot);
-        config([
-            'creditsoft.updates.current_version' => $version,
-            'creditsoft.updates.current_build' => $build,
+        $this->environmentEditor->setMany([
+            'CREDITSOFT_APP_VERSION' => $version,
+            'CREDITSOFT_APP_BUILD' => $build,
         ]);
         $this->installerState->merge([
             'updates' => [
@@ -141,12 +138,7 @@ class CreditsoftSelfUpdateService
         File::ensureDirectoryExists($downloadDirectory);
 
         try {
-            $response = Http::timeout(120)
-                ->withOptions([
-                    ...$this->ipv4CurlOptions(),
-                    'sink' => $localPath,
-                ])
-                ->get($downloadUrl);
+            $response = Http::timeout(120)->withOptions(['sink' => $localPath])->get($downloadUrl);
         } catch (Throwable $exception) {
             throw new RuntimeException('CreditSoft could not download the update package: '.$exception->getMessage(), previous: $exception);
         }
@@ -156,22 +148,6 @@ class CreditsoftSelfUpdateService
         }
 
         return $localPath;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected function ipv4CurlOptions(): array
-    {
-        if (! defined('CURLOPT_IPRESOLVE') || ! defined('CURL_IPRESOLVE_V4')) {
-            return [];
-        }
-
-        return [
-            'curl' => [
-                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-            ],
-        ];
     }
 
     protected function detectPackageRoot(string $extractDirectory): string
@@ -285,17 +261,9 @@ class CreditsoftSelfUpdateService
     {
         $phpBinary = PHP_BINARY ?: 'php';
 
-        $this->clearBootstrapCacheFiles();
         $this->runProcess([$phpBinary, 'artisan', 'optimize:clear'], base_path(), 'CreditSoft could not clear cached files after the update.');
         $this->runProcess([$phpBinary, 'artisan', 'migrate', '--force'], base_path(), 'CreditSoft could not finish the database migration step.');
         $this->runProcess([$phpBinary, 'artisan', 'optimize'], base_path(), 'CreditSoft could not rebuild the optimized caches after the update.');
-    }
-
-    protected function clearBootstrapCacheFiles(): void
-    {
-        foreach (File::glob(base_path('bootstrap/cache/*.php')) ?: [] as $path) {
-            File::delete($path);
-        }
     }
 
     /**

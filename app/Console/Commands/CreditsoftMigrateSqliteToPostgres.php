@@ -165,7 +165,11 @@ class CreditsoftMigrateSqliteToPostgres extends Command
             return $option;
         }
 
-        return database_path('database.sqlite');
+        $configured = config('database.connections.sqlite.database');
+
+        return is_string($configured) && $configured !== ''
+            ? $configured
+            : database_path('database.sqlite');
     }
 
     /**

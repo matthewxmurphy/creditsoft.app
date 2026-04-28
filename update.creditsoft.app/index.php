@@ -2,16 +2,19 @@
 require __DIR__.'/common.php';
 
 $feed = update_creditsoft_load_feed();
-$officeVersion = trim((string) ($feed['latest_version'] ?? ''));
+$officeVersion = trim((string) ($feed['latest_version'] ?? '2026.4.27.1'));
 $officeDownloadUrl = trim((string) ($feed['download_url'] ?? ''));
-$officeSummary = trim((string) ($feed['summary'] ?? ''));
 
 if ($officeDownloadUrl === '') {
-    $officeDownloadUrl = update_creditsoft_site_url();
+    $officeDownloadUrl = update_creditsoft_site_url('downloads/creditsoft-office-v'.$officeVersion.'.zip');
 }
 
-if ($officeVersion === '') {
-    $officeVersion = 'current';
+$companion = is_array($feed['browser_companion'] ?? null) ? $feed['browser_companion'] : [];
+$companionVersion = trim((string) ($companion['latest_version'] ?? $feed['browser_companion_version'] ?? $officeVersion));
+$companionDownloadUrl = trim((string) ($companion['download_url'] ?? $feed['browser_companion_url'] ?? ''));
+
+if ($companionDownloadUrl === '') {
+    $companionDownloadUrl = update_creditsoft_site_url('downloads/creditsoft-browser-companion-v'.$companionVersion.'.zip');
 }
 ?>
 <!DOCTYPE html>
@@ -68,11 +71,11 @@ if ($officeVersion === '') {
         <div class="grid" style="margin-top: 18px;">
             <section class="panel">
                 <h2>Download the current office package</h2>
-                <p>The update lane has a real staged package artifact so the intranet feed can point at something concrete instead of the site root.</p>
+                <p>The update lane now has a real staged package artifact so the intranet feed can point at something concrete instead of the site root.</p>
                 <div class="hero-links">
                     <a class="hero-link" href="<?= htmlspecialchars($officeDownloadUrl, ENT_QUOTES, 'UTF-8') ?>">
                         <strong>Download CreditSoft Office <?= htmlspecialchars($officeVersion, ENT_QUOTES, 'UTF-8') ?></strong>
-                        <span><?= htmlspecialchars($officeSummary ?: 'Current office package with public license billing intelligence, cleaner client-profile imports, real document downloads, and browser companion support.', ENT_QUOTES, 'UTF-8') ?></span>
+                        <span>Current date-versioned office package with the restored client workspace, DisputeFox import lanes, the client process checklist, grouped expandable left rail, HR and Payroll lanes, PostgreSQL cutover fixes, the real /cto workspace, /violations review queue, live Zelle QR renewal flow, Docker node runtime, local router, and optional CRM launch bridge.</span>
                     </a>
                 </div>
             </section>
@@ -81,9 +84,9 @@ if ($officeVersion === '') {
                 <h2>Customer browser companion</h2>
                 <p>The customer companion package now lives in the same update lane so downloads and recovery paths stay together.</p>
                 <div class="hero-links">
-                    <a class="hero-link" href="<?= htmlspecialchars(update_creditsoft_site_url('downloads/creditsoft-browser-companion-v0.5.11.zip'), ENT_QUOTES, 'UTF-8') ?>">
-                        <strong>Download browser companion 0.5.11</strong>
-                        <span>Report-first companion build with Clients + files DisputeFox profile/document import, SmartCredit invalid-login handling, IdentityIQ report-pull lanes, guarded queueing, local router autodetection, and a 7-day setup trial controlled by the office license.</span>
+                    <a class="hero-link" href="<?= htmlspecialchars($companionDownloadUrl, ENT_QUOTES, 'UTF-8') ?>">
+                        <strong>Download browser companion <?= htmlspecialchars($companionVersion, ENT_QUOTES, 'UTF-8') ?></strong>
+                        <span>Current date-versioned side-panel companion build with DisputeFox import buttons, client and lead profile processing, invoice detail capture, provider report pulls, licensed client sync, and AutoFox automation discovery for OPS review.</span>
                     </a>
                 </div>
             </section>

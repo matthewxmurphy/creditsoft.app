@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import OfficeBrandLogo from '@/components/OfficeBrandLogo.vue';
+import CreditsoftWordmark from '@/components/CreditsoftWordmark.vue';
 import { home } from '@/routes';
 
 defineProps<{
@@ -20,10 +20,7 @@ defineProps<{
                         :href="home()"
                         class="flex w-full flex-col items-center gap-3 font-medium"
                     >
-                        <OfficeBrandLogo
-                            class-name="h-auto max-h-16 w-[95%] max-w-[26rem] object-contain md:w-auto md:max-w-none"
-                            fallback-class-name="h-auto w-[95%] max-w-[26rem] md:w-auto md:max-w-none md:h-14"
-                        />
+                        <CreditsoftWordmark class-name="h-auto w-[95%] max-w-[26rem] md:w-auto md:max-w-none md:h-14" />
                         <span class="sr-only">CreditSoft</span>
                     </Link>
                     <div class="space-y-2 text-center">

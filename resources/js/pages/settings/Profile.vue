@@ -66,20 +66,8 @@ const keyForm = useForm({
     name: 'Intranet client',
 });
 
-const normalizeUrl = (value?: string | null) =>
-    (value ?? '').replace(/\/+$/, '');
-const preferredBaseUrl = computed(() =>
-    normalizeUrl(props.clientPairing.preferred_base_url),
-);
-const tailnetLaneState = computed(() => {
-    if (props.clientPairing.tailscale_running) {
-        return 'Best path for another approved device';
-    }
-
-    return props.clientPairing.tailnet_base_url
-        ? 'Configured office path'
-        : 'Tailnet not live yet';
-});
+const normalizeUrl = (value?: string | null) => (value ?? '').replace(/\/+$/, '');
+const preferredBaseUrl = computed(() => normalizeUrl(props.clientPairing.preferred_base_url));
 
 const pairingLanes = computed(() => [
     {
@@ -88,8 +76,8 @@ const pairingLanes = computed(() => [
         brand: 'local' as const,
         url: props.clientPairing.local_base_url,
         available: true,
-        state: 'Fastest on this device',
-        body: '127.0.0.1 only belongs to the device currently serving CreditSoft. Use this path when the intranet client or browser companion runs on that same device.',
+        state: 'Fastest on the host Mac',
+        body: '127.0.0.1 only belongs to the Mac running CreditSoft. Use this path when the intranet client or browser companion lives on that same machine.',
     },
     {
         id: 'tailscale',
@@ -97,9 +85,11 @@ const pairingLanes = computed(() => [
         brand: 'tailscale' as const,
         url: props.clientPairing.tailnet_base_url ?? null,
         available: Boolean(props.clientPairing.tailnet_base_url),
-        state: tailnetLaneState.value,
+        state: props.clientPairing.tailscale_running
+            ? 'Best path for another approved device'
+            : 'Tailnet not live yet',
         body: props.clientPairing.tailnet_base_url
-            ? 'Another approved office device should pair through the office tailnet instead of trying to hit 127.0.0.1 on the host device.'
+            ? 'Another Mac should pair through the office tailnet instead of trying to hit 127.0.0.1 on the host machine.'
             : 'Once Tailscale is running, other approved office devices should pair here instead of trying to use localhost.',
     },
     {
@@ -132,7 +122,9 @@ const revokePersonalApiKey = (id: number) => {
 };
 
 const formatDateTime = (value?: string | null) =>
-    value ? new Date(value).toLocaleString() : 'Never';
+    value
+        ? new Date(value).toLocaleString()
+        : 'Never';
 </script>
 
 <template>
@@ -198,67 +190,41 @@ const formatDateTime = (value?: string | null) =>
                         v-if="status === 'verification-link-sent'"
                         class="mt-2 text-sm font-medium text-green-600"
                     >
-                        A new verification link has been sent to your email
-                        address.
+                        A new verification link has been sent to your email address.
                     </div>
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <Button
-                        :disabled="processing"
-                        data-test="update-profile-button"
-                    >
+                    <Button :disabled="processing" data-test="update-profile-button">
                         Save
                     </Button>
                 </div>
             </Form>
         </section>
 
-        <section
-            class="overflow-hidden rounded-[30px] border border-stone-300/70 bg-white/95"
-        >
+        <section class="overflow-hidden rounded-[30px] border border-stone-300/70 bg-white/95">
             <div class="border-b border-stone-200/80 px-6 py-6">
-                <div
-                    class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
-                >
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div class="max-w-3xl">
-                        <p
-                            class="text-[11px] font-medium tracking-[0.28em] text-stone-500 uppercase"
-                        >
-                            Intranet client pairing
-                        </p>
-                        <h2 class="mt-2 text-xl font-semibold text-stone-950">
-                            Your personal key should follow you. `127.0.0.1`
-                            should not.
-                        </h2>
+                        <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-stone-500">Intranet client pairing</p>
+                        <h2 class="mt-2 text-xl font-semibold text-stone-950">Your personal key should follow you. `127.0.0.1` should not.</h2>
                         <p class="mt-3 text-sm leading-7 text-stone-600">
-                            The same personal CreditSoft key can power the
-                            browser companion now and the future intranet client
-                            next. This page stays user-specific, while
-                            office-wide Tailscale, ngrok, and the shared website
-                            key stay in Connectivity.
+                            The same personal CreditSoft key can power the browser companion now and the future intranet client next. This page stays user-specific, while office-wide Tailscale, ngrok, and the shared website key stay in Connectivity.
                         </p>
                     </div>
 
                     <div class="flex flex-wrap gap-2">
                         <a
-                            v-if="
-                                props.clientPairing.browser_companion_enabled &&
-                                props.clientPairing
-                                    .browser_companion_download_url
-                            "
-                            :href="
-                                props.clientPairing
-                                    .browser_companion_download_url
-                            "
-                            class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2 text-xs font-medium tracking-[0.2em] text-stone-800 uppercase transition hover:border-stone-500"
+                            v-if="props.clientPairing.browser_companion_enabled && props.clientPairing.browser_companion_download_url"
+                            :href="props.clientPairing.browser_companion_download_url"
+                            class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-stone-800 transition hover:border-stone-500"
                         >
                             <FontAwesomeIcon :icon="faDownload" />
                             Browser companion
                         </a>
                         <Link
                             :href="props.clientPairing.connectivity_url"
-                            class="inline-flex items-center gap-2 rounded-full bg-stone-950 px-4 py-2 text-xs font-medium tracking-[0.2em] text-white uppercase transition hover:bg-stone-800"
+                            class="inline-flex items-center gap-2 rounded-full bg-stone-950 px-4 py-2 text-xs font-medium uppercase tracking-[0.2em] text-white transition hover:bg-stone-800"
                         >
                             <FontAwesomeIcon :icon="faArrowUpRightFromSquare" />
                             Office connectivity
@@ -267,9 +233,7 @@ const formatDateTime = (value?: string | null) =>
                 </div>
             </div>
 
-            <div
-                class="grid gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1fr)_420px]"
-            >
+            <div class="grid gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1fr)_420px]">
                 <div class="space-y-6">
                     <div class="grid gap-4 lg:grid-cols-2">
                         <div
@@ -277,51 +241,25 @@ const formatDateTime = (value?: string | null) =>
                             :key="lane.id"
                             class="rounded-[24px] border px-4 py-4"
                             :class="[
-                                lane.available
-                                    ? 'border-stone-200 bg-stone-50'
-                                    : 'border-stone-200/80 bg-white',
+                                lane.available ? 'border-stone-200 bg-stone-50' : 'border-stone-200/80 bg-white',
                                 lane.id === 'public' ? 'lg:col-span-2' : '',
                             ]"
                         >
                             <div class="flex items-center gap-3">
-                                <ConnectivityBrandMark
-                                    :brand="lane.brand"
-                                    compact
-                                />
+                                <ConnectivityBrandMark :brand="lane.brand" compact />
                                 <div class="min-w-0">
-                                    <p
-                                        class="text-sm font-semibold text-stone-950"
-                                    >
-                                        {{ lane.label }}
-                                    </p>
-                                    <p
-                                        class="text-[11px] tracking-[0.2em] uppercase"
-                                        :class="
-                                            normalizeUrl(lane.url) ===
-                                            preferredBaseUrl
-                                                ? 'text-emerald-700'
-                                                : 'text-stone-500'
-                                        "
-                                    >
-                                        {{
-                                            normalizeUrl(lane.url) ===
-                                            preferredBaseUrl
-                                                ? 'Preferred now'
-                                                : lane.state
-                                        }}
+                                    <p class="text-sm font-semibold text-stone-950">{{ lane.label }}</p>
+                                    <p class="text-[11px] uppercase tracking-[0.2em]" :class="normalizeUrl(lane.url) === preferredBaseUrl ? 'text-emerald-700' : 'text-stone-500'">
+                                        {{ normalizeUrl(lane.url) === preferredBaseUrl ? 'Preferred now' : lane.state }}
                                     </p>
                                 </div>
                             </div>
-                            <div
-                                class="mt-3 rounded-2xl border border-stone-200 bg-white px-3 py-3"
-                            >
-                                <p
-                                    class="text-[10px] font-medium tracking-[0.2em] text-stone-500 uppercase"
-                                >
+                            <div class="mt-3 rounded-2xl border border-stone-200 bg-white px-3 py-3">
+                                <p class="text-[10px] font-medium uppercase tracking-[0.2em] text-stone-500">
                                     API path
                                 </p>
                                 <p
-                                    class="mt-1 overflow-hidden font-mono text-xs text-ellipsis whitespace-nowrap text-stone-700"
+                                    class="mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-xs text-stone-700"
                                     :title="lane.url ?? 'Not available yet'"
                                 >
                                     {{ lane.url ?? 'Not available yet' }}
@@ -333,94 +271,54 @@ const formatDateTime = (value?: string | null) =>
                         </div>
                     </div>
 
-                    <div
-                        class="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-5"
-                    >
-                        <p
-                            class="text-[11px] font-medium tracking-[0.28em] text-stone-500 uppercase"
-                        >
-                            How this should work
-                        </p>
+                    <div class="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-5">
+                        <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-stone-500">How this should work</p>
                         <p class="mt-2 text-sm leading-6 text-stone-900">
-                            If the client is on the same device as CreditSoft,
-                            use the local API. If it is on another approved
-                            office device, use the Tailscale path. Only fall
-                            back to the public API domain when the office truly
-                            needs outside callback or remote access.
+                            If the client is on the same Mac as CreditSoft, use the local API. If it is on another approved office Mac, use the Tailscale path. Only fall back to the public API domain when the office truly needs outside callback or remote access.
                         </p>
                         <p class="mt-3 text-xs leading-5 text-stone-500">
-                            Tailscale admin keys, reserved domains, and relay
-                            behavior remain office controls under Connectivity
-                            because they affect every device, not just your user
-                            profile.
+                            Tailscale admin keys, reserved domains, and relay behavior remain office controls under Connectivity because they affect every device, not just your user profile.
                         </p>
                     </div>
 
-                    <div
-                        v-if="props.clientPairing.generated_personal_token"
-                        class="rounded-[24px] border border-emerald-300 bg-emerald-50 px-5 py-5"
-                    >
+                    <div v-if="props.clientPairing.generated_personal_token" class="rounded-[24px] border border-emerald-300 bg-emerald-50 px-5 py-5">
                         <div class="flex items-center gap-2 text-emerald-800">
                             <FontAwesomeIcon :icon="faCircleCheck" />
-                            <p class="text-sm font-semibold">
-                                New personal API key
-                            </p>
+                            <p class="text-sm font-semibold">New personal API key</p>
                         </div>
-                        <p
-                            class="mt-3 rounded-2xl bg-white px-4 py-3 font-mono text-sm break-all text-stone-900"
-                        >
+                        <p class="mt-3 break-all rounded-2xl bg-white px-4 py-3 font-mono text-sm text-stone-900">
                             {{ props.clientPairing.generated_personal_token }}
                         </p>
                         <p class="mt-2 text-xs leading-5 text-emerald-800">
-                            Copy it now. CreditSoft only shows the full value
-                            right after creation.
+                            Copy it now. CreditSoft only shows the full value right after creation.
                         </p>
                     </div>
                 </div>
 
                 <div class="space-y-5">
-                    <div
-                        class="rounded-[24px] border border-stone-200 bg-white px-5 py-5"
-                    >
+                    <div class="rounded-[24px] border border-stone-200 bg-white px-5 py-5">
                         <div class="flex items-center gap-2">
-                            <FontAwesomeIcon
-                                :icon="faKey"
-                                class="text-stone-700"
-                            />
-                            <p class="text-sm font-semibold text-stone-950">
-                                Personal client keys
-                            </p>
+                            <FontAwesomeIcon :icon="faKey" class="text-stone-700" />
+                            <p class="text-sm font-semibold text-stone-950">Personal client keys</p>
                         </div>
                         <p class="mt-2 text-sm leading-6 text-stone-600">
-                            Generate one key per user device or pairing lane.
-                            This is the right credential for the browser
-                            companion today and for the intranet client flow
-                            next.
+                            Generate one key per user device or pairing lane. This is the right credential for the browser companion today and for the intranet client flow next.
                         </p>
 
-                        <div
-                            class="mt-4 flex flex-col gap-3 md:flex-row md:items-end"
-                        >
+                        <div class="mt-4 flex flex-col gap-3 md:flex-row md:items-end">
                             <label class="flex-1 space-y-2">
-                                <span
-                                    class="text-xs font-medium tracking-[0.22em] text-stone-500 uppercase"
-                                    >Key label</span
-                                >
+                                <span class="text-xs font-medium uppercase tracking-[0.22em] text-stone-500">Key label</span>
                                 <input
                                     v-model="keyForm.name"
                                     type="text"
                                     class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900"
                                     placeholder="Intranet client"
                                 />
-                                <span
-                                    v-if="keyForm.errors.name"
-                                    class="text-xs text-rose-700"
-                                    >{{ keyForm.errors.name }}</span
-                                >
+                                <span v-if="keyForm.errors.name" class="text-xs text-rose-700">{{ keyForm.errors.name }}</span>
                             </label>
                             <button
                                 type="button"
-                                class="inline-flex items-center justify-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-xs font-medium tracking-[0.2em] text-white uppercase transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300"
+                                class="inline-flex items-center justify-center gap-2 rounded-full bg-stone-950 px-5 py-3 text-xs font-medium uppercase tracking-[0.2em] text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300"
                                 :disabled="keyForm.processing"
                                 @click="createPersonalApiKey"
                             >
@@ -429,47 +327,26 @@ const formatDateTime = (value?: string | null) =>
                             </button>
                         </div>
 
-                        <div
-                            v-if="props.clientPairing.personal_keys.length"
-                            class="mt-4 space-y-3"
-                        >
+                        <div v-if="props.clientPairing.personal_keys.length" class="mt-4 space-y-3">
                             <div
                                 v-for="key in props.clientPairing.personal_keys"
                                 :key="key.id"
                                 class="rounded-[20px] border border-stone-200 bg-stone-50 px-4 py-4"
                             >
-                                <div
-                                    class="flex items-start justify-between gap-3"
-                                >
+                                <div class="flex items-start justify-between gap-3">
                                     <div>
-                                        <p
-                                            class="text-sm font-medium text-stone-900"
-                                        >
-                                            {{ key.name }}
+                                        <p class="text-sm font-medium text-stone-900">{{ key.name }}</p>
+                                        <p class="mt-1 font-mono text-xs text-stone-600">{{ key.masked_token }}</p>
+                                        <p class="mt-2 text-xs leading-5 text-stone-500">
+                                            Created {{ formatDateTime(key.created_at) }}
                                         </p>
-                                        <p
-                                            class="mt-1 font-mono text-xs text-stone-600"
-                                        >
-                                            {{ key.masked_token }}
-                                        </p>
-                                        <p
-                                            class="mt-2 text-xs leading-5 text-stone-500"
-                                        >
-                                            Created
-                                            {{ formatDateTime(key.created_at) }}
-                                        </p>
-                                        <p
-                                            class="mt-1 text-xs leading-5 text-stone-500"
-                                        >
-                                            Last used
-                                            {{
-                                                formatDateTime(key.last_used_at)
-                                            }}
+                                        <p class="mt-1 text-xs leading-5 text-stone-500">
+                                            Last used {{ formatDateTime(key.last_used_at) }}
                                         </p>
                                     </div>
                                     <button
                                         type="button"
-                                        class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3 py-2 text-[11px] font-medium tracking-[0.18em] text-stone-700 uppercase transition hover:border-rose-300 hover:text-rose-700"
+                                        class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-stone-700 transition hover:border-rose-300 hover:text-rose-700"
                                         @click="revokePersonalApiKey(key.id)"
                                     >
                                         <FontAwesomeIcon :icon="faTrashCan" />
@@ -480,40 +357,28 @@ const formatDateTime = (value?: string | null) =>
                         </div>
 
                         <p v-else class="mt-4 text-sm leading-6 text-stone-600">
-                            No personal API keys have been created for this
-                            account yet.
+                            No personal API keys have been created for this account yet.
                         </p>
                     </div>
 
-                    <div
-                        class="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-5"
-                    >
-                        <p
-                            class="text-[11px] font-medium tracking-[0.28em] text-stone-500 uppercase"
-                        >
-                            Next layer
-                        </p>
+                    <div class="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-5">
+                        <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-stone-500">Next layer</p>
                         <p class="mt-2 text-sm leading-6 text-stone-900">
-                            A true CreditSoft intranet client should pair with
-                            this personal key first, then discover the best API
-                            path in this order: local host, office tailnet, then
-                            the public API fallback.
+                            A true CreditSoft intranet client should pair with this personal key first, then discover the best API path in this order: local host, office tailnet, then the public API fallback.
                         </p>
                         <p class="mt-3 text-xs leading-5 text-stone-500">
-                            That keeps the user credential in one place while
-                            office ACL, Tailscale enrollment, and public tunnel
-                            policy remain shared infrastructure controls.
+                            That keeps the user credential in one place while office ACL, Tailscale enrollment, and public tunnel policy remain shared infrastructure controls.
                         </p>
                         <div class="mt-4 flex flex-wrap gap-2">
                             <Link
                                 :href="props.clientPairing.connectivity_url"
-                                class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3 py-2 text-[11px] font-medium tracking-[0.18em] text-stone-700 uppercase transition hover:border-stone-500"
+                                class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-stone-700 transition hover:border-stone-500"
                             >
                                 Office network controls
                             </Link>
                             <Link
                                 :href="props.clientPairing.api_docs_url"
-                                class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3 py-2 text-[11px] font-medium tracking-[0.18em] text-stone-700 uppercase transition hover:border-stone-500"
+                                class="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-stone-700 transition hover:border-stone-500"
                             >
                                 API docs
                             </Link>

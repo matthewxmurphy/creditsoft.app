@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Services\AuditTrail;
-use App\Services\ClientHealthSignalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,11 +11,10 @@ use Inertia\Response;
 
 class NoteController extends Controller
 {
-    public function index(Client $client, ClientHealthSignalService $clientHealth): Response
+    public function index(Client $client): Response
     {
         return Inertia::render('clients/Notes', [
             'client' => $client,
-            'clientHealth' => $clientHealth->signal($client),
             'notes' => $client->notes()->with('reportingCycle')->latest()->get(),
             'cycles' => $client->reportingCycles()->latest('started_at')->get(['id', 'cycle_label']),
         ]);

@@ -28,6 +28,7 @@ if (!is_array($input)) {
 $customerEmail = filter_var((string) ($input['customer_email'] ?? ''), FILTER_SANITIZE_EMAIL);
 $customerPhone = trim((string) ($input['customer_phone'] ?? ''));
 $paymentSource = trim((string) ($input['payment_source'] ?? ''));
+$officeName = trim((string) ($input['office_name'] ?? ''));
 
 if (!$customerEmail || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
     http_response_code(422);
@@ -35,9 +36,9 @@ if (!$customerEmail || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-if ($customerPhone === '' || $paymentSource === '') {
+if ($customerPhone === '' || $officeName === '') {
     http_response_code(422);
-    echo json_encode(['success' => false, 'error' => 'Phone and payment source are required.']);
+    echo json_encode(['success' => false, 'error' => 'Phone and office name are required.']);
     exit;
 }
 
@@ -50,17 +51,27 @@ if (!is_dir($storageDir) && !mkdir($storageDir, 0775, true) && !is_dir($storageD
     exit;
 }
 
+$checkoutNumber = 'CSCO-'.gmdate('Ymd').'-'.strtoupper(bin2hex(random_bytes(3)));
+$clientPortalUrl = 'https://www.creditsoft.app/client-portal.php';
+$paymentMemo = $checkoutNumber.' or '.$customerEmail;
+
 $record = [
     'submitted_at' => gmdate('c'),
+    'checkout_number' => $checkoutNumber,
+    'checkout_reference' => $checkoutNumber,
     'plan' => trim((string) ($input['plan'] ?? '')),
     'billing' => trim((string) ($input['billing'] ?? 'monthly')),
     'plan_name' => trim((string) ($input['plan_name'] ?? 'CreditSoft')),
     'amount' => $input['amount'] ?? null,
+    'payment_method' => trim((string) ($input['payment_method'] ?? '')),
     'customer_email' => $customerEmail,
     'customer_phone' => $customerPhone,
     'payment_source' => $paymentSource,
-    'office_name' => trim((string) ($input['office_name'] ?? '')),
+    'payment_memo' => $paymentMemo,
+    'payment_memo_email' => $customerEmail,
+    'office_name' => $officeName,
     'notes' => trim((string) ($input['notes'] ?? '')),
+    'client_portal_url' => $clientPortalUrl,
     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
 ];
@@ -73,5 +84,21 @@ if ($written === false) {
     exit;
 }
 
-echo json_encode(['success' => true]);
-
+echo json_encode([
+    'success' => true,
+    'checkout_number' => $checkoutNumber,
+    'checkout_reference' => $checkoutNumber,
+    'customer_email' => $customerEmail,
+    'payment_memo' => $paymentMemo,
+    'client_portal_url' => $clientPortalUrl,
+    'zelle' => [
+        'payee' => 'Matthew Murphy',
+        'destination' => 'hello@creditsoft.app',
+        'memo' => $paymentMemo,
+    ],
+    'cash_app' => [
+        'cashtag' => '$creditsoft',
+        'url' => 'https://cash.app/$creditsoft',
+        'note' => $paymentMemo,
+    ],
+], JSON_UNESCAPED_SLASHES);

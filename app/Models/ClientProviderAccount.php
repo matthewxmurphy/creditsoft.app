@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\SafeEncryptedString;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,8 +26,8 @@ class ClientProviderAccount extends Model
     protected function casts(): array
     {
         return [
-            'login_password' => 'encrypted',
-            'security_answer' => 'encrypted',
+            'login_password' => SafeEncryptedString::class,
+            'security_answer' => SafeEncryptedString::class,
             'last_imported_at' => 'datetime',
             'metadata' => 'array',
         ];

@@ -32,14 +32,12 @@ class ClusterBackupController extends Controller
                 'source_office' => $result['source_office'],
                 'source_key' => $result['source_key'],
                 'stored_path' => $result['stored_path'],
-                'restore_status' => data_get($result, 'restore.status'),
             ],
         );
 
         return response()->json([
             'ok' => true,
             'message' => sprintf('Stored cluster backup from %s.', $result['source_office']),
-            'restore' => $result['restore'],
         ]);
     }
 }

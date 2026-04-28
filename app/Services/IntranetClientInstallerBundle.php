@@ -15,18 +15,66 @@ class IntranetClientInstallerBundle
 
     public function version(): string
     {
+        $versions = [
+            $this->currentReleaseVersion(),
+            $this->packageVersion(),
+            (string) config('creditsoft.updates.current_version', '2026.4.27.1'),
+        ];
+
+        $versions = array_values(array_filter($versions, fn (string $version): bool => $this->isDateVersion($version)));
+
+        usort($versions, fn (string $left, string $right): int => $this->compareDateVersions($right, $left));
+
+        return $versions[0] ?? '2026.4.27.1';
+    }
+
+    protected function packageVersion(): string
+    {
         $packagePath = $this->sourcePath().DIRECTORY_SEPARATOR.'package.json';
 
-        if (is_file($packagePath)) {
-            $decoded = json_decode((string) file_get_contents($packagePath), true);
-            $version = trim((string) data_get(is_array($decoded) ? $decoded : [], 'version'));
+        if (! is_file($packagePath)) {
+            return '';
+        }
 
-            if ($version !== '') {
-                return $version;
+        $decoded = json_decode((string) file_get_contents($packagePath), true);
+
+        return trim((string) data_get(is_array($decoded) ? $decoded : [], 'version'));
+    }
+
+    protected function isDateVersion(string $version): bool
+    {
+        return preg_match('/^20\d{2}\.\d{1,2}\.\d{1,2}(?:\.\d+)?$/', trim($version)) === 1;
+    }
+
+    protected function compareDateVersions(string $left, string $right): int
+    {
+        $leftParts = array_map('intval', explode('.', $left));
+        $rightParts = array_map('intval', explode('.', $right));
+        $count = max(count($leftParts), count($rightParts));
+
+        for ($index = 0; $index < $count; $index++) {
+            $comparison = ($leftParts[$index] ?? 0) <=> ($rightParts[$index] ?? 0);
+
+            if ($comparison !== 0) {
+                return $comparison;
             }
         }
 
-        return '0.1.0';
+        return 0;
+    }
+
+    protected function currentReleaseVersion(): string
+    {
+        $feedPath = base_path('update.creditsoft.app/data/update-feed.json');
+
+        if (! is_file($feedPath)) {
+            return '';
+        }
+
+        $decoded = json_decode((string) file_get_contents($feedPath), true);
+        $version = trim((string) data_get(is_array($decoded) ? $decoded : [], 'latest_version'));
+
+        return $this->isDateVersion($version) ? $version : '';
     }
 
     public function downloadName(): string
@@ -241,7 +289,8 @@ class IntranetClientInstallerBundle
             '',
             '## What it does',
             '',
-            '- Copies the CreditSoft intranet client runner into the user profile.',
+            '- Copies the CreditSoft intranet client runner into a system app path: `/opt/creditsoft/intranet-client` on Linux, `/Library/Application Support/CreditSoft/IntranetClient` on macOS, or `C:\\ProgramData\\CreditSoft\\IntranetClient` on Windows.',
+            '- Keeps the staff API token in the local user profile so employee secrets do not become machine-wide.',
             '- Starts the local loopback router on 127.0.0.1, preferring port 80 when the workstation can bind it.',
             '- Reads a staff API key from the local user profile when one is provided.',
             '- Probes configured and Tailscale-discovered server nodes and picks the healthiest reachable one.',
@@ -289,7 +338,18 @@ class IntranetClientInstallerBundle
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INSTALL_DIR="${CREDITSOFT_CLIENT_INSTALL_DIR:-$HOME/.creditsoft/intranet-client}"
+default_creditsoft_client_install_dir() {
+  case "$(uname -s 2>/dev/null || true)" in
+    Darwin)
+      printf '%s\n' "/Library/Application Support/CreditSoft/IntranetClient"
+      ;;
+    *)
+      printf '%s\n' "/opt/creditsoft/intranet-client"
+      ;;
+  esac
+}
+
+INSTALL_DIR="${CREDITSOFT_CLIENT_INSTALL_DIR:-$(default_creditsoft_client_install_dir)}"
 CONFIG_DIR="$HOME/.creditsoft"
 TOKEN_FILE="${CREDITSOFT_API_TOKEN_FILE:-$CONFIG_DIR/intranet-client-api-token}"
 RUNNER="$INSTALL_DIR/run-router.sh"
@@ -369,6 +429,24 @@ router_url_for() {
   fi
 }
 
+ensure_writable_dir() {
+  local path="$1"
+  local owner_group
+
+  if mkdir -p "$path" 2>/dev/null; then
+    return 0
+  fi
+
+  if ! command -v sudo >/dev/null 2>&1; then
+    echo "CreditSoft needs permission to create $path. Rerun with sudo or set CREDITSOFT_CLIENT_INSTALL_DIR."
+    exit 1
+  fi
+
+  sudo mkdir -p "$path"
+  owner_group="$(id -u):$(id -g)"
+  sudo chown -R "$owner_group" "$path"
+}
+
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js 20 or newer is required for the CreditSoft employee client router."
   exit 1
@@ -385,7 +463,8 @@ if [ ! -f "$MANIFEST_PATH" ]; then
   exit 1
 fi
 
-mkdir -p "$INSTALL_DIR" "$INSTALL_DIR/bin" "$INSTALL_DIR/examples" "$CONFIG_DIR"
+ensure_writable_dir "$INSTALL_DIR"
+mkdir -p "$INSTALL_DIR/bin" "$INSTALL_DIR/examples" "$CONFIG_DIR"
 cp "$SCRIPT_DIR/client/README.md" "$INSTALL_DIR/README.md"
 cp "$SCRIPT_DIR/client/package.json" "$INSTALL_DIR/package.json"
 cp "$SCRIPT_DIR/client/bin/creditsoft-intranet-client.mjs" "$INSTALL_DIR/bin/creditsoft-intranet-client.mjs"
@@ -513,10 +592,12 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 if ($env:CREDITSOFT_CLIENT_INSTALL_DIR) {
     $InstallDir = $env:CREDITSOFT_CLIENT_INSTALL_DIR
-} elseif ($env:LOCALAPPDATA) {
-    $InstallDir = Join-Path $env:LOCALAPPDATA "CreditSoft\IntranetClient"
+} elseif ($env:OS -eq "Windows_NT" -and $env:ProgramData) {
+    $InstallDir = Join-Path $env:ProgramData "CreditSoft\IntranetClient"
+} elseif ((Get-Command uname -ErrorAction SilentlyContinue) -and ((& uname -s) -eq "Darwin")) {
+    $InstallDir = "/Library/Application Support/CreditSoft/IntranetClient"
 } else {
-    $InstallDir = Join-Path $HOME ".creditsoft/intranet-client"
+    $InstallDir = "/opt/creditsoft/intranet-client"
 }
 $UserProfilePath = if ($env:USERPROFILE) { $env:USERPROFILE } else { $HOME }
 $ConfigDir = Join-Path $UserProfilePath ".creditsoft"

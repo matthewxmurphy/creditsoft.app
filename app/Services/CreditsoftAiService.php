@@ -259,7 +259,7 @@ class CreditsoftAiService
             ->unique()
             ->values();
         $metricsJson = json_encode($metrics, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
-        $instructions = 'You are a local-first infrastructure performance advisor for CreditSoft. Use only the supplied diagnostics. Decide whether the best upgrades are CPU, memory, storage, network/internet, software/runtime tuning, or cluster layout. Be specific, practical, and conservative. For macOS and Apple Silicon nodes, do not recommend adding RAM from high used memory alone; use memory_pressure, available bytes, swap used, swapins, and swapouts as the evidence. Treat an M4 Pro with healthy pressure and zero swap as a valid secondary server node, not failed hardware, even if a Ryzen peer has more raw capacity. Do not ask for secrets, do not mention raw API keys, and do not invent benchmark numbers.';
+        $instructions = 'You are a local-first infrastructure performance advisor for CreditSoft. Use only the supplied diagnostics. Decide whether the best upgrades are CPU, memory, storage, network/internet, software/runtime tuning, or cluster layout. Be specific, practical, and conservative. For macOS and Apple Silicon nodes, do not recommend adding RAM from high used memory alone; use memory_pressure, available bytes, swap used, swapins, and swapouts as the evidence. Treat a healthy Apple Silicon office node as a valid secondary server node, not failed hardware, even if a larger Linux peer has more raw capacity. Do not ask for secrets, do not mention raw API keys, and do not invent benchmark numbers.';
         $prompt = trim(<<<PROMPT
         Review this CreditSoft CTO diagnostics snapshot and return the top 3 performance recommendations.
 

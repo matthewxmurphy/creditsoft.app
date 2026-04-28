@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureCreditsoftLicenseFeature;
 use App\Http\Middleware\EnsureNgrokCallbackLane;
 use App\Http\Middleware\EnsureCreditsoftWorkspaceAccess;
 use App\Http\Middleware\EnforceCreditsoftLicenseAccess;
+use App\Http\Middleware\AllowLocalAuthBypass;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RestrictNgrokPortalExposure;
@@ -36,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            AllowLocalAuthBypass::class,
             EnsureNgrokCallbackLane::class,
             EnsureCreditsoftWorkspaceAccess::class,
             EnforceCreditsoftLicenseAccess::class,

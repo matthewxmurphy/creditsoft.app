@@ -46,7 +46,7 @@ class CreditsoftDatabaseBackupService
         }
 
         if ($target === 'local') {
-            $messages[] = in_array((string) config('database.default', 'pgsql'), ['pgsql', 'postgres', 'postgresql'], true)
+            $messages[] = in_array((string) config('database.default', 'sqlite'), ['pgsql', 'postgres', 'postgresql'], true)
                 ? 'CreditSoft saved a local PostgreSQL backup for this office and included the CRM database when it was reachable.'
                 : 'CreditSoft saved a local database backup for this office.';
         }
@@ -66,15 +66,62 @@ class CreditsoftDatabaseBackupService
 
     protected function createArchive(string $target): string
     {
-        $connection = (string) config('database.default', 'pgsql');
+        $connection = (string) config('database.default', 'sqlite');
 
         return match ($connection) {
+            'sqlite' => $this->createSqliteArchive($target),
             'pgsql', 'postgres', 'postgresql' => $this->createPostgresArchive($target),
             default => throw new RuntimeException(sprintf(
                 'The current %s database driver is not wired into the footer backup lane yet.',
                 $connection
             )),
         };
+    }
+
+    protected function createSqliteArchive(string $target): string
+    {
+        $databasePath = (string) config('database.connections.sqlite.database', database_path('database.sqlite'));
+
+        if ($databasePath === '' || ! is_file($databasePath)) {
+            throw new RuntimeException('CreditSoft could not find the local SQLite database file to back up.');
+        }
+
+        if (! class_exists(ZipArchive::class)) {
+            throw new RuntimeException('The PHP zip extension is required for the database backup lane.');
+        }
+
+        $timestamp = now()->format('Ymd-His');
+        $filename = sprintf('creditsoft-db-%s-%s.zip', $timestamp, $target);
+        $archiveDirectory = storage_path('app/private/database-backups/local');
+        $archivePath = $archiveDirectory.DIRECTORY_SEPARATOR.$filename;
+
+        File::ensureDirectoryExists($archiveDirectory);
+
+        $zip = new ZipArchive();
+
+        if ($zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new RuntimeException('CreditSoft could not create the database backup archive.');
+        }
+
+        $zip->addFile($databasePath, 'database/database.sqlite');
+        $zip->addFromString('manifest.json', json_encode([
+            'product' => 'CreditSoft Intranet',
+            'database_driver' => 'sqlite',
+            'created_at' => now()->toIso8601String(),
+            'requested_target' => $target,
+            'version' => (string) config('creditsoft.updates.current_version', 'unknown'),
+            'build' => (string) config('creditsoft.updates.current_build', ''),
+            'source_database' => $databasePath,
+            'client_documents' => [
+                'stored_in_database' => false,
+                'storage_mode' => 'filesystem',
+                'path' => rtrim((string) config('creditsoft.document_path', storage_path('app/private/client-documents')), DIRECTORY_SEPARATOR),
+                'included_in_this_backup' => false,
+            ],
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $zip->close();
+
+        return $archivePath;
     }
 
     protected function createPostgresArchive(string $target): string
@@ -101,11 +148,6 @@ class CreditsoftDatabaseBackupService
                 'storage_mode' => 'filesystem',
                 'path' => rtrim((string) config('creditsoft.document_path', storage_path('app/private/client-documents')), DIRECTORY_SEPARATOR),
                 'included_in_this_backup' => false,
-            ],
-            'archive' => [
-                'format' => 'zip',
-                'compression_method' => $this->zipCompressionMethodName(),
-                'compression_level' => $this->zipCompressionLevel(),
             ],
         ];
 
@@ -142,54 +184,19 @@ class CreditsoftDatabaseBackupService
                 throw new RuntimeException('CreditSoft could not create the database backup archive.');
             }
 
-            $archiveEntries = ['database/postgres/creditsoft.sql'];
             $zip->addFile($creditsoftDump, 'database/postgres/creditsoft.sql');
 
             if ($crmDump !== null && is_file($crmDump)) {
                 $zip->addFile($crmDump, 'database/postgres/crm.sql');
-                $archiveEntries[] = 'database/postgres/crm.sql';
             }
 
             $zip->addFromString('manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $archiveEntries[] = 'manifest.json';
-
-            $this->applyZipCompression($zip, $archiveEntries);
             $zip->close();
 
             return $archivePath;
         } finally {
             File::deleteDirectory($tempDirectory);
         }
-    }
-
-    /**
-     * @param  array<int, string>  $entries
-     */
-    protected function applyZipCompression(ZipArchive $zip, array $entries): void
-    {
-        $method = $this->zipCompressionMethod();
-        $level = $this->zipCompressionLevel();
-
-        foreach ($entries as $entry) {
-            $zip->setCompressionName($entry, $method, $level);
-        }
-    }
-
-    protected function zipCompressionMethod(): int
-    {
-        return ZipArchive::CM_DEFLATE;
-    }
-
-    protected function zipCompressionMethodName(): string
-    {
-        return 'deflate';
-    }
-
-    protected function zipCompressionLevel(): int
-    {
-        $level = (int) config('backup.backup.destination.compression_level', 9);
-
-        return max(0, min(9, $level));
     }
 
     /**
@@ -252,10 +259,6 @@ class CreditsoftDatabaseBackupService
             $spec['username'],
             '--dbname',
             $spec['database'],
-            '--clean',
-            '--if-exists',
-            '--no-owner',
-            '--no-privileges',
             '--file',
             $dumpPath,
         ]);

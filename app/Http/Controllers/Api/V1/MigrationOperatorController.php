@@ -438,19 +438,7 @@ class MigrationOperatorController extends Controller
     {
         $normalized = Str::of($value)->lower()->replaceMatches('/[^a-z0-9]+/', ' ')->squish()->value();
 
-        if (str_contains($normalized, 'cancel')) {
-            return 'canceled';
-        }
-
-        if (str_contains($normalized, 'graduat') || str_contains($normalized, 'finished') || str_contains($normalized, 'complete')) {
-            return 'graduated';
-        }
-
-        if (str_contains($normalized, 'fired') || str_contains($normalized, 'terminated')) {
-            return 'terminated';
-        }
-
-        if (str_contains($normalized, 'monitor')) {
+        if (str_contains($normalized, 'complete') || str_contains($normalized, 'monitor') || str_contains($normalized, 'graduate')) {
             return 'monitoring';
         }
 

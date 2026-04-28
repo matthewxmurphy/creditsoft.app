@@ -71,6 +71,9 @@ export type SitePlan = {
   saleMonthlyPrice: number | null;
   annualPrice: number;
   annualDiscountPercent: number | null;
+  billingLabel?: string;
+  secondaryPriceLabel?: string | null;
+  leaseTerms?: string[];
   highlighted: boolean;
   featureList: string[];
 };
@@ -86,7 +89,7 @@ export type SiteReview = {
 
 const fallbackThemePage: MarketingThemePage = {
   topbarText:
-    "Metro2-first credit repair software with local-first CRM, intranet, portal, and website lanes.",
+    "Metro2-first credit repair software with AI-assisted review, local-first office nodes, client portals, and compliance workflows.",
   topbarEmail: "hello@creditsoft.app",
   hero: {
     eyebrow: "Welcome to CreditSoft",
@@ -95,45 +98,45 @@ const fallbackThemePage: MarketingThemePage = {
     summary:
       "CreditSoft gives offices a branded website, client portal, update lane, and local-first operations surface that feels like one real product instead of a stitched stack.",
     primaryCta: { label: "Get Started", href: "/contact-us" },
-    secondaryCta: { label: "View Demo", href: "/videos" },
+    secondaryCta: { label: "See Metro2 Review", href: "/metro2" },
     stats: ["Intranet based", "PWA-ready", "Migration aware", "Brand control"],
   },
   plansIntro: {
-    eyebrow: "Pricing Plan",
-    title: "Flexible Plans Built for Every Office Stage",
+    eyebrow: "Pricing",
+    title: "Choose monthly, lease, or the 10-year office license",
     text:
-      "Choose the plan that fits your current office size, then grow into the website, portal, update, and office lanes without swapping systems again.",
+      "Monthly keeps the office flexible, lease terms lower the commitment friction, and the 10-year license is the flagship value for companies that know they are building around CreditSoft.",
   },
   compareRows: [
     {
-      feature: "Intranet based workspace",
-      starter: "Built in",
-      plus: "Built in",
-      pro: "Built in + team lanes",
+      feature: "Term",
+      starter: "Month to month",
+      plus: "12, 24, or 36 months",
+      pro: "10 years",
     },
     {
-      feature: "PWA support",
-      starter: "Ready",
-      plus: "Ready",
-      pro: "Ready",
+      feature: "Best fit",
+      starter: "New office",
+      plus: "Growing office",
+      pro: "Committed operator",
     },
     {
-      feature: "Client portal and website",
+      feature: "Intranet, portal, and updates",
       starter: "Included",
       plus: "Included",
-      pro: "Included + branded support",
-    },
-    {
-      feature: "Migration help",
-      starter: "Import lane",
-      plus: "Import + setup help",
-      pro: "Priority migration lane",
+      pro: "Included for the full term",
     },
     {
       feature: "Browser companion",
       starter: "Optional",
       plus: "Included",
-      pro: "Included + rollout support",
+      pro: "Included",
+    },
+    {
+      feature: "License checks",
+      starter: "Required for updates",
+      plus: "Required for updates",
+      pro: "Required for updates",
     },
   ],
   features: [
@@ -200,7 +203,7 @@ const fallbackThemePage: MarketingThemePage = {
     eyebrow: "Try CreditSoft",
     title: "Start with the site, then move into the full office lane when you are ready.",
     text:
-      "This preview shows the direction for a cleaner public site that matches the rest of the CreditSoft product story.",
+      "Start with the public site, then move into the full office lane when you are ready.",
     primaryCta: { label: "Start Intake", href: "/contact-us" },
     secondaryCta: { label: "See Pricing", href: "/pricing-plan" },
   },
@@ -213,43 +216,68 @@ const fallbackThemePage: MarketingThemePage = {
 
 const fallbackPlans: SitePlan[] = [
   {
-    id: "starter",
-    name: "Starter",
-    badge: "Best for small offices",
+    id: "monthly",
+    name: "Monthly",
+    badge: "Flexible start",
     description:
-      "A light launch lane for offices that want the public site, intake, and a clean start.",
-    monthlyPrice: 149,
-    saleMonthlyPrice: 119,
-    annualPrice: 1188,
-    annualDiscountPercent: 34,
+      "For offices that want CreditSoft live without choosing a longer commitment yet.",
+    monthlyPrice: 349,
+    saleMonthlyPrice: 299,
+    annualPrice: 3588,
+    annualDiscountPercent: null,
+    billingLabel: "/month",
+    secondaryPriceLabel: "Month to month",
+    leaseTerms: [],
     highlighted: false,
-    featureList: ["Public site", "Lead intake", "Simple admin review", "Update feed access"],
+    featureList: ["Local-first CRM", "Metro2 review lane", "Client portal", "Update and license heartbeat"],
   },
   {
-    id: "growth",
-    name: "Growth",
-    badge: "Most popular",
+    id: "lease",
+    name: "Lease",
+    badge: "Select terms",
     description:
-      "For offices ready for stronger automation, sales follow-up, and team coordination.",
-    monthlyPrice: 249,
-    saleMonthlyPrice: 199,
-    annualPrice: 1980,
-    annualDiscountPercent: 34,
+      "For offices that want lower friction than buying outright while committing to a real rollout.",
+    monthlyPrice: 599,
+    saleMonthlyPrice: 499,
+    annualPrice: 5988,
+    annualDiscountPercent: null,
+    billingLabel: "/month",
+    secondaryPriceLabel: "12, 24, or 36 month terms",
+    leaseTerms: ["12 months", "24 months", "36 months"],
+    highlighted: false,
+    featureList: ["Everything in Monthly", "Browser companion", "Migration support", "Office setup guidance"],
+  },
+  {
+    id: "multi-node",
+    name: "Multi-Node",
+    badge: "For distributed offices",
+    description:
+      "For operators running paired office nodes, teams in multiple places, or stronger redundancy.",
+    monthlyPrice: 999,
+    saleMonthlyPrice: 899,
+    annualPrice: 10788,
+    annualDiscountPercent: null,
+    billingLabel: "/month",
+    secondaryPriceLabel: "Lease or annual terms available",
+    leaseTerms: ["12 months", "24 months", "36 months"],
+    highlighted: false,
+    featureList: ["Everything in Lease", "Cross-platform node planning", "API bridge support", "Priority rollout help"],
+  },
+  {
+    id: "ten-year",
+    name: "10-Year License",
+    badge: "Best long-term value",
+    description:
+      "A clear 10-year license for companies that want CreditSoft as core office infrastructure.",
+    monthlyPrice: 9995.99,
+    saleMonthlyPrice: null,
+    annualPrice: 9995.99,
+    annualDiscountPercent: null,
+    billingLabel: "/10 years",
+    secondaryPriceLabel: "Equivalent to about $83.30/month over the term",
+    leaseTerms: [],
     highlighted: true,
-    featureList: ["Client workspaces", "Letters", "Automation lanes", "Website admin tools"],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    badge: "For larger teams",
-    description:
-      "For multi-user operations that want the full office lane with more controls and oversight.",
-    monthlyPrice: 399,
-    saleMonthlyPrice: 329,
-    annualPrice: 3288,
-    annualDiscountPercent: 31,
-    highlighted: false,
-    featureList: ["Team routing", "Billing control", "Priority support", "Rollout help"],
+    featureList: ["10-year office license", "Companion and API lanes", "Multi-node roadmap access", "Priority license support"],
   },
 ];
 
@@ -279,7 +307,15 @@ function env(name: string): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
+function remoteSiteDataEnabled(): boolean {
+  return env("PUBLIC_CREDITSOFT_REMOTE_SITE_DATA") === "true";
+}
+
 async function querySupabase<T>(table: string, params: Record<string, string>): Promise<T | null> {
+  if (!remoteSiteDataEnabled()) {
+    return null;
+  }
+
   const url = env("SUPABASE_URL");
   const key = env("SUPABASE_SECRET_KEY");
 
@@ -376,6 +412,9 @@ export async function loadPlans(): Promise<SitePlan[]> {
       row.annual_discount_percent ?? row.annualDiscountPercent
         ? toNumber(row.annual_discount_percent ?? row.annualDiscountPercent)
         : null,
+    billingLabel: row.billing_label ? String(row.billing_label) : undefined,
+    secondaryPriceLabel: row.secondary_price_label ? String(row.secondary_price_label) : null,
+    leaseTerms: toStringArray(row.lease_terms ?? row.leaseTerms),
     highlighted:
       row.highlighted === true ||
       row.highlighted === "true" ||

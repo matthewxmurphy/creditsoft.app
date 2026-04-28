@@ -36,17 +36,16 @@ const props = defineProps<{
         meta_callback_url?: string | null;
         meta_callback_source: 'api_domain' | 'ngrok' | 'local';
         masked_token?: string | null;
-            website_bridge: {
-                recommended_mode: 'tailscale' | 'ngrok' | 'local';
-                recommended_target_url: string;
-                tailscale_running: boolean;
-                tailscale_dns_name?: string | null;
-                ngrok_base_url?: string | null;
-                updates_feed_url: string;
-                dropin_path: string;
-                wordpress_plugin_path: string;
-                wordpress_plugin_zip_url: string;
-            };
+        website_bridge: {
+            recommended_mode: 'tailscale' | 'ngrok' | 'local';
+            recommended_target_url: string;
+            tailscale_running: boolean;
+            tailscale_dns_name?: string | null;
+            ngrok_base_url?: string | null;
+            updates_feed_url: string;
+            dropin_path: string;
+            wordpress_plugin_path: string;
+        };
         endpoints: Array<{
             method: string;
             path: string;
@@ -279,13 +278,6 @@ const savePublicApiBase = () => {
                         Either a plain PHP drop-in at <span class="font-medium text-stone-900">{{ apiAccess.website_bridge.dropin_path }}</span> or a WordPress plugin at
                         <span class="font-medium text-stone-900">{{ apiAccess.website_bridge.wordpress_plugin_path }}</span>.
                     </p>
-                    <a
-                        :href="apiAccess.website_bridge.wordpress_plugin_zip_url"
-                        class="mt-4 inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-700 transition hover:border-stone-500 hover:text-stone-950"
-                    >
-                        Download plugin
-                        <FontAwesomeIcon :icon="faArrowUpRightFromSquare" class="text-[10px]" />
-                    </a>
                 </div>
 
                 <div class="rounded-[22px] border border-stone-200 bg-stone-50 px-4 py-4">

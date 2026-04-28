@@ -19,7 +19,7 @@ class CreditsoftStorageHealthService
      */
     public function current(): array
     {
-        $databaseDriver = (string) config('database.default', 'pgsql');
+        $databaseDriver = (string) config('database.default', 'sqlite');
         $databasePath = $this->databaseLocationLabel($databaseDriver);
         $databaseBytes = $this->databaseSizeBytes($databaseDriver);
 
@@ -36,15 +36,6 @@ class CreditsoftStorageHealthService
             ->filter(fn (mixed $peer): bool => is_array($peer) && (bool) Arr::get($peer, 'enabled', true) && filled((string) Arr::get($peer, 'base_url', '')))
             ->values();
 
-        $documentPath = rtrim((string) config('creditsoft.document_path', storage_path('app/private/client-documents')), DIRECTORY_SEPARATOR);
-        $documentRecordCount = ClientDocument::query()->count();
-        $fileBackedDocumentCount = ClientDocument::query()
-            ->whereNotNull('file_path')
-            ->where('file_path', '!=', '')
-            ->count();
-        $documentBytes = (int) ClientDocument::query()->sum(DB::raw('COALESCE(file_size, 0)'));
-        $filesystemDocuments = $this->documentFilesystemStats($documentPath);
-
         return [
             'database' => [
                 'driver' => $databaseDriver,
@@ -59,16 +50,8 @@ class CreditsoftStorageHealthService
             'documents' => [
                 'stored_in_database' => false,
                 'storage_mode' => 'filesystem',
-                'path' => $documentPath,
-                'count' => $documentRecordCount,
-                'record_count' => $documentRecordCount,
-                'file_backed_count' => $fileBackedDocumentCount,
-                'metadata_only_count' => max($documentRecordCount - $fileBackedDocumentCount, 0),
-                'file_size_bytes' => $documentBytes,
-                'file_size_label' => $this->humanBytes($documentBytes),
-                'filesystem_file_count' => $filesystemDocuments['count'],
-                'filesystem_size_bytes' => $filesystemDocuments['bytes'],
-                'filesystem_size_label' => $this->humanBytes($filesystemDocuments['bytes']),
+                'path' => rtrim((string) config('creditsoft.document_path', storage_path('app/private/client-documents')), DIRECTORY_SEPARATOR),
+                'count' => ClientDocument::query()->count(),
             ],
             'cluster' => [
                 'enabled' => (bool) Arr::get($stored, 'cluster.enabled', false),
@@ -98,6 +81,7 @@ class CreditsoftStorageHealthService
     protected function databaseDriverLabel(string $driver): string
     {
         return match ($driver) {
+            'sqlite' => 'SQLite',
             'pgsql', 'postgres', 'postgresql' => 'PostgreSQL',
             'mysql' => 'MySQL',
             'mariadb' => 'MariaDB',
@@ -107,6 +91,10 @@ class CreditsoftStorageHealthService
 
     protected function databaseLocationLabel(string $driver): ?string
     {
+        if ($driver === 'sqlite') {
+            return (string) config('database.connections.sqlite.database', database_path('database.sqlite'));
+        }
+
         $connection = (array) config("database.connections.{$driver}", []);
         $database = trim((string) Arr::get($connection, 'database', ''));
         $host = trim((string) Arr::get($connection, 'host', ''));
@@ -126,6 +114,12 @@ class CreditsoftStorageHealthService
     protected function databaseSizeBytes(string $driver): int
     {
         try {
+            if ($driver === 'sqlite') {
+                $databasePath = (string) config('database.connections.sqlite.database', database_path('database.sqlite'));
+
+                return is_file($databasePath) ? (int) (File::size($databasePath) ?: 0) : 0;
+            }
+
             if (in_array($driver, ['pgsql', 'postgres', 'postgresql'], true)) {
                 return max((int) (DB::selectOne('select pg_database_size(current_database()) as size_bytes')->size_bytes ?? 0), 0);
             }
@@ -149,32 +143,5 @@ class CreditsoftStorageHealthService
         }
 
         return 0;
-    }
-
-    /**
-     * @return array{count:int,bytes:int}
-     */
-    protected function documentFilesystemStats(string $path): array
-    {
-        if ($path === '' || ! is_dir($path)) {
-            return ['count' => 0, 'bytes' => 0];
-        }
-
-        try {
-            $files = File::allFiles($path);
-        } catch (\Throwable) {
-            return ['count' => 0, 'bytes' => 0];
-        }
-
-        $bytes = 0;
-
-        foreach ($files as $file) {
-            $bytes += max((int) $file->getSize(), 0);
-        }
-
-        return [
-            'count' => count($files),
-            'bytes' => $bytes,
-        ];
     }
 }

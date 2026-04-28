@@ -253,24 +253,42 @@ class CreditsoftUpdateFeed
      */
     protected function localFeed(): ?array
     {
-        $path = $this->localFeedPath();
+        foreach ($this->localFeedPaths() as $path) {
+            if (! File::exists($path)) {
+                continue;
+            }
 
-        if (! File::exists($path)) {
-            return null;
+            $decoded = json_decode((string) File::get($path), true);
+
+            if (! is_array($decoded)) {
+                continue;
+            }
+
+            if (! filled((string) ($decoded['latest_version'] ?? '')) && filled((string) ($decoded['version'] ?? ''))) {
+                $decoded['latest_version'] = trim((string) $decoded['version']);
+                $decoded['latest_build'] = trim((string) ($decoded['build'] ?? $decoded['version']));
+            }
+
+            return $this->normalizeFeed($decoded, 'local', 'file://'.$path);
         }
 
-        $decoded = json_decode((string) File::get($path), true);
-
-        if (! is_array($decoded)) {
-            return null;
-        }
-
-        return $this->normalizeFeed($decoded, 'local', 'file://'.$path);
+        return null;
     }
 
     protected function localFeedPath(): string
     {
-        return base_path('update.creditsoft.app/data/update-feed.json');
+        return implode('|', $this->localFeedPaths());
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function localFeedPaths(): array
+    {
+        return [
+            base_path('update.creditsoft.app/data/update-feed.json'),
+            base_path('manifest.json'),
+        ];
     }
 
     /**

@@ -198,6 +198,8 @@ class CreditsoftSystemDiagnosticsService
                 'office_label' => data_get($current, 'machine.office_label'),
                 'cpu_cores' => data_get($current, 'machine.cpu_cores'),
                 'os_family' => data_get($current, 'machine.os_family'),
+                'architecture' => data_get($current, 'machine.architecture'),
+                'diagnostics_source' => data_get($current, 'machine.diagnostics_source'),
             ],
             'load' => data_get($current, 'load'),
             'memory' => Arr::only((array) data_get($current, 'memory', []), [
@@ -443,10 +445,11 @@ class CreditsoftSystemDiagnosticsService
         $documentCoveragePercent = $clientCount > 0 ? round(($fileBackedClientCount / $clientCount) * 100, 1) : 0.0;
         $metadataOnlyDocumentCount = max($documentCount - $fileBackedDocumentCount, 0);
         $averageBytes = $clientCount > 0 ? (int) round($totalBytes / $clientCount) : 0;
+        $fileBackedAverageBytes = $fileBackedClientCount > 0 ? (int) round($totalBytes / $fileBackedClientCount) : $averageBytes;
         $databaseBytes = max((int) data_get($storage, 'database.size_bytes', 0), 0);
         $databaseAverageBytes = $clientCount > 0 ? (int) round($databaseBytes / $clientCount) : 0;
-        $estimateReady = $clientCount > 0 && $fileBackedDocumentCount > 0 && $totalBytes > 0 && $documentCoveragePercent >= 25.0;
-        $estimatedFootprintBytes = $estimateReady ? max($averageBytes + $databaseAverageBytes, 1024 * 1024) : 0;
+        $estimateReady = $clientCount > 0 && ($databaseBytes > 0 || $totalBytes > 0);
+        $estimatedFootprintBytes = $estimateReady ? max($fileBackedAverageBytes + $databaseAverageBytes, 1024 * 1024) : 0;
         $reservedDiskBytes = (int) min(round($diskFreeBytes * 0.15), 20 * 1024 * 1024 * 1024);
         $usableDiskBytes = max($diskFreeBytes - $reservedDiskBytes, 0);
         $fileRows = $rows->filter(fn ($row): bool => (int) $row->file_backed_document_count > 0 || (int) $row->document_bytes > 0);
@@ -464,14 +467,20 @@ class CreditsoftSystemDiagnosticsService
             'total_label' => $this->humanBytes($totalBytes),
             'average_bytes' => $averageBytes,
             'average_label' => $this->humanBytes($averageBytes),
+            'file_backed_average_bytes' => $fileBackedAverageBytes,
+            'file_backed_average_label' => $this->humanBytes($fileBackedAverageBytes),
             'database_average_bytes' => $databaseAverageBytes,
             'database_average_label' => $this->humanBytes($databaseAverageBytes),
             'estimated_client_footprint_bytes' => $estimatedFootprintBytes,
-            'estimated_client_footprint_label' => $estimateReady ? $this->humanBytes($estimatedFootprintBytes) : 'Pending files',
+            'estimated_client_footprint_label' => $estimateReady ? $this->humanBytes($estimatedFootprintBytes) : 'No client sample yet',
             'estimated_more_clients' => $estimateReady ? intdiv($usableDiskBytes, max($estimatedFootprintBytes, 1)) : null,
             'estimate_ready' => $estimateReady,
             'estimate_note' => $estimateReady
-                ? 'Approximate extra clients this office can hold based on current database plus real document storage per client.'
+                ? sprintf(
+                    'Projection uses the current database plus real files from %s file-backed client%s. It will tighten as companion downloads more IDs, cards, reports, and agreements.',
+                    number_format($fileBackedClientCount),
+                    $fileBackedClientCount === 1 ? '' : 's'
+                )
                 : sprintf(
                     'Storage estimate paused: %s document records are staged, %s have local files, and only %s of %s clients have file-backed documents.',
                     number_format($documentCount),

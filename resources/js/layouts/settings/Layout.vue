@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
     faAddressCard,
@@ -6,24 +8,20 @@ import {
     faChartLine,
     faCode,
     faCreditCard,
-    faEnvelope,
     faFloppyDisk,
     faPlugCircleBolt,
     faRobot,
     faShieldHalved,
     faUsersGear,
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Link, usePage } from '@inertiajs/vue3';
 import type { InertiaLinkProps } from '@inertiajs/vue3';
-import { computed } from 'vue';
-import EmailProviderMark from '@/components/creditsoft/EmailProviderMark.vue';
-import SocialPlatformMark from '@/components/creditsoft/SocialPlatformMark.vue';
 import Heading from '@/components/Heading.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { toUrl } from '@/lib/utils';
+import SocialPlatformMark from '@/components/creditsoft/SocialPlatformMark.vue';
 import { edit as editAppearance } from '@/routes/appearance';
 import { edit as editProfile } from '@/routes/profile';
 import { edit as editSecurity } from '@/routes/security';
@@ -36,12 +34,9 @@ const page = usePage<{
         can_view_user_directory: boolean;
     };
 }>();
-const canViewUserDirectory = computed(
-    () =>
-        page.props.auth.can_view_user_directory ||
-        ['owner_admin', 'admin', 'demo_admin', 'manager'].includes(
-            page.props.auth.role ?? '',
-        ),
+const canViewUserDirectory = computed(() =>
+    page.props.auth.can_view_user_directory
+    || ['owner_admin', 'admin', 'demo_admin', 'manager'].includes(page.props.auth.role ?? ''),
 );
 
 type SettingsNavItem = {
@@ -49,7 +44,6 @@ type SettingsNavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: IconDefinition;
     socialBrand?: 'meta';
-    emailBrand?: 'custom_smtp';
     children?: Array<{
         title: string;
         href: string;
@@ -79,12 +73,12 @@ const sidebarNavItems = computed<SettingsNavItem[]>(() => [
     },
     ...(canViewUserDirectory.value
         ? [
-              {
-                  title: 'Accounts Manager',
-                  href: '/settings/users',
-                  icon: faUsersGear,
-              },
-          ]
+            {
+                title: 'Accounts Manager',
+                href: '/settings/users',
+                icon: faUsersGear,
+            },
+        ]
         : []),
     {
         title: 'AI',
@@ -100,54 +94,6 @@ const sidebarNavItems = computed<SettingsNavItem[]>(() => [
         title: 'Connectivity',
         href: '/settings/connectivity',
         icon: faPlugCircleBolt,
-    },
-    {
-        title: 'SMTP / Email',
-        href: '/settings/email',
-        icon: faEnvelope,
-        emailBrand: 'custom_smtp',
-        children: [
-            {
-                title: 'Microsoft 365',
-                href: '/settings/email/microsoft-365',
-            },
-            {
-                title: 'Google Workspace',
-                href: '/settings/email/google-workspace',
-            },
-            {
-                title: 'Amazon SES',
-                href: '/settings/email/amazon-ses',
-            },
-            {
-                title: 'SendGrid',
-                href: '/settings/email/sendgrid',
-            },
-            {
-                title: 'Mailgun',
-                href: '/settings/email/mailgun',
-            },
-            {
-                title: 'Zoho Mail',
-                href: '/settings/email/zoho-mail',
-            },
-            {
-                title: 'Postmark',
-                href: '/settings/email/postmark',
-            },
-            {
-                title: 'Brevo',
-                href: '/settings/email/brevo',
-            },
-            {
-                title: 'SMTP.com',
-                href: '/settings/email/smtp-com',
-            },
-            {
-                title: 'Custom SMTP',
-                href: '/settings/email/smtp',
-            },
-        ],
     },
     {
         title: 'Growth',
@@ -199,29 +145,23 @@ const sidebarNavItems = computed<SettingsNavItem[]>(() => [
         icon: faFloppyDisk,
     },
 ]);
-const usesWideWorkspace = computed(
-    () =>
-        page.url.startsWith('/settings/profile') ||
-        page.url.startsWith('/settings/users') ||
-        page.url.startsWith('/settings/ai') ||
-        page.url.startsWith('/settings/api') ||
-        page.url.startsWith('/settings/appearance') ||
-        page.url.startsWith('/settings/connectivity') ||
-        page.url.startsWith('/settings/email') ||
-        page.url.startsWith('/settings/growth') ||
-        page.url.startsWith('/settings/social') ||
-        page.url.startsWith('/settings/filesystem'),
+const usesWideWorkspace = computed(() =>
+    page.url.startsWith('/settings/profile')
+    || page.url.startsWith('/settings/users')
+    || page.url.startsWith('/settings/ai')
+    || page.url.startsWith('/settings/api')
+    || page.url.startsWith('/settings/appearance')
+    || page.url.startsWith('/settings/connectivity')
+    || page.url.startsWith('/settings/growth')
+    || page.url.startsWith('/settings/social')
+    || page.url.startsWith('/settings/filesystem')
 );
 </script>
 
 <template>
     <div class="px-0 py-2">
-        <div
-            class="space-y-5 lg:grid lg:grid-cols-[180px_minmax(0,1fr)] lg:space-y-0 lg:gap-x-[10px]"
-        >
-            <aside
-                class="w-full max-w-xl lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto lg:pr-0"
-            >
+        <div class="space-y-5 lg:grid lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-x-[10px] lg:space-y-0">
+            <aside class="w-full max-w-xl lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pr-0">
                 <div class="mb-3 space-y-0">
                     <Heading title="Settings" variant="small" />
                     <p class="text-xs text-muted-foreground">
@@ -243,61 +183,28 @@ const usesWideWorkspace = computed(
                                 :class="[
                                     'h-9 w-full justify-start rounded-xl px-2.5 text-[13px]',
                                     {
-                                        'border border-[#0866ff]/20 bg-[#0866ff]/8 text-stone-950':
-                                            isCurrentOrParentUrl(item.href) &&
-                                            item.socialBrand === 'meta',
-                                        'border border-amber-300/40 bg-amber-100/40 text-stone-950':
-                                            isCurrentOrParentUrl(item.href) &&
-                                            item.emailBrand,
-                                        'bg-muted':
-                                            isCurrentOrParentUrl(item.href) &&
-                                            item.socialBrand !== 'meta' &&
-                                            !item.emailBrand,
+                                        'border border-[#0866ff]/20 bg-[#0866ff]/8 text-stone-950': isCurrentOrParentUrl(item.href) && item.socialBrand === 'meta',
+                                        'bg-muted': isCurrentOrParentUrl(item.href) && item.socialBrand !== 'meta',
                                     },
                                 ]"
                                 as-child
                             >
                                 <Link :href="item.href">
-                                    <span
-                                        class="mr-1.5 flex h-5 w-7 shrink-0 items-center justify-center"
-                                    >
-                                        <SocialPlatformMark
-                                            v-if="item.socialBrand === 'meta'"
-                                            brand="meta"
-                                            compact
-                                            monochrome
-                                            class="text-[#0866ff]"
-                                        />
-                                        <EmailProviderMark
-                                            v-else-if="item.emailBrand"
-                                            :provider="item.emailBrand"
-                                            compact
-                                            icon-only
-                                            class="text-stone-500"
-                                        />
-                                        <FontAwesomeIcon
-                                            v-else-if="item.icon"
-                                            :icon="item.icon"
-                                            class="h-4 w-4 text-stone-500"
-                                        />
-                                    </span>
-                                    <span class="min-w-0 truncate">
-                                        {{ item.title }}
-                                    </span>
+                                    <SocialPlatformMark
+                                        v-if="item.socialBrand === 'meta'"
+                                        brand="meta"
+                                        compact
+                                        monochrome
+                                        class="mr-1.5 text-[#0866ff]"
+                                    />
+                                    <FontAwesomeIcon v-else-if="item.icon" :icon="item.icon" class="mr-1.5 h-4 w-4 text-stone-500" />
+                                    {{ item.title }}
                                 </Link>
                             </Button>
 
                             <div
-                                v-if="
-                                    item.children?.length &&
-                                    isCurrentOrParentUrl(item.href)
-                                "
-                                class="ml-3 border-l py-1 pl-3"
-                                :class="
-                                    item.emailBrand
-                                        ? 'border-amber-300/60'
-                                        : 'border-[#0866ff]/20'
-                                "
+                                v-if="item.children?.length && isCurrentOrParentUrl(item.href)"
+                                class="ml-3 border-l border-[#0866ff]/20 py-1 pl-3"
                             >
                                 <a
                                     v-for="child in item.children"
@@ -305,22 +212,10 @@ const usesWideWorkspace = computed(
                                     :href="child.href"
                                     class="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-stone-600 transition hover:bg-[#0866ff]/8 hover:text-stone-950"
                                     :class="{
-                                        'bg-[#0866ff]/8 text-stone-950':
-                                            isCurrentOrParentUrl(child.href) &&
-                                            !item.emailBrand,
-                                        'bg-amber-100/60 text-stone-950':
-                                            isCurrentOrParentUrl(child.href) &&
-                                            item.emailBrand,
+                                        'bg-[#0866ff]/8 text-stone-950': isCurrentOrParentUrl(child.href),
                                     }"
                                 >
-                                    <span
-                                        class="size-1.5 rounded-full transition"
-                                        :class="
-                                            item.emailBrand
-                                                ? 'bg-amber-400 group-hover:bg-amber-500'
-                                                : 'bg-[#0866ff]/55 group-hover:bg-[#0866ff]'
-                                        "
-                                    />
+                                    <span class="size-1.5 rounded-full bg-[#0866ff]/55 transition group-hover:bg-[#0866ff]" />
                                     {{ child.title }}
                                 </a>
                             </div>
@@ -331,17 +226,8 @@ const usesWideWorkspace = computed(
 
             <Separator class="my-6 lg:hidden" />
 
-            <div
-                class="flex-1"
-                :class="usesWideWorkspace ? 'max-w-none' : 'md:max-w-2xl'"
-            >
-                <section
-                    :class="
-                        usesWideWorkspace
-                            ? 'max-w-none space-y-10'
-                            : 'max-w-xl space-y-10'
-                    "
-                >
+            <div class="flex-1" :class="usesWideWorkspace ? 'max-w-none' : 'md:max-w-2xl'">
+                <section :class="usesWideWorkspace ? 'max-w-none space-y-10' : 'max-w-xl space-y-10'">
                     <slot />
                 </section>
             </div>

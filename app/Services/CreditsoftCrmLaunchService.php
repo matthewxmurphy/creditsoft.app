@@ -57,6 +57,22 @@ class CreditsoftCrmLaunchService
         return $this->welcomeUrl($tokenPair, $link->crm_email);
     }
 
+    public function fallbackUrl(User $user, ?Throwable $exception = null): string
+    {
+        $baseUrl = $this->baseUrl();
+        abort_unless($baseUrl !== '', 404);
+
+        if ($exception) {
+            try {
+                $this->recordFallback($this->userLink($user), $exception);
+            } catch (Throwable) {
+                // The CRM itself is the fallback; do not let fallback bookkeeping create another 500.
+            }
+        }
+
+        return $baseUrl;
+    }
+
     protected function userLink(User $user): OfficeCrmUserLink
     {
         $email = Str::of((string) $user->email)->lower()->trim()->value();
@@ -200,7 +216,7 @@ class CreditsoftCrmLaunchService
             GRAPHQL,
             [
                 'email' => $link->crm_email,
-                'password' => $link->crm_password,
+                'password' => $this->crmPassword($link),
                 'origin' => $this->baseUrl(),
             ],
             path: 'getLoginTokenFromCredentials.loginToken.token',
@@ -250,7 +266,7 @@ class CreditsoftCrmLaunchService
             GRAPHQL,
             [
                 'email' => $link->crm_email,
-                'password' => $link->crm_password,
+                'password' => $this->crmPassword($link),
                 'locale' => 'en',
             ],
             path: 'signUp',
@@ -710,6 +726,20 @@ class CreditsoftCrmLaunchService
         ], '', '&', PHP_QUERY_RFC3986);
 
         return "{$url}?{$query}";
+    }
+
+    protected function recordFallback(OfficeCrmUserLink $link, Throwable $exception): void
+    {
+        $message = Str::limit($exception->getMessage(), 1000);
+
+        $link->forceFill([
+            'last_error' => $message,
+            'metadata' => array_filter([
+                ...($link->metadata ?? []),
+                'launch_fallback_at' => now()->toIso8601String(),
+                'launch_fallback_reason' => Str::limit($exception->getMessage(), 240),
+            ]),
+        ])->save();
     }
 
     protected function workspaceDisplayName(User $user): string

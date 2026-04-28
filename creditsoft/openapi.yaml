@@ -42,17 +42,8 @@ components:
           type: string
         external_reference:
           type: string
-          description: Website or portal reference used for idempotency/search/audit context.
-        affiliate_key:
-          type: string
-          description: Optional affiliate key from Growth settings or the website referral query string.
-        crm_values:
-          type: object
-          description: Optional custom CRM field values keyed by the Growth CRM field key.
-          additionalProperties: true
         metadata:
           type: object
-          description: Website bridge metadata such as source, page URL, UTM values, and raw referral context.
           additionalProperties: true
     ClientStatus:
       type: object

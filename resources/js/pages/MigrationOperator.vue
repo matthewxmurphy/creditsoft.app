@@ -342,7 +342,7 @@ const formatDate = (value?: string | null) => {
                             v-if="automation_discoveries.length === 0"
                             class="rounded-[22px] border border-dashed border-stone-300 bg-stone-50/70 px-4 py-6 text-sm leading-6 text-stone-500"
                         >
-                            No automation patterns spotted yet. Open an Automation workflow or workflow list, then press Go / Sync Pulse in the companion.
+                            No automation patterns spotted yet. Open an AutoFox workflow or workflow list, then press Go / Sync Pulse in the companion.
                         </p>
                     </div>
                 </section>

@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const target = "https://admin.creditsoft.app";
+---
+
+<BaseLayout title="CRM Login | CreditSoft" description="CreditSoft CRM and intranet login lives on admin.creditsoft.app.">
+  <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />
+  <main class="redirect-page">
+    <a href={target}>Continue to the CreditSoft CRM login</a>
+  </main>
+</BaseLayout>
+

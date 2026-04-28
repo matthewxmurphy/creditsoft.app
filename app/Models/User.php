@@ -211,16 +211,6 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(EmployeeReview::class);
     }
 
-    public function employeeActivitySamples(): HasMany
-    {
-        return $this->hasMany(EmployeeActivitySample::class);
-    }
-
-    public function employeeWeeklyReports(): HasMany
-    {
-        return $this->hasMany(EmployeeWeeklyReport::class);
-    }
-
     public function payrollRecords(): HasMany
     {
         return $this->hasMany(PayrollRecord::class);

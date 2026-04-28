@@ -5,6 +5,7 @@ cd /var/www/html
 
 mkdir -p \
   bootstrap/cache \
+  database \
   storage/app/private \
   storage/app/public \
   storage/framework/cache/data \
@@ -12,29 +13,9 @@ mkdir -p \
   storage/framework/views \
   storage/logs
 
-# The cache directory is a persistent Docker volume. Clear old optimized files
-# before Laravel boots so dev-only providers from a previous build cannot brick
-# startup.
-rm -f bootstrap/cache/*.php
-
-php_opcache_memory="${PHP_OPCACHE_MEMORY_CONSUMPTION:-192}"
-php_opcache_files="${PHP_OPCACHE_MAX_ACCELERATED_FILES:-20000}"
-php_opcache_validate="${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-0}"
-php_memory_limit="${PHP_MEMORY_LIMIT:-512M}"
-php_post_max_size="${PHP_POST_MAX_SIZE:-1024M}"
-php_upload_max_filesize="${PHP_UPLOAD_MAX_FILESIZE:-1024M}"
-
-cat > /usr/local/etc/php/conf.d/zz-creditsoft-cache.ini <<EOF
-memory_limit=${php_memory_limit}
-post_max_size=${php_post_max_size}
-upload_max_filesize=${php_upload_max_filesize}
-opcache.enable=1
-opcache.enable_cli=1
-opcache.memory_consumption=${php_opcache_memory}
-opcache.max_accelerated_files=${php_opcache_files}
-opcache.validate_timestamps=${php_opcache_validate}
-apc.enable_cli=1
-EOF
+if [ ! -f database/database.sqlite ]; then
+  touch database/database.sqlite
+fi
 
 if [ -z "${APP_KEY:-}" ]; then
   app_key_file="storage/app/private/container-app-key"
@@ -49,7 +30,87 @@ if [ -z "${APP_KEY:-}" ]; then
   fi
 fi
 
-if [ "${DB_CONNECTION:-pgsql}" = "pgsql" ]; then
+format_env_value() {
+  value="${1:-}"
+
+  case "$value" in
+    *[!A-Za-z0-9_./:@%+=,-]*)
+      value="${value//\\/\\\\}"
+      value="${value//\"/\\\"}"
+      printf '"%s"' "$value"
+      ;;
+    *)
+      printf '%s' "$value"
+      ;;
+  esac
+}
+
+set_laravel_env_value() {
+  key="$1"
+  value="${2:-}"
+
+  if [ -z "$value" ]; then
+    return
+  fi
+
+  formatted="$(format_env_value "$value")"
+
+  if grep -q "^${key}=" .env 2>/dev/null; then
+    awk -v key="$key" -v value="$formatted" '
+      BEGIN { prefix = key "=" }
+      index($0, prefix) == 1 { print key "=" value; next }
+      { print }
+    ' .env > .env.tmp
+    mv .env.tmp .env
+  else
+    printf '%s=%s\n' "$key" "$formatted" >> .env
+  fi
+}
+
+sync_laravel_env_family_values() {
+  env | while IFS='=' read -r key value; do
+    case "$key" in
+      APP_*|CREDITSOFT_*|DB_*|CACHE_*|SESSION_*|QUEUE_*|MAIL_*|\
+      OPENROUTER_*|OPENAI_*|ANTHROPIC_*|GEMINI_*|GOOGLE_*|OLLAMA_*|OPENCODE_*|COHERE_*|\
+      NGROK_*|TAILSCALE_*|WASABI_*|BACKUP_*|STRIPE_*|CASH_APP_*|ZELLE_*|\
+      CRM_*|TWENTY_*|OFFICE_*|AWS_*|SENDGRID_*|POSTMARK_*|MAILGUN_*|BREVO_*|\
+      META_*|FACEBOOK_*)
+        set_laravel_env_value "$key" "$value"
+        ;;
+    esac
+  done
+}
+
+if [ -d .env ]; then
+  rm -rf .env
+fi
+
+touch .env
+
+set_laravel_env_value APP_NAME "${APP_NAME:-CreditSoft}"
+set_laravel_env_value APP_ENV "${APP_ENV:-production}"
+set_laravel_env_value APP_KEY "$APP_KEY"
+set_laravel_env_value APP_DEBUG "${APP_DEBUG:-false}"
+set_laravel_env_value APP_URL "${APP_URL:-http://127.0.0.1:8001}"
+set_laravel_env_value CREDITSOFT_APP_VERSION "${CREDITSOFT_APP_VERSION:-}"
+set_laravel_env_value CREDITSOFT_APP_BUILD "${CREDITSOFT_APP_BUILD:-}"
+set_laravel_env_value DB_CONNECTION "${DB_CONNECTION:-sqlite}"
+set_laravel_env_value DB_HOST "${DB_HOST:-}"
+set_laravel_env_value DB_PORT "${DB_PORT:-}"
+set_laravel_env_value DB_DATABASE "${DB_DATABASE:-}"
+set_laravel_env_value DB_USERNAME "${DB_USERNAME:-}"
+set_laravel_env_value DB_PASSWORD "${DB_PASSWORD:-}"
+set_laravel_env_value DB_SSLMODE "${DB_SSLMODE:-}"
+set_laravel_env_value CACHE_STORE "${CACHE_STORE:-database}"
+set_laravel_env_value SESSION_DRIVER "${SESSION_DRIVER:-database}"
+set_laravel_env_value SESSION_ENCRYPT "${SESSION_ENCRYPT:-false}"
+set_laravel_env_value SESSION_DOMAIN "${SESSION_DOMAIN:-null}"
+set_laravel_env_value SESSION_LIFETIME "${SESSION_LIFETIME:-120}"
+set_laravel_env_value SESSION_PATH "${SESSION_PATH:-/}"
+set_laravel_env_value QUEUE_CONNECTION "${QUEUE_CONNECTION:-database}"
+sync_laravel_env_family_values
+
+if [ "${DB_CONNECTION:-sqlite}" = "pgsql" ]; then
   echo "Waiting for PostgreSQL at ${DB_HOST:-office-db}:${DB_PORT:-5432}/${DB_DATABASE:-creditsoft}..."
   postgres_ready="false"
 

@@ -23,8 +23,6 @@ The real installed client should run like a small local server on every workstat
 npm run intranet:client -- --serve --base https://creditsoft-intranet.example.ts.net/api/v1
 ```
 
-If no token is supplied and the runner is launched interactively, it asks for the staff member's personal CreditSoft API key. The key is only used for that run; it is not written to the saved config.
-
 Multiple nodes can be supplied:
 
 ```bash
@@ -37,12 +35,10 @@ npm run intranet:client -- --serve \
 That opens Chrome to the workstation's own local router, for example:
 
 ```text
-http://127.0.0.1/dashboard?source=intranet-client
+http://127.0.0.1:8877/dashboard?source=intranet-client
 ```
 
-The installer tries port 80 first when the workstation can bind it, then falls back to 8877 and nearby static ports. Use `--listen-port 8877` when a site wants a fixed non-80 bookmark.
-
-The router then proxies the same CreditSoft app to the real office server. This keeps the visual UI identical while avoiding the trap where another office device tries to use the server machine's `127.0.0.1`.
+The router then proxies the same CreditSoft app to the real office server. This keeps the visual UI identical while avoiding the trap where another Mac tries to use the server machine's `127.0.0.1`.
 
 ## Run From This Repo
 
@@ -61,22 +57,14 @@ npm run intranet:client -- --no-open --json --base https://creditsoft-intranet.e
 The future installer can hand this client a pairing URL:
 
 ```text
-creditsoft://pair?base=https%3A%2F%2Fcreditsoft-intranet.example.ts.net%2Fapi%2Fv1&name=Front%20Desk
+creditsoft://pair?base=https%3A%2F%2Fcreditsoft-intranet.example.ts.net%2Fapi%2Fv1&name=Mary%20MacBook
 ```
 
 For safety, the client does not save API keys to disk. A packaged desktop app should store the key in the OS keychain and pass it to this runner at launch.
 
 ## Tailscale
 
-If `tailscale` is installed, the runner reads `tailscale status --json`, pings MagicDNS peer names, and adds healthy peer candidates automatically. By default it probes likely CreditSoft ports on each online peer:
-
-```text
-80, 8001, 8000, 8877, 443
-```
-
-Use `--tailscale-ports 8001,443` or repeated `--tailscale-port 8001` options to tune the port scan. Use `--no-tailscale-discover` when a packaged office profile should only use explicit pairing URLs.
-
-Later installers can use the same lane to run `tailscale up --auth-key ...` after the owner approves the device enrollment flow.
+If `tailscale` is installed, the runner reports local Tailscale status. Later installers can use the same lane to run `tailscale up --auth-key ...` after the owner approves the device enrollment flow.
 
 ## CRM Sidecar
 

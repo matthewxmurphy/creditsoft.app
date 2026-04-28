@@ -12,14 +12,15 @@ const reviews = (await loadReviews()).slice(0, 3);
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
 });
 
 const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)));
 ---
 
 <BaseLayout
-  title="CreditSoft | Astro preview"
+  title="CreditSoft | Metro2-first credit repair platform"
   description={theme.hero.summary}
 >
   <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
@@ -61,9 +62,9 @@ const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)))
               <div class="price-stack">
                 <strong>
                   {money.format(plan.saleMonthlyPrice ?? plan.monthlyPrice)}
-                  <small>/mo</small>
+                  <small>{plan.billingLabel ?? "/mo"}</small>
                 </strong>
-                <span>{money.format(plan.annualPrice)} annual</span>
+                <span>{plan.secondaryPriceLabel ?? `${money.format(plan.annualPrice)} annual`}</span>
                 {plan.annualDiscountPercent ? (
                   <em>Save {plan.annualDiscountPercent}% annually</em>
                 ) : null}
@@ -87,7 +88,7 @@ const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)))
         <SectionHeading
           eyebrow="Why CreditSoft"
           title="The site should look like the product behind it."
-          text="The preview keeps the theme energy while making the content unmistakably CreditSoft."
+          text="The public site now carries the same product map as the office system: Metro2 review, CRM, portal, API bridge, and compliance lanes."
         />
 
         <div class="simple-grid two stagger">
@@ -112,9 +113,9 @@ const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)))
         <div class="compare-table panel">
           <div class="compare-row compare-head">
             <div>Feature</div>
-            <div>Starter</div>
-            <div>Growth</div>
-            <div>Enterprise</div>
+            <div>Monthly</div>
+            <div>Lease</div>
+            <div>10-year</div>
           </div>
           {theme.compareRows.map((row) => (
             <div class="compare-row">
@@ -133,7 +134,7 @@ const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)))
         <SectionHeading
           eyebrow="Proof"
           title="Real reviews can plug into the same visual system."
-          text="The preview is already reading live review rows, so this can move from concept to working site without changing stacks again."
+          text="Reviews, intake, pricing, and product pages belong in one Astro public site instead of being split between unrelated headers."
         />
 
         <div class="simple-grid three stagger">

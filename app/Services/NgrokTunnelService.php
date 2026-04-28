@@ -76,16 +76,24 @@ class NgrokTunnelService
             return $current;
         }
 
-        $resolvedPort = $this->targetPort($port);
+        $resolvedPort = is_numeric($port) ? (int) $port : 80;
+        $configuredDomain = trim((string) config('creditsoft.tunnels.ngrok.domain'));
+        $endpointUrl = $configuredDomain !== ''
+            ? (str_starts_with($configuredDomain, 'http://') || str_starts_with($configuredDomain, 'https://')
+                ? $configuredDomain
+                : 'https://'.$configuredDomain)
+            : null;
+        $poolingEnabled = (bool) config('creditsoft.tunnels.ngrok.pooling_enabled', true);
 
         Process::timeout(3)->run([
             '/bin/bash',
             '-lc',
             sprintf(
-                'nohup %s http 127.0.0.1:%d --pooling-enabled --config %s --log stdout >/tmp/creditsoft-ngrok.log 2>&1 < /dev/null & disown',
-                escapeshellcmd($this->binaryPath()),
+                "nohup ngrok http 127.0.0.1:%d --config %s --log stdout%s%s >/tmp/creditsoft-ngrok.log 2>&1 < /dev/null & disown",
                 $resolvedPort,
                 escapeshellarg($configPath),
+                $endpointUrl ? ' --url '.escapeshellarg($endpointUrl) : '',
+                $poolingEnabled ? ' --pooling-enabled' : '',
             ),
         ]);
 
@@ -100,33 +108,5 @@ class NgrokTunnelService
         }
 
         return $current;
-    }
-
-    protected function targetPort(int|string|null $port): int
-    {
-        $configuredPort = (int) (env('CREDITSOFT_NGROK_TARGET_PORT') ?: env('CREDITSOFT_INTERNAL_HTTP_PORT') ?: 0);
-
-        if ($configuredPort > 0) {
-            return $configuredPort;
-        }
-
-        if ($this->runningInContainer()) {
-            return 8001;
-        }
-
-        return is_numeric($port) ? (int) $port : 8001;
-    }
-
-    protected function runningInContainer(): bool
-    {
-        return is_file('/.dockerenv') || is_file('/run/.containerenv');
-    }
-
-    protected function binaryPath(): string
-    {
-        $result = Process::timeout(1)->run(['sh', '-lc', 'command -v ngrok || { test -x /opt/homebrew/bin/ngrok && printf /opt/homebrew/bin/ngrok; }']);
-        $path = trim($result->output());
-
-        return $result->successful() && $path !== '' ? $path : 'ngrok';
     }
 }

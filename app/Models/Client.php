@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\SafeEncryptedString;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -42,7 +43,7 @@ class Client extends Model
     {
         return [
             'date_of_birth' => 'date',
-            'ssn' => 'encrypted',
+            'ssn' => SafeEncryptedString::class,
             'metadata' => 'array',
         ];
     }
@@ -60,6 +61,11 @@ class Client extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(CaseNote::class)->latest();
+    }
+
+    public function portalEvents(): HasMany
+    {
+        return $this->hasMany(PortalClientEvent::class)->latest('occurred_at')->latest();
     }
 
     public function briefs(): HasMany

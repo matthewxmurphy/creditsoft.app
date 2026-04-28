@@ -44,8 +44,13 @@ if (!is_dir($storageDir) && !mkdir($storageDir, 0775, true) && !is_dir($storageD
     exit;
 }
 
+$renewalNumber = 'CSRN-'.gmdate('Ymd').'-'.strtoupper(bin2hex(random_bytes(3)));
+$paymentMemo = $renewalNumber.' or '.$payerEmail;
+
 $record = [
     'submitted_at' => gmdate('c'),
+    'renewal_number' => $renewalNumber,
+    'renewal_reference' => $renewalNumber,
     'plan' => trim((string) ($input['plan'] ?? '')),
     'billing' => trim((string) ($input['billing'] ?? 'monthly')),
     'plan_name' => trim((string) ($input['plan_name'] ?? 'CreditSoft')),
@@ -53,10 +58,13 @@ $record = [
     'zelle_discount_percent' => $input['zelle_discount_percent'] ?? null,
     'zelle_discount_amount' => $input['zelle_discount_amount'] ?? null,
     'amount' => $input['amount'] ?? null,
+    'payment_method' => trim((string) ($input['payment_method'] ?? '')),
     'office_name' => $officeName,
     'license_key' => trim((string) ($input['license_key'] ?? '')),
     'payer_email' => $payerEmail,
     'payer_phone' => $payerPhone,
+    'payment_memo' => $paymentMemo,
+    'payment_memo_email' => $payerEmail,
     'notes' => trim((string) ($input['notes'] ?? '')),
     'ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
     'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
@@ -70,4 +78,20 @@ if ($written === false) {
     exit;
 }
 
-echo json_encode(['success' => true]);
+echo json_encode([
+    'success' => true,
+    'renewal_number' => $renewalNumber,
+    'renewal_reference' => $renewalNumber,
+    'payer_email' => $payerEmail,
+    'payment_memo' => $paymentMemo,
+    'zelle' => [
+        'payee' => 'Matthew Murphy',
+        'destination' => 'hello@creditsoft.app',
+        'memo' => $paymentMemo,
+    ],
+    'cash_app' => [
+        'cashtag' => '$creditsoft',
+        'url' => 'https://cash.app/$creditsoft',
+        'note' => $paymentMemo,
+    ],
+], JSON_UNESCAPED_SLASHES);

@@ -26,15 +26,47 @@ class CtoController extends Controller
         PublicInternetSpeedService $publicSpeed,
     ): Response {
         $diagnostics->ensureFreshSnapshot();
+        $cluster = $clusterDiagnostics->overview();
 
         return Inertia::render('settings/Cto', [
             'diagnostics' => [
-                'current' => $diagnostics->current(),
+                'current' => $this->displayCurrentDiagnostics($diagnostics->current(), $cluster),
                 'history' => $diagnostics->history(),
-                'cluster' => $clusterDiagnostics->overview(),
+                'cluster' => $cluster,
             ],
             'public_speed' => $publicSpeed->summary(),
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $current
+     * @param  array<string, mixed>  $cluster
+     * @return array<string, mixed>
+     */
+    protected function displayCurrentDiagnostics(array $current, array $cluster): array
+    {
+        $localNode = collect(data_get($cluster, 'nodes', []))
+            ->first(fn (mixed $node): bool => is_array($node) && ($node['source'] ?? null) === 'local');
+        $label = (string) data_get($localNode, 'label', data_get($cluster, 'office_label', 'Local office node'));
+        $localSummary = is_array(data_get($localNode, 'summary')) ? (array) data_get($localNode, 'summary') : [];
+
+        foreach (['load', 'memory', 'swap', 'disk', 'network'] as $key) {
+            if (is_array(data_get($localSummary, $key))) {
+                data_set($current, $key, data_get($localSummary, $key));
+            }
+        }
+
+        if (is_array(data_get($localSummary, 'machine'))) {
+            data_set($current, 'machine', [
+                ...(array) data_get($current, 'machine', []),
+                ...(array) data_get($localSummary, 'machine', []),
+            ]);
+        }
+
+        data_set($current, 'machine.hostname', $label);
+        data_set($current, 'machine.office_label', $label);
+
+        return $current;
     }
 
     public function updatePublicSpeed(Request $request, PublicInternetSpeedService $publicSpeed): RedirectResponse
@@ -197,7 +229,7 @@ class CtoController extends Controller
             ],
             'advisor_rules' => [
                 'apple_silicon_memory' => 'For macOS or Apple Silicon nodes, do not recommend adding RAM from high used memory alone. Treat memory_pressure, available bytes, swap used, swapins, and swapouts as the evidence.',
-                'm4_pro_role_fit' => 'An M4 Pro test node is a valid secondary server node when memory pressure is healthy, swap is low, and the service is online; compare workload role fit instead of judging only against the Ryzen capacity.',
+                'apple_silicon_role_fit' => 'A macOS Apple Silicon node is a valid secondary server node when memory pressure is healthy, swap is low, and the service is online; compare workload role fit instead of judging only against the largest Linux peer.',
                 'router_actions' => 'Prefer healthiest node may move client traffic, memory saver may reduce app/runtime footprint, and RAM action is only for sustained pressure that software cannot relieve.',
             ],
             'history_window' => [
@@ -292,7 +324,7 @@ class CtoController extends Controller
         }
 
         if ($isMac && in_array($pressureLevel, ['watch', 'pressured', 'critical'], true)) {
-            return 'macOS pressure is the decision point here; reduce service footprint or rebalance traffic before calling the M4 hardware undersized.';
+            return 'macOS pressure is the decision point here; reduce service footprint or rebalance traffic before calling the Apple Silicon node undersized.';
         }
 
         if (is_numeric($pressureFreePercent)) {

@@ -175,12 +175,3 @@
         background-attachment: fixed;
     }
 }
-
-@layer components {
-    [data-reka-popper-content-wrapper],
-    [data-slot='dropdown-menu-content'],
-    [data-slot='dropdown-menu-sub-content'],
-    [data-slot='select-content'] {
-        z-index: 2147483647 !important;
-    }
-}

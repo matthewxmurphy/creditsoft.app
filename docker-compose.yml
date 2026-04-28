@@ -8,16 +8,12 @@ services:
     image: creditsoft/intranet:local
     restart: unless-stopped
     ports:
-      - "${CREDITSOFT_DOCKER_BIND:-0.0.0.0}:${CREDITSOFT_DOCKER_PORT:-8001}:8001"
+      - "${CREDITSOFT_DOCKER_PORT:-8001}:8001"
     env_file:
       - .env.docker
     volumes:
-      - ./.env.docker:/var/www/html/.env
       - creditsoft_storage:/var/www/html/storage
       - creditsoft_cache:/var/www/html/bootstrap/cache
-    depends_on:
-      office-db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8001/api/v1') !== false ? 0 : 1);"]
       interval: 30s
@@ -34,12 +30,9 @@ services:
     env_file:
       - .env.docker
     volumes:
-      - ./.env.docker:/var/www/html/.env
       - creditsoft_storage:/var/www/html/storage
       - creditsoft_cache:/var/www/html/bootstrap/cache
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=120"]
-    healthcheck:
-      disable: true
 
   scheduler:
     image: creditsoft/intranet:local
@@ -50,12 +43,9 @@ services:
     env_file:
       - .env.docker
     volumes:
-      - ./.env.docker:/var/www/html/.env
       - creditsoft_storage:/var/www/html/storage
       - creditsoft_cache:/var/www/html/bootstrap/cache
     command: ["php", "artisan", "schedule:work"]
-    healthcheck:
-      disable: true
 
   local-router:
     profiles:
@@ -64,10 +54,13 @@ services:
     image: node:22-bookworm-slim
     working_dir: /app
     restart: unless-stopped
+    depends_on:
+      intranet:
+        condition: service_healthy
     volumes:
       - ./intranet-client:/app/intranet-client:ro
     ports:
-      - "${CREDITSOFT_ROUTER_BIND:-127.0.0.1}:${CREDITSOFT_ROUTER_PORT:-8877}:8877"
+      - "${CREDITSOFT_ROUTER_PORT:-8877}:8877"
     command:
       - node
       - /app/intranet-client/bin/creditsoft-intranet-client.mjs
@@ -78,21 +71,15 @@ services:
       - --listen-port
       - "8877"
       - --base
-      - "${CREDITSOFT_ROUTER_BASE_URL:-http://intranet:8001/api/v1}"
+      - http://intranet:8001/api/v1
 
   office-db:
+    profiles:
+      - office
+      - postgres
+      - crm
     image: postgres:16
     restart: unless-stopped
-    command:
-      - postgres
-      - -c
-      - "shared_buffers=${OFFICE_PG_SHARED_BUFFERS:-256MB}"
-      - -c
-      - "effective_cache_size=${OFFICE_PG_EFFECTIVE_CACHE_SIZE:-1GB}"
-      - -c
-      - "work_mem=${OFFICE_PG_WORK_MEM:-4MB}"
-      - -c
-      - "maintenance_work_mem=${OFFICE_PG_MAINTENANCE_WORK_MEM:-64MB}"
     ports:
       - "${OFFICE_PG_PUBLIC_PORT:-5432}:5432"
     environment:
@@ -133,7 +120,7 @@ services:
       SERVER_URL: "${CRM_SERVER_URL:-http://localhost:3000}"
       REDIS_URL: "redis://crm-redis:6379"
       DISABLE_DB_MIGRATIONS: "${CRM_DISABLE_DB_MIGRATIONS:-false}"
-      DISABLE_CRON_JOBS_REGISTRATION: "${CRM_DISABLE_CRON_JOBS_REGISTRATION:-true}"
+      DISABLE_CRON_JOBS_REGISTRATION: "${CRM_DISABLE_CRON_JOBS_REGISTRATION:-false}"
       STORAGE_TYPE: "${CRM_STORAGE_TYPE:-local}"
       APP_SECRET: "${CRM_APP_SECRET:-replace_me_with_a_random_string}"
     depends_on:
@@ -143,10 +130,9 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:3000/healthz || exit 1"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 60
-      start_period: 180s
+      retries: 20
     volumes:
       - crm_server_data:/app/packages/twenty-server/.local-storage
 
@@ -174,8 +160,6 @@ services:
         condition: service_healthy
     volumes:
       - crm_server_data:/app/packages/twenty-server/.local-storage
-    healthcheck:
-      disable: true
 
   crm-redis:
     profiles:

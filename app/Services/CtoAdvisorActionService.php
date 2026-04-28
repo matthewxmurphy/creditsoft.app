@@ -117,7 +117,7 @@ class CtoAdvisorActionService
      */
     protected function recordRamAction(array $payload): array
     {
-        $targetLabel = $this->string($payload['target_label'] ?? null) ?: 'M4';
+        $targetLabel = $this->string($payload['target_label'] ?? null) ?: 'selected office node';
 
         $this->installerState->merge([
             'cto_actions' => [

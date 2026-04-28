@@ -13,6 +13,7 @@ use App\Models\EmployeeProfile;
 use App\Models\LetterDraft;
 use App\Models\MigrationOperatorCapture;
 use App\Models\OutboundSignal;
+use App\Models\PortalClientEvent;
 use App\Models\ReportingCycle;
 use App\Models\Task;
 use App\Models\User;
@@ -307,6 +308,8 @@ class ClientPortalController extends Controller
             'page_url' => ['nullable', 'string', 'max:2048'],
             'page_title' => ['nullable', 'string', 'max:255'],
             'exclude_provider_account_id' => ['nullable', 'integer'],
+            'exclude_provider_account_ids' => ['nullable', 'array'],
+            'exclude_provider_account_ids.*' => ['integer'],
             'force_update' => ['nullable', 'boolean'],
             'worker_id' => ['nullable', 'string', 'max:120'],
             'queue_scope' => ['nullable', 'string', 'in:active,reactivation'],
@@ -322,13 +325,21 @@ class ClientPortalController extends Controller
         $workerId = $this->normalizeCompanionWorkerId($validated['worker_id'] ?? null);
         $forceUpdate = (bool) ($validated['force_update'] ?? false);
         $queueScope = $this->normalizeCompanionQueueScope($validated['queue_scope'] ?? null);
+        $excludedProviderAccountIds = collect($validated['exclude_provider_account_ids'] ?? [])
+            ->push($validated['exclude_provider_account_id'] ?? null)
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
         $claim = $this->claimNextCompanionProviderAccount(
             $providerKey,
             $actorId,
             $workerId,
-            isset($validated['exclude_provider_account_id']) ? (int) $validated['exclude_provider_account_id'] : null,
+            $excludedProviderAccountIds[0] ?? null,
             $forceUpdate,
             $queueScope,
+            $excludedProviderAccountIds,
         );
         /** @var ClientProviderAccount|null $providerAccount */
         $providerAccount = $claim['provider_account'];
@@ -1212,6 +1223,156 @@ class ClientPortalController extends Controller
                 'due_at' => optional($task->due_at)?->toIso8601String(),
             ],
         ], 201);
+    }
+
+    public function storePortalEvent(Request $request, AuditTrail $auditTrail, ?string $clientCuid = null): JsonResponse
+    {
+        $validated = $request->validate([
+            'client_cuid' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'client_name' => ['nullable', 'string', 'max:255'],
+            'source' => ['nullable', 'string', 'max:80'],
+            'source_event_id' => ['nullable', 'string', 'max:255'],
+            'event_type' => ['required', 'string', 'max:80'],
+            'tool_key' => ['nullable', 'string', 'max:120'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'summary' => ['nullable', 'string', 'max:4000'],
+            'message' => ['nullable', 'string', 'max:10000'],
+            'score' => ['nullable', 'integer', 'min:300', 'max:850'],
+            'status' => ['nullable', 'string', 'max:80'],
+            'payload' => ['nullable', 'array'],
+            'occurred_at' => ['nullable', 'date'],
+            'create_staff_task' => ['nullable', 'boolean'],
+        ]);
+
+        $client = $this->resolvePortalEventClient(
+            $clientCuid ?: ($validated['client_cuid'] ?? null),
+            $validated['email'] ?? null,
+            $validated['client_name'] ?? null,
+        );
+
+        if (! $client) {
+            throw ValidationException::withMessages([
+                'client' => 'CreditSoft could not match this portal event to an existing client.',
+            ]);
+        }
+
+        $source = trim((string) ($validated['source'] ?? 'client_portal')) ?: 'client_portal';
+        $sourceEventId = trim((string) ($validated['source_event_id'] ?? '')) ?: null;
+
+        $event = PortalClientEvent::query()->updateOrCreate(
+            [
+                'source' => $source,
+                'source_event_id' => $sourceEventId ?: 'generated-'.sha1(json_encode([
+                    $client->getKey(),
+                    $validated['event_type'],
+                    $validated['tool_key'] ?? null,
+                    $validated['title'] ?? null,
+                    $validated['summary'] ?? null,
+                    $validated['message'] ?? null,
+                    $validated['occurred_at'] ?? null,
+                ], JSON_THROW_ON_ERROR)),
+            ],
+            [
+                'client_id' => $client->getKey(),
+                'event_type' => Str::snake($validated['event_type']),
+                'tool_key' => blank($validated['tool_key'] ?? null) ? null : Str::slug((string) $validated['tool_key'], '_'),
+                'title' => blank($validated['title'] ?? null) ? null : (string) $validated['title'],
+                'summary' => blank($validated['summary'] ?? null) ? null : (string) $validated['summary'],
+                'message' => blank($validated['message'] ?? null) ? null : (string) $validated['message'],
+                'score' => $validated['score'] ?? null,
+                'status' => blank($validated['status'] ?? null) ? null : Str::snake((string) $validated['status']),
+                'payload' => $validated['payload'] ?? null,
+                'occurred_at' => filled($validated['occurred_at'] ?? null) ? Carbon::parse((string) $validated['occurred_at']) : now(),
+            ],
+        );
+
+        $clientChanges = [];
+
+        if (isset($validated['score']) && $client->current_score !== (int) $validated['score']) {
+            $clientChanges['current_score'] = [
+                'before' => $client->current_score,
+                'after' => (int) $validated['score'],
+            ];
+            $client->current_score = (int) $validated['score'];
+        }
+
+        if (filled($validated['status'] ?? null)) {
+            $status = Str::snake((string) $validated['status']);
+            if ($client->status !== $status) {
+                $clientChanges['status'] = [
+                    'before' => $client->status,
+                    'after' => $status,
+                ];
+                $client->status = $status;
+            }
+        }
+
+        if ($clientChanges !== []) {
+            $client->save();
+        }
+
+        $note = null;
+        $noteText = $this->portalEventNoteText($event);
+
+        if ($noteText !== '') {
+            $note = $client->notes()->create([
+                'user_id' => $request->user()?->getKey(),
+                'visibility' => 'working_note',
+                'note' => $noteText,
+                'sync_eligible' => false,
+                'ai_summary' => $event->summary,
+            ]);
+        }
+
+        $task = null;
+        if ((bool) ($validated['create_staff_task'] ?? false) || in_array($event->event_type, ['message', 'document_request'], true)) {
+            $task = $client->tasks()->create([
+                'assigned_to' => $request->user()?->getKey(),
+                'title' => $event->title ?: ($event->event_type === 'message' ? 'Review client portal message' : 'Review client portal update'),
+                'details' => $noteText ?: $event->summary,
+                'status' => 'open',
+                'priority' => $event->event_type === 'message' ? 'normal' : 'low',
+                'source' => 'client_portal',
+                'due_at' => now()->addDay(),
+            ]);
+        }
+
+        $auditTrail->record(
+            $request->user(),
+            'api.portal_event.received',
+            "Portal {$event->event_type} saved for {$client->display_name}.",
+            $event,
+            [
+                'source' => $source,
+                'client_cuid' => $client->cuid,
+                'source_event_id' => $event->source_event_id,
+                'client_changes' => $clientChanges,
+                'case_note_id' => $note?->getKey(),
+                'task_id' => $task?->getKey(),
+            ],
+        );
+
+        return response()->json([
+            'data' => [
+                'id' => $event->getKey(),
+                'client_cuid' => $client->cuid,
+                'event_type' => $event->event_type,
+                'tool_key' => $event->tool_key,
+                'title' => $event->title,
+                'summary' => $event->summary,
+                'message' => $event->message,
+                'score' => $event->score,
+                'status' => $event->status,
+                'occurred_at' => optional($event->occurred_at)?->toIso8601String(),
+                'case_note_created' => (bool) $note,
+                'task_created' => (bool) $task,
+            ],
+            'meta' => [
+                'matched_client' => $client->display_name,
+                'client_changes' => $clientChanges,
+            ],
+        ], $event->wasRecentlyCreated ? 201 : 200);
     }
 
     public function documents(string $clientCuid): JsonResponse
@@ -2173,6 +2334,14 @@ class ClientPortalController extends Controller
                     return true;
                 }
 
+                if (
+                    blank($document->file_path)
+                    && Str::lower((string) $document->title) === Str::lower($title)
+                    && in_array((string) data_get($metadata, 'source'), ['webarchive_inventory', 'browser_companion'], true)
+                ) {
+                    return true;
+                }
+
                 return $sourceDocumentUid === ''
                     && $downloadUrl === ''
                     && Str::lower((string) $document->title) === Str::lower($title);
@@ -2222,6 +2391,63 @@ class ClientPortalController extends Controller
         return Client::query()
             ->where('cuid', $clientCuid)
             ->firstOrFail();
+    }
+
+    protected function resolvePortalEventClient(?string $clientCuid, ?string $email, ?string $clientName): ?Client
+    {
+        $clientCuid = trim((string) $clientCuid);
+
+        if ($clientCuid !== '') {
+            return Client::query()
+                ->where('cuid', $clientCuid)
+                ->first();
+        }
+
+        $email = Str::lower(trim((string) $email));
+
+        if ($email !== '') {
+            $match = Client::query()
+                ->whereRaw('lower(email) = ?', [$email])
+                ->orWhereRaw('lower(secondary_email) = ?', [$email])
+                ->latest('updated_at')
+                ->first();
+
+            if ($match) {
+                return $match;
+            }
+        }
+
+        $nameParts = $this->parseClientName($clientName);
+        $firstName = Str::lower(trim((string) ($nameParts['first_name'] ?? '')));
+        $lastName = Str::lower(trim((string) ($nameParts['last_name'] ?? '')));
+
+        if ($firstName === '' && $lastName === '') {
+            return null;
+        }
+
+        return Client::query()
+            ->when($firstName !== '', fn ($query) => $query->whereRaw('lower(first_name) = ?', [$firstName]))
+            ->when($lastName !== '', fn ($query) => $query->whereRaw('lower(last_name) = ?', [$lastName]))
+            ->latest('updated_at')
+            ->first();
+    }
+
+    protected function portalEventNoteText(PortalClientEvent $event): string
+    {
+        $title = trim((string) ($event->title ?: Str::headline($event->event_type)));
+        $parts = array_values(array_filter([
+            $event->tool_key ? 'Tool: '.Str::headline(str_replace('_', ' ', $event->tool_key)) : null,
+            $event->summary ? 'Summary: '.$event->summary : null,
+            $event->message ? 'Client message: '.$event->message : null,
+            $event->score ? 'Score signal: '.$event->score : null,
+            $event->status ? 'Status signal: '.str_replace('_', ' ', $event->status) : null,
+        ]));
+
+        if ($parts === []) {
+            return '';
+        }
+
+        return trim($title."\n\n".implode("\n", $parts));
     }
 
     /**
@@ -4326,9 +4552,22 @@ class ClientPortalController extends Controller
         };
     }
 
-    protected function companionProviderAccountQuery(?string $providerKey, ?int $actorId = null, ?int $excludeProviderAccountId = null, string $queueScope = 'active')
+    protected function companionProviderAccountQuery(
+        ?string $providerKey,
+        ?int $actorId = null,
+        ?int $excludeProviderAccountId = null,
+        string $queueScope = 'active',
+        array $excludeProviderAccountIds = [],
+    )
     {
         $queueScope = $this->normalizeCompanionQueueScope($queueScope);
+        $excludedProviderAccountIds = collect($excludeProviderAccountIds)
+            ->push($excludeProviderAccountId)
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
 
         return ClientProviderAccount::query()
             ->select('client_provider_accounts.*')
@@ -4350,8 +4589,8 @@ class ClientPortalController extends Controller
                     ->orWhereNotNull('client_provider_accounts.login_username');
             })
             ->when(
-                $excludeProviderAccountId,
-                fn ($query) => $query->where('client_provider_accounts.id', '!=', $excludeProviderAccountId)
+                $excludedProviderAccountIds !== [],
+                fn ($query) => $query->whereNotIn('client_provider_accounts.id', $excludedProviderAccountIds)
             )
             ->whereRaw('not ('.$this->companionLeadClientPredicateSql().')')
             ->when(
@@ -4582,12 +4821,20 @@ class ClientPortalController extends Controller
         ?int $excludeProviderAccountId = null,
         bool $forceUpdate = false,
         string $queueScope = 'active',
+        array $excludeProviderAccountIds = [],
     ): array {
         $workerId = $this->normalizeCompanionWorkerId($workerId);
         $queueScope = $this->normalizeCompanionQueueScope($queueScope);
+        $excludedProviderAccountIds = collect($excludeProviderAccountIds)
+            ->push($excludeProviderAccountId)
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
 
-        return DB::transaction(function () use ($providerKey, $actorId, $workerId, $excludeProviderAccountId, $forceUpdate, $queueScope): array {
-            $candidates = $this->companionProviderAccountQuery($providerKey, $actorId, $excludeProviderAccountId, $queueScope)
+        return DB::transaction(function () use ($providerKey, $actorId, $workerId, $excludedProviderAccountIds, $forceUpdate, $queueScope): array {
+            $candidates = $this->companionProviderAccountQuery($providerKey, $actorId, null, $queueScope, $excludedProviderAccountIds)
                 ->lockForUpdate()
                 ->get();
 

@@ -3,17 +3,11 @@
 return [
     'config_path' => base_path('creditsoft'),
     'portal_url' => env('CREDITSOFT_PORTAL_URL', 'https://www.creditsoft.app'),
-    'mail' => [
-        'enabled' => filter_var(env('CREDITSOFT_MAIL_ENABLED', false), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false,
-        'provider' => env('CREDITSOFT_MAIL_PROVIDER', 'custom_smtp'),
-        'provider_settings' => env('CREDITSOFT_MAIL_PROVIDER_SETTINGS', ''),
-        'local_relay' => filter_var(env('CREDITSOFT_MAIL_LOCAL_RELAY', false), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false,
-    ],
-    'lead_capture' => [
-        'turnstile_site_key' => env('CREDITSOFT_TURNSTILE_SITE_KEY', env('TURNSTILE_SITE_KEY', '')),
-        'turnstile_secret' => env('CREDITSOFT_TURNSTILE_SECRET_KEY', env('TURNSTILE_SECRET_KEY', '')),
-        'require_turnstile' => filter_var(env('CREDITSOFT_LEAD_CAPTURE_REQUIRE_TURNSTILE', false), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false,
-        'require_mx' => filter_var(env('CREDITSOFT_LEAD_CAPTURE_REQUIRE_MX', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
+    'diagnostics' => [
+        'host_snapshot_path' => env('CREDITSOFT_HOST_DIAGNOSTICS_PATH', storage_path('app/private/host-diagnostics.json')),
+        'host_snapshot_max_age_seconds' => (int) env('CREDITSOFT_HOST_DIAGNOSTICS_MAX_AGE_SECONDS', 900),
+        'cluster_probe_bytes' => (int) env('CREDITSOFT_CLUSTER_PROBE_BYTES', 64 * 1024 * 1024),
+        'public_speed_path' => env('CREDITSOFT_PUBLIC_SPEED_PATH', storage_path('app/private/public-internet-speed.json')),
     ],
     'audit' => [
         'retention_days' => (int) env('CREDITSOFT_AUDIT_RETENTION_DAYS', 30),
@@ -23,17 +17,6 @@ return [
         'disk_free_critical_gb' => (float) env('CREDITSOFT_AUDIT_DISK_FREE_CRITICAL_GB', 20),
         'disk_percent_warning' => (float) env('CREDITSOFT_AUDIT_DISK_PERCENT_WARNING', 20),
         'disk_percent_critical' => (float) env('CREDITSOFT_AUDIT_DISK_PERCENT_CRITICAL', 10),
-    ],
-    'diagnostics' => [
-        'host_snapshot_path' => env('CREDITSOFT_HOST_DIAGNOSTICS_PATH', storage_path('app/private/host-diagnostics.json')),
-        'host_snapshot_max_age_seconds' => (int) env('CREDITSOFT_HOST_DIAGNOSTICS_MAX_AGE_SECONDS', 900),
-        'cluster_probe_bytes' => (int) env('CREDITSOFT_CLUSTER_PROBE_BYTES', 64 * 1024 * 1024),
-        'public_speed_path' => env('CREDITSOFT_PUBLIC_SPEED_PATH', storage_path('app/private/public-internet-speed.json')),
-    ],
-    'cluster' => [
-        'restore_incoming_backups' => filter_var(env('CREDITSOFT_CLUSTER_RESTORE_INCOMING_BACKUPS', false), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false,
-        'restore_marker_path' => env('CREDITSOFT_CLUSTER_RESTORE_MARKER_PATH') ?: storage_path('app/private/database-backups/cluster-restore-state.json'),
-        'scheduled_database_backups' => filter_var(env('CREDITSOFT_DATABASE_BACKUPS_SCHEDULED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
     ],
     'ui' => [
         'review_label_style' => env('CREDITSOFT_REVIEW_LABEL_STYLE', '10'),
@@ -118,6 +101,14 @@ return [
     ],
     'tailscale_hostname' => env('CREDITSOFT_TAILSCALE_HOSTNAME', 'creditsoft-intranet'),
     'access' => [
+        'local_auth_bypass' => [
+            'enabled' => (bool) env('CREDITSOFT_LOCAL_AUTH_BYPASS', false),
+            'email' => env('CREDITSOFT_LOCAL_AUTH_BYPASS_EMAIL', 'mmurphy@creditsoft.app'),
+            'allowed_hosts' => array_values(array_filter(array_map(
+                'trim',
+                explode(',', env('CREDITSOFT_LOCAL_AUTH_BYPASS_HOSTS', '127.0.0.1,localhost,::1')),
+            ))),
+        ],
         'roles' => [
             'owner_admin' => [
                 'label' => 'Owner admin',
@@ -348,8 +339,7 @@ return [
             'required' => filter_var(env('CREDITSOFT_TAILSCALE_REQUIRED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
             'hostname' => env('CREDITSOFT_TAILSCALE_HOSTNAME', 'creditsoft-intranet'),
             'tailnet' => env('CREDITSOFT_TAILSCALE_TAILNET', ''),
-            'api_key' => env('CREDITSOFT_TAILSCALE_API_KEY') ?: env('CREDITSOFT_TAILSCALE_API_AUTHTOKEN'),
-            'api_authtoken' => env('CREDITSOFT_TAILSCALE_API_AUTHTOKEN'),
+            'api_key' => env('CREDITSOFT_TAILSCALE_API_KEY'),
             'api_key_expires_at' => env('CREDITSOFT_TAILSCALE_API_KEY_EXPIRES_AT', ''),
             'api_key_warning_days' => (int) env('CREDITSOFT_TAILSCALE_API_KEY_WARNING_DAYS', 3),
         ],
@@ -360,13 +350,8 @@ return [
             'api_key' => env('CREDITSOFT_NGROK_API_KEY'),
             'domain' => env('CREDITSOFT_NGROK_DOMAIN', ''),
             'config_path' => env('CREDITSOFT_NGROK_CONFIG_PATH', ''),
+            'pooling_enabled' => filter_var(env('CREDITSOFT_NGROK_POOLING_ENABLED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
         ],
-    ],
-    'cluster_ssh' => [
-        'enabled' => filter_var(env('CREDITSOFT_CLUSTER_SSH_ENABLED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
-        'identity_file' => env('CREDITSOFT_CLUSTER_SSH_IDENTITY_FILE', 'creditsoft_cluster_ed25519'),
-        'comment_prefix' => env('CREDITSOFT_CLUSTER_SSH_COMMENT_PREFIX', 'creditsoft@cluster'),
-        'source_cidrs' => env('CREDITSOFT_CLUSTER_SSH_SOURCE_CIDRS', '100.64.0.0/10,fd7a:115c:a1e0::/48'),
     ],
     'api' => [
         'enabled' => filter_var(env('CREDITSOFT_API_ENABLED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
@@ -419,13 +404,6 @@ return [
             ],
             'browser_companion' => [
                 'label' => 'Browser companion',
-            ],
-        ],
-        'feature_trials' => [
-            'browser_companion' => [
-                'days' => (int) env('CREDITSOFT_BROWSER_COMPANION_TRIAL_DAYS', 7),
-                'label' => 'Browser companion trial',
-                'upgrade_message' => 'The one-week Browser companion trial has ended. Upgrade to Enterprise Pro to keep pulling provider reports, importing legacy CRM data, and using companion automations.',
             ],
         ],
         'default_features' => [
@@ -545,8 +523,6 @@ return [
         'state_path' => env('CREDITSOFT_INSTALLER_STATE_PATH', storage_path('app/private/install/state.json')),
         'ad_feed_path' => env('CREDITSOFT_AD_FEED_PATH', base_path('creditsoft/install_ads.json')),
         'ad_feed_url' => env('CREDITSOFT_AD_FEED_URL', 'https://www.creditsoft.app/api/install-ads'),
-        'billing_intelligence_enabled' => filter_var(env('CREDITSOFT_BILLING_INTELLIGENCE_ENABLED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
-        'billing_intelligence_url' => env('CREDITSOFT_BILLING_INTELLIGENCE_URL', 'https://www.creditsoft.app/api/license-billing-intelligence'),
         'logo_path' => env('CREDITSOFT_INSTALLER_LOGO_PATH', public_path('installer/branding')),
         'logo_url_prefix' => env('CREDITSOFT_INSTALLER_LOGO_URL_PREFIX', '/installer/branding'),
         'license_mode' => env('CREDITSOFT_LICENSE_MODE', 'auto'),
@@ -557,9 +533,10 @@ return [
         'verification_window_days' => (int) env('CREDITSOFT_LICENSE_VERIFICATION_WINDOW_DAYS', 7),
     ],
     'updates' => [
-        'current_version' => env('CREDITSOFT_APP_VERSION', '0.9.1'),
-        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '0.9.1')),
+        'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.27.1'),
+        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.27.1')),
         'channel' => env('CREDITSOFT_UPDATE_CHANNEL', 'stable'),
+        'release_timezone' => env('CREDITSOFT_RELEASE_TIMEZONE', 'America/Los_Angeles'),
         'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://updates.creditsoft.app/api/update-feed'),
         'fallback_feed_url' => env('CREDITSOFT_UPDATE_FEED_FALLBACK_URL', ''),
         'cache_minutes' => (int) env('CREDITSOFT_UPDATE_FEED_CACHE_MINUTES', 15),
@@ -573,7 +550,7 @@ return [
             'opencode_zen' => [
                 'driver' => 'openai-compatible',
                 'key' => env('OPENCODE_API_KEY'),
-                'url' => env('OPENCODE_BASE_URL', 'https://opencode.ai/zen/v1/chat/completions'),
+                'url' => 'https://opencode.ai/zen/v1/chat/completions',
                 'models' => [
                     'text' => [
                         'default' => env('OPENCODE_TEXT_MODEL', 'big-pickle'),

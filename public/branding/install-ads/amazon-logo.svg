@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="160" viewBox="0 0 520 160" role="img" aria-labelledby="title desc">
-  <title id="title">Amazon link mark</title>
-  <desc id="desc">Amazon wordmark style text with a smile arrow for the installer ad rail.</desc>
-  <rect width="520" height="160" rx="22" fill="#fff"/>
-  <text x="48" y="82" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700">Amazon</text>
-  <path d="M88 104c86 42 205 43 326 1" fill="none" stroke="#ff9900" stroke-width="13" stroke-linecap="round"/>
-  <path d="M392 90l48 10-32 36" fill="none" stroke="#ff9900" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

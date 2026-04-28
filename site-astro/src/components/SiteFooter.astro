@@ -1,26 +1,226 @@
 ---
-import { footerGroups } from '../content/site';
+const {
+  summary = "CreditSoft gives credit repair offices a Metro2-first public site, local-first CRM nodes, client portal, update lane, and compliance workflow without looking like generic software.",
+  contact = "hello@creditsoft.app",
+} = Astro.props;
+
+const socialLinks = [
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/GetCreditSoft",
+    icon: "facebook",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/creditsoftapp/",
+    icon: "instagram",
+  },
+  {
+    label: "Threads",
+    href: "https://www.threads.com/@creditsoftapp",
+    icon: "threads",
+  },
+  {
+    label: "X",
+    href: "https://x.com/creditsoftapp",
+    icon: "x",
+  },
+] as const;
+
+const socialIcons = {
+  facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v2H6v4h3v5h4v-5h3l1-4h-4V9c0-.6.4-1 1-1Z"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.2"/><circle cx="12" cy="12" r="3.6"/><circle cx="17.15" cy="6.85" r="1.1"/></svg>',
+  threads: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.9 10.25c-.25-2.35-1.6-3.85-3.95-3.85-2.75 0-4.45 2.1-4.45 5.6 0 3.55 1.75 5.65 4.65 5.65 2.15 0 3.9-1.1 3.9-3.05 0-1.7-1.35-2.55-3.55-2.55-1.35 0-2.35.62-2.35 1.62 0 .9.75 1.45 1.85 1.45 1.45 0 2.35-.9 2.35-2.55v-.35c0-2.2-1-3.35-2.8-3.35-.95 0-1.8.32-2.5.95"/><path d="M19.45 12.05c0 5.45-2.72 8.45-7.45 8.45s-7.45-3-7.45-8.45S7.27 3.5 12 3.5s7.45 3.1 7.45 8.55Z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.2 4h4.15l4.52 6.05L18.05 4h1.78l-6.12 7.12L20.25 20h-4.14l-4.9-6.57L5.57 20H3.8l6.58-7.66L4.2 4Zm3.3 1.35 9.28 13.3h.98L8.5 5.35H7.5Z"/></svg>',
+} as const;
 ---
 
-<footer class="site-footer">
-	<div class="site-footer__brand">
-		<img src="/brand/creditsoft-wordmark.png" alt="CreditSoft" />
-		<p>
-			CreditSoft gives credit offices a cleaner website, portal, update lane, and operations surface without
-			looking like generic software.
-		</p>
-	</div>
+<footer class="site-footer section">
+  <div class="page-wrap footer-shell">
+    <div class="footer-brand">
+      <div class="footer-mark">
+        <a class="footer-logo" href="/" aria-label="CreditSoft home">
+          <img src="/brand/creditsoft-wordmark.png" alt="CreditSoft.app" width="1073" height="282" loading="lazy" decoding="async" />
+        </a>
+        <small>Metro2-first credit repair software</small>
+      </div>
+      <h2>Built to feel like one product from the first visit to the office workflow.</h2>
+      <p>{summary}</p>
+      <div class="footer-socials" aria-label="CreditSoft social links">
+        {socialLinks.map((social) => (
+          <a href={social.href} target="_blank" rel="noopener" aria-label={social.label} title={social.label}>
+            <Fragment set:html={socialIcons[social.icon]} />
+          </a>
+        ))}
+      </div>
+    </div>
 
-	<div class="site-footer__groups">
-		{footerGroups.map((group) => (
-			<div class="site-footer__group">
-				<h3>{group.title}</h3>
-				<ul>
-					{group.links.map((link) => (
-						<li><a href={link.href}>{link.label}</a></li>
-					))}
-				</ul>
-			</div>
-		))}
-	</div>
+    <div class="footer-columns">
+      <div class="footer-links">
+        <strong>Explore</strong>
+        <a href="/">Home</a>
+        <a href="/features">Features</a>
+        <a href="/videos">Videos</a>
+        <a href="/metro2">Metro2 review</a>
+        <a href="/compliance">FCRA / FDCPA</a>
+        <a href="/pricing-plan">Pricing</a>
+      </div>
+      <div class="footer-links">
+        <strong>Office</strong>
+        <a href="https://admin.creditsoft.app">Office login</a>
+        <a href="/multi-office-nodes">Multi-office nodes</a>
+        <a href="/api-bridge">API bridge</a>
+        <a href="/migration">Migration</a>
+      </div>
+      <div class="footer-links">
+        <strong>Company</strong>
+        <a href="/contact-us">Contact</a>
+        <a href="/about-us">About</a>
+        <a href="/outsourcing">Outsourcing</a>
+        <a href={`mailto:${contact}`}>{contact}</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/cookies">Cookies</a>
+      </div>
+    </div>
+  </div>
 </footer>
+
+<style>
+  .site-footer {
+    padding-top: 40px;
+    padding-bottom: 66px;
+  }
+
+  .footer-shell {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 48px;
+    padding-top: 76px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-brand {
+    max-width: 58ch;
+  }
+
+  .footer-mark {
+    display: grid;
+    justify-items: start;
+    gap: 10px;
+  }
+
+  .footer-logo {
+    display: inline-flex;
+    width: min(244px, 100%);
+  }
+
+  .footer-logo img {
+    width: 100%;
+    height: auto;
+    max-height: 64px;
+    border-radius: 8px;
+    filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.35));
+  }
+
+  .footer-mark small {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+  }
+
+  .footer-brand h2 {
+    margin: 26px 0 14px;
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+  }
+
+  .footer-brand p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .footer-socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .footer-socials a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    color: #e2e8f0;
+    opacity: 0.86;
+    transition:
+      color 180ms ease,
+      opacity 180ms ease,
+      transform 180ms ease;
+  }
+
+  .footer-socials a:hover {
+    color: #5bd695;
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+
+  .footer-socials svg {
+    width: 23px;
+    height: 23px;
+    display: block;
+  }
+
+  .footer-socials path,
+  .footer-socials rect,
+  .footer-socials circle {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .footer-socials [aria-label="Facebook"] path,
+  .footer-socials [aria-label="X"] path {
+    fill: currentColor;
+    stroke: none;
+  }
+
+  .footer-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 24px;
+  }
+
+  .footer-links {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  .footer-links strong {
+    font-size: 1rem;
+  }
+
+  .footer-links a,
+  .footer-links span {
+    color: var(--muted);
+  }
+
+  @media (max-width: 860px) {
+    .footer-shell {
+      grid-template-columns: 1fr;
+      gap: 34px;
+    }
+
+    .footer-columns {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

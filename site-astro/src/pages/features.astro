@@ -1,60 +1,645 @@
 ---
-import PageHero from '../components/PageHero.astro';
-import Layout from '../layouts/Layout.astro';
-import { comparisonRows, productOverviewPages, proofPoints } from '../content/site';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+const proofBase = "/assets/images/product-proof";
+
+const heroBadges = [
+  "Local-first office CRM",
+  "Metro2 review workflow",
+  "Portal and app access",
+  "Multi-office ready",
+];
+
+const featureLanes = [
+  {
+    eyebrow: "Office system",
+    title: "Local-first CRM",
+    href: "/local-first-crm",
+    image: `${proofBase}/clients-roster.png`,
+    alt: "CreditSoft client roster screenshot with account rows and office workflow controls.",
+    text:
+      "Run leads, clients, documents, billing signals, notes, and task follow-up from the protected office workspace.",
+    tags: ["Clients", "Tasks", "Office node"],
+  },
+  {
+    eyebrow: "Review engine",
+    title: "Metro2 review",
+    href: "/metro2",
+    image: `${proofBase}/inbox-queue.png`,
+    alt: "CreditSoft inbox queue screenshot showing work items prepared for review.",
+    text:
+      "Turn report data into focused review queues so staff can investigate Metro2 patterns before drafting disputes.",
+    tags: ["Report data", "Issue queues", "AI assist"],
+  },
+  {
+    eyebrow: "Client lane",
+    title: "Client portal and app access",
+    href: "/client-portal",
+    image: `${proofBase}/pwa-shortcuts-menu.png`,
+    alt: "CreditSoft installed PWA on macOS showing the app icon in the app switcher and Dock.",
+    text:
+      "Give clients a branded place for uploads and status while staff can launch CreditSoft as an installable app on supported desktop browsers.",
+    tags: ["Uploads", "Status", "macOS PWA"],
+  },
+  {
+    eyebrow: "Connectivity",
+    title: "API bridge",
+    href: "/api-bridge",
+    image: `${proofBase}/api-settings.png`,
+    alt: "CreditSoft API settings screenshot showing integration and key controls.",
+    text:
+      "Connect intake, portal events, browser capture, and partner callbacks to the local office through controlled lanes.",
+    tags: ["Intake", "Callbacks", "Tokens"],
+  },
+  {
+    eyebrow: "Node topology",
+    title: "Multi-office nodes",
+    href: "/multi-office-nodes",
+    image: `${proofBase}/multi-office-node-topology.png`,
+    alt: "CreditSoft node topology visual showing primary, replica, backup-light, and off-node backup lanes.",
+    text:
+      "Plan primary, replica, and backup-light office nodes so weak hardware can stay useful without being forced to carry every archive.",
+    tags: ["Replicas", "Weak-node roles", "Backup lanes"],
+  },
+  {
+    eyebrow: "Federal workflows",
+    title: "FCRA / FDCPA compliance",
+    href: "/compliance",
+    image: `${proofBase}/tasks-board.png`,
+    alt: "CreditSoft tasks board screenshot showing assigned work and workflow status.",
+    text:
+      "Keep evidence, tasks, claim indicators, and escalation context attached to the client record for cleaner human review.",
+    tags: ["Evidence", "Audit trail", "Review"],
+  },
+  {
+    eyebrow: "Delivery",
+    title: "Email providers",
+    href: "/email-providers",
+    image: `${proofBase}/connectivity-settings.png`,
+    alt: "CreditSoft connectivity settings screenshot showing private provider and delivery configuration.",
+    text:
+      "Route office notices, provider alerts, billing follow-up, and portal messages through delivery providers the office already trusts.",
+    tags: ["SMTP", "Workspace", "Notifications"],
+  },
+  {
+    eyebrow: "Marketing lane",
+    title: "Social and Meta",
+    href: "/social-media",
+    image: `${proofBase}/dashboard-in-browser.png`,
+    alt: "CreditSoft dashboard screenshot running in a browser window.",
+    text:
+      "Bring Meta lead capture, creator goals, and content follow-up back into the same intake and office workflow.",
+    tags: ["Lead handoff", "Meta", "Follow-up"],
+  },
+];
+
+const storySections = [
+  {
+    eyebrow: "Workspace",
+    title: "The public site points visitors into a real office system.",
+    text:
+      "CreditSoft is not just a marketing shell. The CRM, client roster, inbox queues, and tasks board give the feature pages something concrete to show before a prospect clicks deeper.",
+    image: `${proofBase}/dashboard-in-app.png`,
+    alt: "CreditSoft installed app dashboard screenshot.",
+    links: [
+      { label: "Local-first CRM", href: "/local-first-crm" },
+      { label: "Metro2 review", href: "/metro2" },
+    ],
+  },
+  {
+    eyebrow: "Bridge",
+    title: "Client-facing actions can flow back to the local office.",
+    text:
+      "Portal uploads, intake events, browser capture, and callback routes can be explained as one bridge instead of a pile of disconnected add-ons.",
+    image: `${proofBase}/api-settings.png`,
+    alt: "CreditSoft API settings screenshot.",
+    links: [
+      { label: "Client portal", href: "/client-portal" },
+      { label: "API bridge", href: "/api-bridge" },
+    ],
+  },
+  {
+    eyebrow: "Operations",
+    title: "Scale and compliance get their own lanes.",
+    text:
+      "Multi-office nodes, provider settings, compliance review, and marketing handoff are separate deeper pages, but this overview shows how they belong to the same operating map.",
+    image: `${proofBase}/cfo-dashboard.png`,
+    alt: "CreditSoft office metrics dashboard screenshot.",
+    links: [
+      { label: "Multi-office nodes", href: "/multi-office-nodes" },
+      { label: "Compliance", href: "/compliance" },
+    ],
+  },
+];
 ---
 
-<Layout title="Features | CreditSoft" description="CreditSoft features across intranet, PWA, migration, portal, website, and update lanes.">
-	<PageHero
-		eyebrow="Features"
-		title="A longer feature list is only useful if the software actually organizes the work."
-		copy="CreditSoft is strongest when the product narrows the lane for the operator instead of showing every possible tool and pretending that counts as automation."
-	/>
+<BaseLayout title="CreditSoft Features" description="CreditSoft feature overview for local-first CRM, Metro2 review, client portal, API bridge, multi-office nodes, compliance, email providers, and social lead workflows.">
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
 
-	<section class="section">
-		<div class="proof-grid">
-			{proofPoints.map((item) => (
-				<article class="proof-block">
-					<h2>{item.title}</h2>
-					<p>{item.copy}</p>
-				</article>
-			))}
-		</div>
-	</section>
+  <main>
+    <section class="section features-hero">
+      <div class="page-wrap hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">Features</span>
+          <h1 class="display">See the whole CreditSoft product map before you choose a lane.</h1>
+          <p class="lede">
+            Start with the overview, then jump into the deeper pages for the CRM,
+            Metro2 review, client portal, API bridge, multi-office nodes, compliance,
+            email providers, and social lead handoff.
+          </p>
+          <div class="button-row">
+            <a class="button primary" href="/local-first-crm">Explore CRM</a>
+            <a class="button secondary" href="/metro2">Explore Metro2</a>
+          </div>
+          <div class="hero-badges" aria-label="Feature highlights">
+            {heroBadges.map((badge) => <span>{badge}</span>)}
+          </div>
+        </div>
 
-	<section class="section section--contrast">
-		<div class="comparison-table">
-			<div class="comparison-table__head">
-				<span>Feature</span>
-				<span>CreditSoft</span>
-				<span>Typical stack</span>
-			</div>
-			{comparisonRows.map((row) => (
-				<div class="comparison-table__row">
-					<strong>{row.label}</strong>
-					<span>{row.creditsoft}</span>
-					<span>{row.typical}</span>
-				</div>
-			))}
-		</div>
-	</section>
+        <div class="hero-proof" aria-label="CreditSoft product screenshots">
+          <figure class="proof-shot proof-main">
+            <img
+              src={`${proofBase}/dashboard-in-app.png`}
+              alt="CreditSoft dashboard screenshot inside the installed desktop app."
+              width="3164"
+              height="2034"
+              decoding="async"
+              data-lightbox
+              data-lightbox-title="Installed office workspace"
+            />
+            <figcaption>Installed office workspace</figcaption>
+          </figure>
+          <figure class="proof-shot proof-overlay proof-overlay-one">
+            <img
+              src={`${proofBase}/clients-roster.png`}
+              alt="CreditSoft client roster screenshot."
+              width="3024"
+              height="1898"
+              decoding="async"
+              data-lightbox
+              data-lightbox-title="CRM roster"
+            />
+            <figcaption>CRM roster</figcaption>
+          </figure>
+          <figure class="proof-shot proof-overlay proof-overlay-two">
+            <img
+              src={`${proofBase}/inbox-queue.png`}
+              alt="CreditSoft inbox queue screenshot."
+              width="3024"
+              height="1898"
+              decoding="async"
+              data-lightbox
+              data-lightbox-title="Review queue"
+            />
+            <figcaption>Review queue</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
 
-	<section class="section">
-		<div class="section__intro">
-			<div class="eyebrow">Overview map</div>
-			<h2>The stack at a glance.</h2>
-			<p class="lede lede--narrow">
-				Use this page to understand the product shape quickly. Each lane has its own page when you want
-				the expanded details.
-			</p>
-		</div>
-		<div class="overview-grid">
-			{productOverviewPages.map((item) => (
-				<a class="overview-link" href={item.href}>
-					<strong>{item.title}</strong>
-					<span>{item.copy}</span>
-				</a>
-			))}
-		</div>
-	</section>
-</Layout>
+    <section class="section story-section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Overview"
+          title="A screenshot-backed path through the system"
+          text="The page works like a product index: each area gets a short preview, a real interface screenshot, and a link into the matching submenu page."
+        />
+
+        <div class="story-grid">
+          {storySections.map((section) => (
+            <article class="story-card">
+              <div class="story-image">
+                <img
+                  src={section.image}
+                  alt={section.alt}
+                  loading="lazy"
+                  decoding="async"
+                  data-lightbox
+                  data-lightbox-title={section.title}
+                />
+              </div>
+              <div class="story-copy">
+                <span class="eyebrow">{section.eyebrow}</span>
+                <h2>{section.title}</h2>
+                <p>{section.text}</p>
+                <div class="story-links">
+                  {section.links.map((link) => (
+                    <a href={link.href}>{link.label}</a>
+                  ))}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section lanes-section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Feature lanes"
+          title="Jump into the detailed pages from here"
+          text="Each card is a doorway into one part of the CreditSoft stack, with the screenshots doing the product proof instead of leaving the page text-only."
+        />
+
+        <div class="lane-grid stagger">
+          {featureLanes.map((lane) => (
+            <a class="lane-card" href={lane.href}>
+              <div class="lane-image">
+                <img
+                  src={lane.image}
+                  alt={lane.alt}
+                  loading="lazy"
+                  decoding="async"
+                  data-lightbox
+                  data-lightbox-title={lane.title}
+                />
+              </div>
+              <div class="lane-copy">
+                <span class="lane-eyebrow">{lane.eyebrow}</span>
+                <h3>{lane.title}</h3>
+                <p>{lane.text}</p>
+                <div class="lane-tags" aria-label={`${lane.title} highlights`}>
+                  {lane.tags.map((tag) => <span>{tag}</span>)}
+                </div>
+                <span class="lane-link">View details</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap">
+        <div class="feature-cta">
+          <div>
+            <span class="eyebrow">Next step</span>
+            <h2>Use the overview to pick the workflow you want to inspect first.</h2>
+            <p>
+              The CRM, Metro2, portal, API, node, compliance, email, and social pages
+              are there for deeper reading. Public visitors can sign up or return to
+              their portal when they are ready.
+            </p>
+          </div>
+          <div class="button-row">
+            <a class="button primary" href="/subscribe">Sign up</a>
+            <a class="button secondary" href="/login">Login</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+</BaseLayout>
+
+<style>
+  .features-hero {
+    padding-top: 76px;
+    padding-bottom: 74px;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 40px;
+    align-items: center;
+  }
+
+  .hero-copy {
+    max-width: 760px;
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .hero-badges span,
+  .lane-tags span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-soft);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .hero-proof {
+    position: relative;
+    min-height: 520px;
+  }
+
+  .proof-shot {
+    position: absolute;
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 34px 72px rgba(0, 0, 0, 0.34);
+  }
+
+  .proof-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
+
+  .proof-shot figcaption {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(10, 10, 13, 0.78);
+    color: var(--text);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .proof-main {
+    inset: 0 4% 58px 0;
+  }
+
+  .proof-overlay {
+    width: 43%;
+    aspect-ratio: 1.58;
+  }
+
+  .proof-overlay-one {
+    right: 0;
+    bottom: 0;
+  }
+
+  .proof-overlay-two {
+    left: 7%;
+    bottom: 22px;
+    width: 34%;
+  }
+
+  .story-grid {
+    display: grid;
+    gap: 20px;
+  }
+
+  .story-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, rgba(24, 24, 31, 0.92), rgba(13, 13, 18, 0.98));
+    box-shadow: var(--shadow-soft);
+  }
+
+  .story-card:nth-child(even) .story-image {
+    order: 2;
+  }
+
+  .story-image {
+    min-height: 360px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .story-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+  }
+
+  .story-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    padding: 38px;
+  }
+
+  .story-copy h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 3vw, 3rem);
+    line-height: 1.06;
+    letter-spacing: -0.05em;
+  }
+
+  .story-copy p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .story-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .story-links a,
+  .lane-link {
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .story-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 42px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(241, 194, 122, 0.2);
+    background: rgba(241, 194, 122, 0.07);
+  }
+
+  .lane-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .lane-card {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    background: rgba(20, 20, 27, 0.84);
+    box-shadow: var(--shadow-soft);
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      background 180ms ease;
+  }
+
+  .lane-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(241, 194, 122, 0.26);
+    background: rgba(26, 26, 34, 0.96);
+  }
+
+  .lane-image {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .lane-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top left;
+    transition: transform 240ms ease;
+  }
+
+  .lane-card:hover .lane-image img {
+    transform: scale(1.035);
+  }
+
+  .lane-copy {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px;
+  }
+
+  .lane-eyebrow {
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .lane-copy h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    line-height: 1.16;
+    letter-spacing: -0.04em;
+  }
+
+  .lane-copy p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .lane-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+  }
+
+  .lane-tags span {
+    min-height: 30px;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .feature-cta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: end;
+    padding: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xl);
+    background:
+      linear-gradient(135deg, rgba(241, 194, 122, 0.15), transparent 38%),
+      linear-gradient(180deg, rgba(22, 22, 29, 0.96), rgba(12, 12, 17, 0.98));
+    box-shadow: var(--shadow);
+  }
+
+  .feature-cta h2 {
+    margin: 14px 0;
+    max-width: 850px;
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+  }
+
+  .feature-cta p {
+    margin: 0;
+    max-width: 72ch;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .feature-cta .button-row {
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 1180px) {
+    .lane-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 991px) {
+    .hero-grid,
+    .story-card,
+    .feature-cta {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-proof {
+      min-height: 0;
+      display: grid;
+      gap: 14px;
+    }
+
+    .proof-shot,
+    .proof-main,
+    .proof-overlay,
+    .proof-overlay-one,
+    .proof-overlay-two {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+    }
+
+    .story-card:nth-child(even) .story-image {
+      order: 0;
+    }
+
+    .story-image {
+      min-height: 260px;
+    }
+
+    .feature-cta .button-row {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .lane-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .story-copy,
+    .feature-cta {
+      padding: 26px;
+    }
+  }
+</style>

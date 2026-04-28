@@ -4,13 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\ApiDocsHostService;
-use App\Services\InstallerState;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ApiIndexController extends Controller
 {
-    public function __invoke(Request $request, ApiDocsHostService $docsHost, InstallerState $installerState): JsonResponse
+    public function __invoke(Request $request, ApiDocsHostService $docsHost): JsonResponse
     {
         $scheme = $request->header('x-forwarded-proto') ?: $request->getScheme();
         $host = $request->header('x-forwarded-host') ?: $request->getHttpHost();
@@ -28,7 +27,6 @@ class ApiIndexController extends Controller
                 'base_url' => $apiBase,
                 'docs_url' => $docsUrl,
                 'spec_url' => "{$apiBase}/openapi.yaml",
-                'router' => $this->routerHints($installerState->read(), $apiBase),
                 'features' => [
                     'browser_companion' => true,
                     'client_sync' => true,
@@ -76,7 +74,7 @@ class ApiIndexController extends Controller
                     [
                         'method' => 'GET',
                         'path' => '/office-stats',
-                        'summary' => 'Read website-safe office impact metrics for proof cards and dashboards.',
+                        'summary' => 'Read public-safe office brag metrics for website hero cards and dashboards.',
                     ],
                     [
                         'method' => 'GET',
@@ -206,21 +204,5 @@ class ApiIndexController extends Controller
                 ],
             ],
         ]);
-    }
-
-    /**
-     * @param  array<string, mixed>  $state
-     * @return array<string, string|null>
-     */
-    protected function routerHints(array $state, string $fallbackApiBase): array
-    {
-        $preferredApiBase = trim((string) data_get($state, 'router.preferred_api_base_url', ''));
-
-        return [
-            'selection_strategy' => trim((string) data_get($state, 'router.selection_strategy', 'resource-aware')) ?: 'resource-aware',
-            'preferred_node_label' => trim((string) data_get($state, 'router.preferred_node_label', '')) ?: null,
-            'preferred_api_base_url' => $preferredApiBase !== '' ? $preferredApiBase : $fallbackApiBase,
-            'updated_at' => trim((string) data_get($state, 'router.updated_at', '')) ?: null,
-        ];
     }
 }

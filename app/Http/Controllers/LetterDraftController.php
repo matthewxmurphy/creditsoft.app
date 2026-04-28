@@ -6,7 +6,6 @@ use App\Models\Client;
 use App\Models\ClientDocument;
 use App\Models\LetterDraft;
 use App\Services\AuditTrail;
-use App\Services\ClientHealthSignalService;
 use App\Services\CreditsoftAiRegistry;
 use App\Services\CreditsoftAiService;
 use App\Services\LetterDraftAutoSeedService;
@@ -24,7 +23,6 @@ class LetterDraftController extends Controller
     public function index(
         Request $request,
         Client $client,
-        ClientHealthSignalService $clientHealth,
         CreditsoftAiRegistry $registry,
         LetterTemplateCatalog $templates,
         LetterDraftAutoSeedService $autoSeeder,
@@ -79,7 +77,6 @@ class LetterDraftController extends Controller
 
         return Inertia::render('clients/Letters', [
             'client' => $client,
-            'clientHealth' => $clientHealth->signal($client),
             'letters' => $letters->map(function (LetterDraft $letter) use ($client, $documentsByLetter, $presentation): array {
                 $document = $documentsByLetter->get($letter->getKey());
 

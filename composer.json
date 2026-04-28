@@ -6,7 +6,7 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "^8.5",
+        "php": "^8.3",
         "filament/filament": "^5.4",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/ai": "^0.4.4",
@@ -17,7 +17,7 @@
         "league/csv": "^9.28",
         "spatie/laravel-backup": "^10.2",
         "spatie/laravel-permission": "^7.3",
-        "symfony/yaml": "^7.4|^8.0"
+        "symfony/yaml": "^8.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -85,6 +85,7 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi",
+            "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
         ],
         "pre-package-uninstall": [
@@ -94,13 +95,7 @@
     "extra": {
         "laravel": {
             "dont-discover": [
-                "kirschbaum-development/eloquent-power-joins",
-                "laravel/boost",
-                "laravel/mcp",
-                "laravel/pail",
-                "laravel/roster",
-                "laravel/sail",
-                "nunomaduro/collision"
+                "kirschbaum-development/eloquent-power-joins"
             ]
         }
     },

@@ -68,6 +68,16 @@ class AppServiceProvider extends ServiceProvider
 
     protected function configureInstalledUpdateVersion(): void
     {
+        $packagedVersion = $this->packagedDateReleaseVersion();
+        $configuredVersion = trim((string) config('creditsoft.updates.current_version', ''));
+
+        if ($packagedVersion !== '' && ($configuredVersion === '' || $this->shouldPreferPackagedRelease($configuredVersion, $packagedVersion))) {
+            config([
+                'creditsoft.updates.current_version' => $packagedVersion,
+                'creditsoft.updates.current_build' => $packagedVersion,
+            ]);
+        }
+
         $path = (string) config('creditsoft.installer.state_path', storage_path('app/private/install/state.json'));
 
         if (! is_file($path)) {
@@ -84,13 +94,87 @@ class AppServiceProvider extends ServiceProvider
         $version = trim((string) ($updates['current_version'] ?? ''));
         $build = trim((string) ($updates['current_build'] ?? ''));
 
-        if ($version !== '') {
+        if ($version !== '' && ! $this->shouldPreferPackagedRelease($version, $packagedVersion)) {
             config(['creditsoft.updates.current_version' => $version]);
         }
 
-        if ($build !== '') {
+        if ($build !== '' && ! $this->shouldPreferPackagedRelease($build, $packagedVersion)) {
             config(['creditsoft.updates.current_build' => $build]);
         }
+    }
+
+    protected function packagedDateReleaseVersion(): string
+    {
+        foreach ([
+            base_path('update.creditsoft.app/data/update-feed.json') => 'latest_version',
+            base_path('manifest.json') => 'version',
+        ] as $path => $key) {
+            if (! is_file($path)) {
+                continue;
+            }
+
+            $payload = json_decode((string) file_get_contents($path), true);
+            $version = is_array($payload) ? trim((string) ($payload[$key] ?? '')) : '';
+
+            if ($this->isDateReleaseVersion($version)) {
+                return $version;
+            }
+        }
+
+        $marker = base_path('CREDITSOFT_RELEASE.toon');
+
+        if (is_file($marker) && preg_match('/^canonical_version:\s*([^\s]+)$/m', (string) file_get_contents($marker), $matches) === 1) {
+            $version = trim($matches[1]);
+
+            if ($this->isDateReleaseVersion($version)) {
+                return $version;
+            }
+        }
+
+        return '';
+    }
+
+    protected function shouldPreferPackagedRelease(string $storedVersion, string $packagedVersion): bool
+    {
+        if ($packagedVersion === '') {
+            return false;
+        }
+
+        if ($this->isLegacyReleaseVersion($storedVersion) || ! $this->isDateReleaseVersion($storedVersion)) {
+            return true;
+        }
+
+        return $this->compareDateReleaseVersions($storedVersion, $packagedVersion) < 0;
+    }
+
+    protected function compareDateReleaseVersions(string $left, string $right): int
+    {
+        $leftParts = array_map('intval', explode('.', $left));
+        $rightParts = array_map('intval', explode('.', $right));
+        $length = max(count($leftParts), count($rightParts));
+
+        for ($index = 0; $index < $length; $index++) {
+            $leftPart = $leftParts[$index] ?? 0;
+            $rightPart = $rightParts[$index] ?? 0;
+
+            if ($leftPart === $rightPart) {
+                continue;
+            }
+
+            return $leftPart <=> $rightPart;
+        }
+
+        return 0;
+    }
+
+    protected function isDateReleaseVersion(string $version): bool
+    {
+        return preg_match('/^20\d{2}\.\d{1,2}\.\d{1,2}\.\d+$/', $version) === 1;
+    }
+
+    protected function isLegacyReleaseVersion(string $version): bool
+    {
+        return preg_match('/^0\.\d+(?:\.\d+)*$/', $version) === 1;
     }
 
     protected function registerPresenceListeners(): void

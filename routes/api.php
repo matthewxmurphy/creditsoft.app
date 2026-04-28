@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\ClusterApiKeyController;
 use App\Http\Controllers\Api\V1\ClusterBackupController;
 use App\Http\Controllers\Api\V1\ClusterCtoActionController;
 use App\Http\Controllers\Api\V1\ClusterDatabaseSyncController;
+use App\Http\Controllers\Api\V1\ClusterLicenseController;
 use App\Http\Controllers\Api\V1\ClientPortalController;
 use App\Http\Controllers\Api\V1\MigrationOperatorController;
 use App\Http\Controllers\Api\V1\OfficeImpactStatsController;
@@ -25,6 +26,7 @@ Route::prefix('v1')->group(function (): void {
     Route::post('cluster-backups/receive', [ClusterBackupController::class, 'store'])->name('api.v1.cluster-backups.receive');
     Route::post('cluster-api-keys/receive', [ClusterApiKeyController::class, 'store'])->name('api.v1.cluster-api-keys.receive');
     Route::post('cluster-db-events/receive', [ClusterDatabaseSyncController::class, 'store'])->name('api.v1.cluster-db-events.receive');
+    Route::post('cluster-license/receive', [ClusterLicenseController::class, 'store'])->name('api.v1.cluster-license.receive');
     Route::post('cluster-cto-actions/apply', [ClusterCtoActionController::class, 'store'])->name('api.v1.cluster-cto-actions.apply');
 
     Route::middleware('creditsoft.api')->group(function (): void {
@@ -39,6 +41,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('clients/sync', [MigrationOperatorController::class, 'syncClientProfile'])->name('api.v1.migration-operator.clients.sync');
         });
         Route::post('clients', [ClientPortalController::class, 'store'])->name('api.v1.clients.store');
+        Route::post('portal-events', [ClientPortalController::class, 'storePortalEvent'])->name('api.v1.portal-events.store');
         Route::middleware([
             'creditsoft.api.ability:browser_companion',
             'creditsoft.license.feature:browser_companion',
@@ -65,6 +68,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('clients/{clientCuid}/briefs', [ClientPortalController::class, 'briefs'])->name('api.v1.clients.briefs');
         Route::get('clients/{clientCuid}/tasks', [ClientPortalController::class, 'tasks'])->name('api.v1.clients.tasks');
         Route::post('clients/{clientCuid}/tasks', [ClientPortalController::class, 'storeTask'])->name('api.v1.clients.tasks.store');
+        Route::post('clients/{clientCuid}/portal-events', [ClientPortalController::class, 'storePortalEvent'])->name('api.v1.clients.portal-events.store');
         Route::get('clients/{clientCuid}/documents', [ClientPortalController::class, 'documents'])->name('api.v1.clients.documents');
         Route::post('clients/{clientCuid}/documents', [ClientPortalController::class, 'storeDocument'])->name('api.v1.clients.documents.store');
         Route::get('clients/{clientCuid}/browser-captures', [ClientPortalController::class, 'browserCaptures'])->name('api.v1.clients.browser-captures');

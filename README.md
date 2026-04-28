@@ -25,11 +25,17 @@ Creditsoft is a local-first Laravel 13 intranet for credit repair teams. It repl
 
 ## Local setup
 
+The canonical local workspace is `/Users/mmurphy/Code/CreditSoft`. `/Users/mmurphy/Desktop/CreditSoft` should only be a symlink to that folder. Run the workspace doctor before release/deploy work:
+
+```bash
+bash scripts/creditsoft-workspace-doctor.sh
+```
+
 ```bash
 composer install
 npm install
 cp .env.example .env
-docker compose --profile postgres up -d office-db
+touch database/database.sqlite
 php artisan key:generate
 php artisan migrate --seed
 npm run build
@@ -50,7 +56,7 @@ docker compose --env-file .env.docker up -d intranet queue scheduler
 
 Set a stable `APP_KEY` in `.env.docker` before using this as a movable production office node. Open `http://127.0.0.1:8001` after the containers are healthy. See `docs/docker-intranet-node.md` for the router profile, persistent volumes, and CRM sidecar notes.
 
-The generated node installer can also start CreditSoft on PostgreSQL with `bash install.sh --postgres` or `.\install.ps1 -Postgres`. That matches the CRM database engine while keeping CreditSoft and the CRM sidecar in separate databases/users. Installer zips do not ship reusable cluster SSH keys; each node generates its own `creditsoft_cluster_ed25519` identity during first run.
+The generated node installer can also start CreditSoft on PostgreSQL with `bash install.sh --postgres` or `.\install.ps1 -Postgres`. That matches the CRM database engine while keeping CreditSoft and the CRM sidecar in separate databases/users.
 
 ## Seeded access
 
@@ -59,15 +65,15 @@ The generated node installer can also start CreditSoft on PostgreSQL with `bash 
 
 ## Important paths
 
-- Runtime YAML config: `/Users/mmurphy/Desktop/CreditSoft/creditsoft`
-- Public marketing site source: `/Users/mmurphy/Desktop/CreditSoft/web`
-- Public pricing page source: `/Users/mmurphy/Desktop/CreditSoft/web/pricing.php`
-- Website deploy handoff: `/Users/mmurphy/Desktop/CreditSoft/web-meta/SETUP.md`
-- Website SCP/SFTP handoff: `/Users/mmurphy/Desktop/CreditSoft/web-meta/SFTP.toon`
-- Operator shell layout: `/Users/mmurphy/Desktop/CreditSoft/resources/js/layouts/CreditsoftLayout.vue`
-- Admin panel provider: `/Users/mmurphy/Desktop/CreditSoft/app/Providers/Filament/AdminPanelProvider.php`
-- Comparison service: `/Users/mmurphy/Desktop/CreditSoft/app/Services/CreditReportComparisonService.php`
-- Signal privacy filter: `/Users/mmurphy/Desktop/CreditSoft/app/Services/SignalSanitizer.php`
+- Runtime YAML config: `/Users/mmurphy/Code/CreditSoft/creditsoft`
+- Public marketing site source: `/Users/mmurphy/Code/CreditSoft/web`
+- Public pricing page source: `/Users/mmurphy/Code/CreditSoft/web/pricing.php`
+- Website deploy handoff: `/Users/mmurphy/Code/CreditSoft/web-meta/SETUP.md`
+- Website SCP/SFTP handoff: `/Users/mmurphy/Code/CreditSoft/web-meta/SFTP.toon`
+- Operator shell layout: `/Users/mmurphy/Code/CreditSoft/resources/js/layouts/CreditsoftLayout.vue`
+- Admin panel provider: `/Users/mmurphy/Code/CreditSoft/app/Providers/Filament/AdminPanelProvider.php`
+- Comparison service: `/Users/mmurphy/Code/CreditSoft/app/Services/CreditReportComparisonService.php`
+- Signal privacy filter: `/Users/mmurphy/Code/CreditSoft/app/Services/SignalSanitizer.php`
 
 ## Live website deploy
 
@@ -85,7 +91,7 @@ The generated node installer can also start CreditSoft on PostgreSQL with `bash 
 Preferred deploy:
 
 ```bash
-cd /opt/aiether/aietherpanel && scripts/deploy-public-website.sh --via mmurphy@100.80.51.78 --target mmurphy@100.126.221.83 --source /Users/mmurphy/Desktop/CreditSoft/web --domain creditsoft.app
+cd /opt/aiether/aietherpanel && scripts/deploy-public-website.sh --via mmurphy@100.80.51.78 --target mmurphy@100.126.221.83 --source /Users/mmurphy/Code/CreditSoft/web --domain creditsoft.app
 ```
 
 Direct SCP proof:

@@ -105,7 +105,7 @@ class IntranetNodeInstallerBundle
             }
         }
 
-        return trim((string) config('creditsoft.updates.current_version', '0.5.0')) ?: '0.5.0';
+        return trim((string) config('creditsoft.updates.current_version', '2026.4.27.1')) ?: '2026.4.27.1';
     }
 
     /**
@@ -338,7 +338,7 @@ class IntranetNodeInstallerBundle
             'CREDITSOFT_ROUTER_PREFERRED_LABEL' => '',
             'CREDITSOFT_ROUTER_PREFERRED_BASE_URL' => '',
             'CREDITSOFT_BROWSER_COMPANION_TRIAL_DAYS' => '7',
-            'CREDITSOFT_BROWSER_COMPANION_DOWNLOAD_URL' => (string) config('creditsoft.updates.browser_companion_download_url', 'https://updates.creditsoft.app/downloads/creditsoft-browser-companion-v0.5.10.zip'),
+            'CREDITSOFT_BROWSER_COMPANION_DOWNLOAD_URL' => (string) config('creditsoft.updates.browser_companion_download_url', 'https://updates.creditsoft.app/downloads/creditsoft-browser-companion-v2026.4.27.1.zip'),
             'LOG_CHANNEL' => 'stack',
             'LOG_STACK' => 'single',
             'LOG_DEPRECATIONS_CHANNEL' => 'null',
@@ -486,11 +486,12 @@ class IntranetNodeInstallerBundle
             '',
             '## What it does',
             '',
-            '- Creates a CreditSoft intranet install directory.',
+            '- Creates a system-wide CreditSoft intranet install directory: `/opt/creditsoft/intranet` on Linux, `/Library/Application Support/CreditSoft/Intranet` on macOS, or `C:\\ProgramData\\CreditSoft\\Intranet` on Windows.',
+            '- Allows an explicit override with `CREDITSOFT_INSTALL_DIR` / `-InstallDir` when an office has a special storage layout.',
             '- Uses the bundled office package when present, otherwise downloads the package from the update feed.',
             '- Writes the generated `creditsoft-node.env` into `.env.docker`.',
             '- Generates a stable Laravel `APP_KEY` when the env file does not already have one.',
-            '- Generates a node-unique `creditsoft_cluster_ed25519` SSH identity for the private cluster lane.',
+            '- Generates a node-unique `creditsoft_cluster_ed25519` SSH identity under the install directory for the private cluster lane.',
             '- Probes host ports and prefers publishing the office app on port 80 when the server is free to use it.',
             '- Installs the uploaded office logo into the login screen when the web installer has branding attached.',
             '- Can run the full office stack with `--office` / `-Office`, which enables PostgreSQL, router, and CRM together.',
@@ -516,7 +517,18 @@ class IntranetNodeInstallerBundle
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INSTALL_DIR="${CREDITSOFT_INSTALL_DIR:-$HOME/CreditSoft-Intranet}"
+default_creditsoft_install_dir() {
+  case "$(uname -s 2>/dev/null || true)" in
+    Darwin)
+      printf '%s\n' "/Library/Application Support/CreditSoft/Intranet"
+      ;;
+    *)
+      printf '%s\n' "/opt/creditsoft/intranet"
+      ;;
+  esac
+}
+
+INSTALL_DIR="${CREDITSOFT_INSTALL_DIR:-$(default_creditsoft_install_dir)}"
 PACKAGE_DIR="$SCRIPT_DIR/packages"
 PACKAGE_PATH=""
 WITH_ROUTER="false"
@@ -589,10 +601,37 @@ else
   exit 1
 fi
 
+if ! docker info >/dev/null 2>&1; then
+  echo "Docker is installed, but the Docker engine is not reachable."
+  if [ "$(uname -s 2>/dev/null || true)" = "Darwin" ]; then
+    echo "On macOS, start Docker Desktop or Colima first. For Colima, check: colima status && colima start"
+    echo "If Colima says Docker failed after reboot, check disk pressure with: colima ssh -- df -h /mnt/lima-colima"
+  fi
+  exit 1
+fi
+
 if ! command -v unzip >/dev/null 2>&1; then
   echo "unzip is required before CreditSoft can unpack the office package."
   exit 1
 fi
+
+ensure_writable_dir() {
+  local path="$1"
+  local owner_group
+
+  if mkdir -p "$path" 2>/dev/null; then
+    return 0
+  fi
+
+  if ! command -v sudo >/dev/null 2>&1; then
+    echo "CreditSoft needs permission to create $path. Rerun with sudo or set CREDITSOFT_INSTALL_DIR."
+    exit 1
+  fi
+
+  sudo mkdir -p "$path"
+  owner_group="$(id -u):$(id -g)"
+  sudo chown -R "$owner_group" "$path"
+}
 
 host_port_is_busy() {
   local port="$1"
@@ -655,7 +694,34 @@ local_url_for() {
   fi
 }
 
-mkdir -p "$INSTALL_DIR"
+wait_for_http() {
+  local url="$1"
+  local label="$2"
+  local attempts="${3:-60}"
+
+  echo "Waiting for $label at $url ..."
+
+  for attempt in $(seq 1 "$attempts"); do
+    if command -v curl >/dev/null 2>&1; then
+      if curl -fsS --max-time 3 "$url" >/dev/null 2>&1; then
+        echo "$label is reachable."
+        return 0
+      fi
+    elif command -v wget >/dev/null 2>&1; then
+      if wget -q -T 3 -O /dev/null "$url" >/dev/null 2>&1; then
+        echo "$label is reachable."
+        return 0
+      fi
+    fi
+
+    sleep 2
+  done
+
+  echo "$label did not become reachable at $url."
+  return 1
+}
+
+ensure_writable_dir "$INSTALL_DIR"
 TMP_DIR="$(mktemp -d)"
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -768,12 +834,15 @@ CLUSTER_SSH_OPTIONS="$(printf '%s\n' "$CLUSTER_SSH_SETTINGS" | sed -n '4p')"
 
 if [ "$CLUSTER_SSH_ENABLED" = "1" ]; then
   if command -v ssh-keygen >/dev/null 2>&1; then
-    SSH_DIR="$HOME/.ssh"
-    CLUSTER_SSH_KEY_PATH="$SSH_DIR/$CLUSTER_SSH_IDENTITY_FILE"
+    SSH_DIR="${CREDITSOFT_CLUSTER_AUTHORIZED_KEYS_DIR:-$HOME/.ssh}"
+    CLUSTER_SSH_DIR="${CREDITSOFT_CLUSTER_SSH_DIR:-$INSTALL_DIR/secrets/ssh}"
+    CLUSTER_SSH_KEY_PATH="$CLUSTER_SSH_DIR/$CLUSTER_SSH_IDENTITY_FILE"
     CLUSTER_SSH_PUBLIC_KEY_PATH="$CLUSTER_SSH_KEY_PATH.pub"
     CLUSTER_SSH_AUTHORIZED_KEYS="$SSH_DIR/authorized_keys"
 
+    ensure_writable_dir "$CLUSTER_SSH_DIR"
     mkdir -p "$SSH_DIR"
+    chmod 700 "$CLUSTER_SSH_DIR"
     chmod 700 "$SSH_DIR"
 
     if [ ! -f "$CLUSTER_SSH_KEY_PATH" ]; then
@@ -891,6 +960,12 @@ else
   fi
 fi
 
+if ! wait_for_http "$APP_URL_VALUE/api/v1" "CreditSoft office API"; then
+  echo "CreditSoft containers started, but the office API did not answer."
+  "${COMPOSE[@]}" --env-file .env.docker ps || true
+  exit 1
+fi
+
 echo "CreditSoft intranet node is installed at $INSTALL_DIR"
 echo "Open $APP_URL_VALUE"
 BASH;
@@ -900,7 +975,7 @@ BASH;
     {
         return <<<'POWERSHELL'
 param(
-    [string]$InstallDir = "$env:ProgramData\CreditSoft\Intranet",
+    [string]$InstallDir = "",
     [string]$Bind = "",
     [int]$AppPort = 0,
     [string]$RouterBind = "",
@@ -917,6 +992,18 @@ $PackageDir = Join-Path $ScriptDir "packages"
 $ManifestPath = Join-Path $ScriptDir "manifest.json"
 $Manifest = Get-Content $ManifestPath -Raw | ConvertFrom-Json
 
+if (-not $InstallDir) {
+    if ($env:CREDITSOFT_INSTALL_DIR) {
+        $InstallDir = $env:CREDITSOFT_INSTALL_DIR
+    } elseif ($env:OS -eq "Windows_NT" -and $env:ProgramData) {
+        $InstallDir = Join-Path $env:ProgramData "CreditSoft\Intranet"
+    } elseif ((Get-Command uname -ErrorAction SilentlyContinue) -and ((& uname -s) -eq "Darwin")) {
+        $InstallDir = "/Library/Application Support/CreditSoft/Intranet"
+    } else {
+        $InstallDir = "/opt/creditsoft/intranet"
+    }
+}
+
 if ($Office) {
     $Postgres = $true
     $WithRouter = $true
@@ -930,6 +1017,11 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 docker compose version *> $null
 if ($LASTEXITCODE -ne 0) {
     throw "Docker Compose is required before CreditSoft can install this node."
+}
+
+docker info *> $null
+if ($LASTEXITCODE -ne 0) {
+    throw "Docker is installed, but the Docker engine is not reachable. Start Docker Desktop or the local container runtime, then rerun the CreditSoft node installer."
 }
 
 function Test-CreditSoftHostPortBusy {
@@ -989,6 +1081,29 @@ function Get-CreditSoftLocalUrl {
     }
 
     return "http://127.0.0.1`:$Port"
+}
+
+function Wait-CreditSoftHttp {
+    param(
+        [string]$Url,
+        [string]$Label,
+        [int]$Attempts = 60
+    )
+
+    Write-Host "Waiting for $Label at $Url ..."
+
+    for ($Attempt = 1; $Attempt -le $Attempts; $Attempt++) {
+        try {
+            Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec 3 *> $null
+            Write-Host "$Label is reachable."
+            return $true
+        } catch {
+            Start-Sleep -Seconds 2
+        }
+    }
+
+    Write-Warning "$Label did not become reachable at $Url."
+    return $false
 }
 
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
@@ -1069,12 +1184,14 @@ try {
             }
 
             $Options = [string]$Manifest.cluster_ssh.authorized_keys_options
-            $SshDir = Join-Path $HOME ".ssh"
-            $KeyPath = Join-Path $SshDir $IdentityFile
+            $SshDir = if ($env:CREDITSOFT_CLUSTER_AUTHORIZED_KEYS_DIR) { $env:CREDITSOFT_CLUSTER_AUTHORIZED_KEYS_DIR } else { Join-Path $HOME ".ssh" }
+            $ClusterSshDir = if ($env:CREDITSOFT_CLUSTER_SSH_DIR) { $env:CREDITSOFT_CLUSTER_SSH_DIR } else { Join-Path $InstallDir "secrets\ssh" }
+            $KeyPath = Join-Path $ClusterSshDir $IdentityFile
             $PublicKeyPath = "$KeyPath.pub"
             $AuthorizedKeysPath = Join-Path $SshDir "authorized_keys"
 
             New-Item -ItemType Directory -Force -Path $SshDir | Out-Null
+            New-Item -ItemType Directory -Force -Path $ClusterSshDir | Out-Null
 
             if (-not (Test-Path $KeyPath)) {
                 $NodeName = [Environment]::MachineName
@@ -1211,6 +1328,13 @@ try {
     }
 
     Pop-Location
+
+    if (-not (Wait-CreditSoftHttp -Url "$LocalAppUrl/api/v1" -Label "CreditSoft office API")) {
+        Push-Location $InstallDir
+        docker compose --env-file .env.docker ps
+        Pop-Location
+        throw "CreditSoft containers started, but the office API did not answer."
+    }
 
     Write-Host "CreditSoft intranet node is installed at $InstallDir"
     Write-Host "Open $LocalAppUrl"

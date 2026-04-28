@@ -5,13 +5,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
-import readline from 'node:readline';
 
 const DEFAULT_LOCAL_API_BASE = 'http://127.0.0.1:8001/api/v1';
 const DEFAULT_DASHBOARD_PATH = '/dashboard?source=intranet-client';
 const DEFAULT_ROUTER_HOST = '127.0.0.1';
 const DEFAULT_ROUTER_PORT = '8877';
-const DEFAULT_TAILSCALE_PORTS = ['80', '8001', '8000', '8877', '443'];
 const CONFIG_DIR = path.join(os.homedir(), '.creditsoft');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'intranet-client.json');
 
@@ -25,21 +23,11 @@ Options:
   --host <host>      Build an http://host:port/api/v1 candidate.
   --port <port>      Port used with --host. Defaults to 8001.
   --token <token>    Personal CreditSoft API key. Prefer CREDITSOFT_API_TOKEN.
-  --prompt-token     Ask for a personal API key when one was not provided. Default.
-  --no-prompt-token  Do not prompt for a personal API key.
   --pair <value>     Pairing URL or JSON file with candidateBaseUrls.
   --serve            Run a local loopback router/proxy for Chrome/PWA.
   --listen <host>    Router listen host. Defaults to 127.0.0.1.
   --listen-port <n>  Router listen port. Defaults to 8877.
-  --strategy <mode>  Node selection strategy: resource-aware, fastest, or ordered. Defaults to resource-aware.
-  --tailscale-discover
-                     Probe Tailscale/MagicDNS peers. Default.
-  --no-tailscale-discover
-                     Do not add Tailscale/MagicDNS peer candidates.
-  --tailscale-port <port>
-                     Extra port to probe on Tailscale peers. Can be repeated.
-  --tailscale-ports <csv>
-                     Tailscale probe ports. Defaults to 8001,8000,8877,443,80.
+  --strategy <mode>  Node selection strategy: fastest or ordered. Defaults to fastest.
   --open             Open the detected CreditSoft dashboard. Default.
   --no-open          Do not open a browser/PWA window.
   --save             Save reachable base URL candidates, never the API key.
@@ -54,14 +42,11 @@ const parseArgs = (argv) => {
         host: null,
         port: '8001',
         token: process.env.CREDITSOFT_API_TOKEN || '',
-        promptToken: process.env.CREDITSOFT_PROMPT_TOKEN !== 'false',
         pair: null,
         serve: false,
         listen: DEFAULT_ROUTER_HOST,
         listenPort: DEFAULT_ROUTER_PORT,
-        strategy: normalizeStrategy(process.env.CREDITSOFT_ROUTER_SELECTION_STRATEGY || 'resource-aware'),
-        tailscaleDiscover: process.env.CREDITSOFT_TAILSCALE_DISCOVERY !== 'false',
-        tailscalePorts: normalizePortList(process.env.CREDITSOFT_TAILSCALE_PORTS || DEFAULT_TAILSCALE_PORTS.join(',')),
+        strategy: 'fastest',
         open: true,
         save: false,
         json: false,
@@ -81,10 +66,6 @@ const parseArgs = (argv) => {
             args.port = argv[++index] ?? '8001';
         } else if (arg === '--token') {
             args.token = argv[++index] ?? '';
-        } else if (arg === '--prompt-token') {
-            args.promptToken = true;
-        } else if (arg === '--no-prompt-token') {
-            args.promptToken = false;
         } else if (arg === '--pair') {
             args.pair = argv[++index] ?? '';
         } else if (arg === '--serve') {
@@ -95,14 +76,6 @@ const parseArgs = (argv) => {
             args.listenPort = argv[++index] ?? DEFAULT_ROUTER_PORT;
         } else if (arg === '--strategy') {
             args.strategy = argv[++index] ?? 'fastest';
-        } else if (arg === '--tailscale-discover') {
-            args.tailscaleDiscover = true;
-        } else if (arg === '--no-tailscale-discover') {
-            args.tailscaleDiscover = false;
-        } else if (arg === '--tailscale-port') {
-            args.tailscalePorts.push(argv[++index] ?? '');
-        } else if (arg === '--tailscale-ports') {
-            args.tailscalePorts = normalizePortList(argv[++index] ?? '');
         } else if (arg === '--open') {
             args.open = true;
         } else if (arg === '--no-open') {
@@ -122,29 +95,12 @@ const parseArgs = (argv) => {
         args.timeout = 2500;
     }
 
-    args.strategy = normalizeStrategy(args.strategy);
-
-    args.tailscalePorts = normalizePortList(args.tailscalePorts);
+    if (!['fastest', 'ordered'].includes(args.strategy)) {
+        args.strategy = 'fastest';
+    }
 
     return args;
 };
-
-function normalizePortList(value) {
-    const entries = Array.isArray(value)
-        ? value
-        : String(value || '').split(',');
-
-    return unique(entries
-        .map((entry) => String(entry).trim())
-        .filter((entry) => /^\d+$/.test(entry))
-        .filter((entry) => Number.parseInt(entry, 10) > 0 && Number.parseInt(entry, 10) <= 65535));
-}
-
-function normalizeStrategy(value) {
-    return ['resource-aware', 'fastest', 'ordered'].includes(value)
-        ? value
-        : 'resource-aware';
-}
 
 const normalizeApiBase = (value) => {
     if (typeof value !== 'string' || value.trim() === '') {
@@ -237,51 +193,9 @@ const parsePairing = (value) => {
 
 const unique = (values) => [...new Set(values.filter(Boolean))];
 
-const stripTrailingDot = (value) => String(value || '').trim().replace(/\.$/, '');
-
-const urlHost = (host) => {
-    const normalized = stripTrailingDot(host);
-
-    return normalized.includes(':') && !normalized.startsWith('[')
-        ? `[${normalized}]`
-        : normalized;
-};
-
-const tailscaleApiBaseFor = (host, port) => {
-    const normalizedPort = String(port || '').trim();
-    const scheme = normalizedPort === '443' ? 'https' : 'http';
-    const hostForUrl = urlHost(host);
-    const portSuffix = (scheme === 'https' && normalizedPort === '443')
-        || (scheme === 'http' && normalizedPort === '80')
-        ? ''
-        : `:${normalizedPort}`;
-
-    return `${scheme}://${hostForUrl}${portSuffix}/api/v1`;
-};
-
-const tailscalePeerHosts = (peer) => unique([
-    stripTrailingDot(peer?.dnsName),
-    stripTrailingDot(peer?.hostName),
-    ...(Array.isArray(peer?.tailscaleIPs) ? peer.tailscaleIPs : []),
-]);
-
-const tailscaleCandidateBases = (tailnet, ports) => {
-    if (!tailnet?.running || !Array.isArray(tailnet.peers)) {
-        return [];
-    }
-
-    return tailnet.peers
-        .filter((peer) => peer.online || peer.active)
-        .flatMap((peer) => tailscalePeerHosts(peer)
-            .flatMap((host) => ports.map((port) => tailscaleApiBaseFor(host, port))));
-};
-
-const buildCandidates = (args, config, pairing, tailnet) => {
+const buildCandidates = (args, config, pairing) => {
     const hostCandidate = args.host
         ? [`http://${args.host.replace(/^https?:\/\//, '')}:${args.port}/api/v1`]
-        : [];
-    const tailnetCandidates = args.tailscaleDiscover
-        ? tailscaleCandidateBases(tailnet, args.tailscalePorts)
         : [];
 
     return unique([
@@ -294,7 +208,6 @@ const buildCandidates = (args, config, pairing, tailnet) => {
         config.lastConnectedBaseUrl,
         ...(Array.isArray(config.candidateBaseUrls) ? config.candidateBaseUrls : []),
         DEFAULT_LOCAL_API_BASE,
-        ...tailnetCandidates,
     ].map(normalizeApiBase));
 };
 
@@ -346,7 +259,6 @@ const probeBase = async (apiBase, token, timeout) => {
         authStatus: null,
         authLatencyMs: null,
         authMessage: null,
-        overviewRouter: overview.body?.data?.router || null,
         handshake: null,
     };
 
@@ -401,64 +313,12 @@ const selectProbe = (probes, token, strategy = 'fastest') => {
     const preferred = connected.filter((probe) => !token || probe.authenticated);
     const pool = preferred.length > 0 ? preferred : connected;
 
-    if (strategy === 'resource-aware') {
-        return [...pool].sort((left, right) => probeScore(left, token) - probeScore(right, token))[0] || null;
-    }
-
     return [...pool].sort((left, right) => {
         const leftLatency = Number.isFinite(left.latencyMs) ? left.latencyMs : Number.MAX_SAFE_INTEGER;
         const rightLatency = Number.isFinite(right.latencyMs) ? right.latencyMs : Number.MAX_SAFE_INTEGER;
 
         return leftLatency - rightLatency;
     })[0] || null;
-};
-
-const probeRouterHint = (probe) => probe.handshake?.router || probe.overviewRouter || {};
-
-const probeMatchesPreferredBase = (probe) => {
-    const hint = probeRouterHint(probe);
-    const preferredBase = hint.preferred_api_base_url || hint.preferred_base_url || '';
-    const normalized = normalizeApiBase(preferredBase);
-
-    return Boolean(normalized && normalized === probe.apiBase);
-};
-
-const probeScore = (probe, token) => {
-    const latency = Number.isFinite(probe.latencyMs) ? probe.latencyMs : 100000;
-    const hint = probeRouterHint(probe);
-    const health = hint.node_health || {};
-    const memoryPenalty = memoryPressurePenalty(health);
-    const swapPenalty = Number.isFinite(health.swap_used_percent)
-        ? Number(health.swap_used_percent) * 45
-        : 0;
-    const cpuCores = Math.max(Number(health.cpu_cores || 1), 1);
-    const loadPenalty = Number.isFinite(health.load_one)
-        ? (Number(health.load_one) / cpuCores) * 200
-        : 0;
-    const authPenalty = token && !probe.authenticated ? 50000 : 0;
-    const preferredBonus = probeMatchesPreferredBase(probe) ? -25000 : 0;
-
-    return latency + memoryPenalty + swapPenalty + loadPenalty + authPenalty + preferredBonus;
-};
-
-const memoryPressurePenalty = (health) => {
-    const level = String(health.memory_pressure_level || '').toLowerCase();
-
-    if (level === 'healthy') {
-        return 0;
-    }
-
-    if (Number.isFinite(health.memory_pressure_free_percent)) {
-        return Math.max(0, 100 - Number(health.memory_pressure_free_percent)) * 6;
-    }
-
-    if (Number.isFinite(health.memory_available_percent)) {
-        return Math.max(0, 100 - Number(health.memory_available_percent)) * 6;
-    }
-
-    return Number.isFinite(health.memory_used_percent)
-        ? Number(health.memory_used_percent) * 12
-        : 0;
 };
 
 const runCommand = (command, args, timeout = 1500) => new Promise((resolve) => {
@@ -491,42 +351,8 @@ const runCommand = (command, args, timeout = 1500) => new Promise((resolve) => {
     });
 });
 
-const parseTailscalePeers = (status) => Object.values(status?.Peer || {})
-    .map((peer) => ({
-        id: peer.ID || null,
-        hostName: peer.HostName || null,
-        dnsName: stripTrailingDot(peer.DNSName || ''),
-        tailscaleIPs: Array.isArray(peer.TailscaleIPs) ? peer.TailscaleIPs : [],
-        online: Boolean(peer.Online),
-        active: Boolean(peer.Active),
-        os: peer.OS || null,
-        lastSeen: peer.LastSeen || null,
-    }))
-    .filter((peer) => tailscalePeerHosts(peer).length > 0);
-
-const pingTailscalePeers = async (peers) => Promise.all(peers.map(async (peer) => {
-    const target = stripTrailingDot(peer.dnsName) || peer.tailscaleIPs[0] || stripTrailingDot(peer.hostName);
-
-    if (!target) {
-        return {
-            ...peer,
-            pingable: false,
-            pingMessage: 'No Tailscale hostname or IP was available.',
-        };
-    }
-
-    const ping = await runCommand('tailscale', ['ping', '--c', '1', '--timeout', '1s', target], 2000);
-
-    return {
-        ...peer,
-        pingTarget: target,
-        pingable: ping.ok,
-        pingMessage: (ping.stdout || ping.stderr).trim().split('\n').at(-1) || null,
-    };
-}));
-
 const tailscaleStatus = async () => {
-    const status = await runCommand('tailscale', ['status', '--json'], 3000);
+    const status = await runCommand('tailscale', ['status', '--json']);
 
     if (!status.ok) {
         return {
@@ -544,17 +370,13 @@ const tailscaleStatus = async () => {
     }
 
     const ip = await runCommand('tailscale', ['ip', '-4']);
-    const peers = await pingTailscalePeers(parseTailscalePeers(parsed));
 
     return {
         installed: true,
         running: true,
         self: parsed.Self?.HostName || null,
-        dnsName: stripTrailingDot(parsed.Self?.DNSName || ''),
+        dnsName: parsed.Self?.DNSName || null,
         ipv4: ip.ok ? ip.stdout.trim().split(/\s+/)[0] : null,
-        peers,
-        onlinePeers: peers.filter((peer) => peer.online).length,
-        pingablePeers: peers.filter((peer) => peer.pingable).length,
     };
 };
 
@@ -673,107 +495,6 @@ const responseHeaders = (response, targetOrigin, routerOrigin) => {
     return headers;
 };
 
-const requestAcceptsHtml = (request) => {
-    const accept = String(request.headers.accept || '');
-
-    return accept.includes('text/html') || accept.includes('application/xhtml+xml');
-};
-
-const requestWantsJson = (request) => {
-    const accept = String(request.headers.accept || '');
-
-    return accept.includes('application/json')
-        || accept.includes('text/json')
-        || String(request.url || '').startsWith('/api/');
-};
-
-const localRequestUrl = (request, listen, listenPort) => new URL(
-    request.url || '/',
-    `http://${request.headers.host || `${listen}:${listenPort}`}`,
-);
-
-const escapeHtml = (value) => String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-
-const routerOriginFor = (listen, listenPort) => {
-    const port = String(listenPort || '').trim();
-
-    return port === '80'
-        ? `http://${listen}`
-        : `http://${listen}:${port}`;
-};
-
-const offlineHtml = ({ officeName, targetOrigin, errorMessage }) => {
-    const escapedOfficeName = escapeHtml(officeName || 'CreditSoft Office');
-
-    return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${escapedOfficeName} unavailable</title>
-  <style>
-    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f7f3ea; color: #1c1917; }
-    main { width: min(92vw, 640px); border: 1px solid #e7d8bd; background: #fffaf0; padding: 28px; box-shadow: 0 24px 60px rgba(120, 113, 108, 0.18); }
-    .eyebrow { margin: 0 0 8px; color: #a16207; font-size: 12px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
-    h1 { margin: 0 0 12px; font-size: 24px; line-height: 1.2; }
-    p { margin: 0 0 14px; color: #57534e; line-height: 1.6; }
-    code { display: block; white-space: pre-wrap; word-break: break-word; border: 1px solid #eadfcb; background: #fff; padding: 12px; color: #44403c; }
-    a, button { appearance: none; border: 0; background: #eab308; color: #1c1917; font-weight: 700; padding: 11px 14px; text-decoration: none; cursor: pointer; }
-    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
-    .hint { border-top: 1px solid #eadfcb; margin-top: 18px; padding-top: 16px; font-size: 14px; }
-  </style>
-</head>
-<body>
-  <main>
-    <p class="eyebrow">${escapedOfficeName}</p>
-    <h1>Your local office app is temporarily unavailable.</h1>
-    <p>The local router is running, but it could not reach the selected office server node.</p>
-    <code>Target: ${escapeHtml(targetOrigin)}\nError: ${escapeHtml(errorMessage)}</code>
-    <div class="actions">
-      <button type="button" onclick="window.location.reload()">Reconnect</button>
-      <a href="/__creditsoft/client/status">Router status</a>
-    </div>
-    <p class="hint">When this workstation connects, press <strong>Command-D</strong> on Mac or <strong>Ctrl-D</strong> on Windows/Linux to bookmark this office. If Chrome or Edge shows an install icon, use it to keep the CreditSoft PWA in the dock or taskbar for this business profile.</p>
-  </main>
-</body>
-</html>`;
-};
-
-const sendProxyFailure = ({ request, response, targetOrigin, listen, listenPort, error, officeName }) => {
-    const requestUrl = localRequestUrl(request, listen, listenPort);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    if (request.headers['x-inertia']) {
-        response.writeHead(409, {
-            'content-type': 'text/plain; charset=utf-8',
-            'x-inertia-location': requestUrl.href,
-            vary: 'X-Inertia',
-        });
-        response.end('CreditSoft office node unavailable. Reloading the local router status page.');
-        return;
-    }
-
-    if (requestAcceptsHtml(request) && ! requestWantsJson(request)) {
-        response.writeHead(503, {
-            'content-type': 'text/html; charset=utf-8',
-            'cache-control': 'no-store',
-        });
-        response.end(offlineHtml({ officeName, targetOrigin, errorMessage }));
-        return;
-    }
-
-    response.writeHead(502, { 'content-type': 'application/json; charset=utf-8' });
-    response.end(JSON.stringify({
-        message: 'CreditSoft local router could not reach the office server.',
-        targetOrigin,
-        error: errorMessage,
-    }, null, 2));
-};
-
 const proxyRequest = async ({ request, response, targetOrigin, routerOrigin, token }) => {
     const targetUrl = new URL(request.url || '/', targetOrigin);
     const method = request.method || 'GET';
@@ -790,11 +511,10 @@ const proxyRequest = async ({ request, response, targetOrigin, routerOrigin, tok
     response.end(payload);
 };
 
-const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath, officeName }) => new Promise((resolve, reject) => {
+const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath }) => new Promise((resolve, reject) => {
     const targetOrigin = originFromApiBase(selected.apiBase);
-    const routerOrigin = routerOriginFor(listen, listenPort);
     const server = createServer((request, response) => {
-        const requestUrl = localRequestUrl(request, listen, listenPort);
+        const requestUrl = new URL(request.url || '/', `http://${request.headers.host || `${listen}:${listenPort}`}`);
 
         if (requestUrl.pathname === '/__creditsoft/client/status') {
             response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
@@ -813,77 +533,25 @@ const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath, 
             request,
             response,
             targetOrigin,
-            routerOrigin,
+            routerOrigin: `http://${listen}:${listenPort}`,
             token,
-        }).catch((error) => sendProxyFailure({
-            request,
-            response,
-            targetOrigin,
-            listen,
-            listenPort,
-            error,
-            officeName,
-        }));
-    });
-
-    server.on('error', reject);
-    server.listen(Number.parseInt(listenPort, 10), listen, () => {
-        resolve({
-            server,
-            origin: routerOrigin,
-            dashboardUrl: `${routerOrigin}${dashboardPath}`,
-            targetOrigin,
+        }).catch((error) => {
+            response.writeHead(502, { 'content-type': 'application/json; charset=utf-8' });
+            response.end(JSON.stringify({
+                message: 'CreditSoft local router could not reach the office server.',
+                targetOrigin,
+                error: error instanceof Error ? error.message : String(error),
+            }, null, 2));
         });
     });
-});
-
-const startWaitingRouter = ({ token, listen, listenPort, dashboardPath, officeName, candidates, probes }) => new Promise((resolve, reject) => {
-    const routerOrigin = routerOriginFor(listen, listenPort);
-    const errorMessage = candidates.length > 0
-        ? 'No configured, paired, local, or Tailscale office API lane answered yet.'
-        : 'No office API lanes are configured yet.';
-    const server = createServer((request, response) => {
-        const requestUrl = localRequestUrl(request, listen, listenPort);
-
-        if (requestUrl.pathname === '/__creditsoft/client/status') {
-            response.writeHead(503, { 'content-type': 'application/json; charset=utf-8' });
-            response.end(JSON.stringify({
-                status: 'waiting',
-                message: errorMessage,
-                tokenProvided: Boolean(token),
-                candidateCount: candidates.length,
-                probes,
-            }, null, 2));
-            return;
-        }
-
-        if (requestAcceptsHtml(request) && !requestWantsJson(request)) {
-            response.writeHead(503, {
-                'content-type': 'text/html; charset=utf-8',
-                'cache-control': 'no-store',
-            });
-            response.end(offlineHtml({
-                officeName,
-                targetOrigin: 'No office server selected',
-                errorMessage,
-            }));
-            return;
-        }
-
-        response.writeHead(503, { 'content-type': 'application/json; charset=utf-8' });
-        response.end(JSON.stringify({
-            message: 'CreditSoft local router is waiting for an office server.',
-            error: errorMessage,
-        }, null, 2));
-    });
 
     server.on('error', reject);
     server.listen(Number.parseInt(listenPort, 10), listen, () => {
         resolve({
             server,
-            origin: routerOrigin,
-            dashboardUrl: `${routerOrigin}${dashboardPath}`,
-            targetOrigin: null,
+            origin: `http://${listen}:${listenPort}`,
+            dashboardUrl: `http://${listen}:${listenPort}${dashboardPath}`,
+            targetOrigin,
         });
     });
 });
@@ -892,57 +560,6 @@ const saveConfig = (config) => {
     mkdirSync(CONFIG_DIR, { recursive: true });
     writeFileSync(CONFIG_PATH, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
 };
-
-const shouldPromptForToken = (args, token) => args.promptToken
-    && !token
-    && !args.json
-    && (args.serve || args.open)
-    && process.stdin.isTTY
-    && process.stdout.isTTY;
-
-const promptForToken = async () => new Promise((resolve, reject) => {
-    const wasRaw = process.stdin.isRaw;
-    let token = '';
-
-    const cleanup = () => {
-        process.stdin.off('keypress', onKeypress);
-
-        if (process.stdin.isTTY) {
-            process.stdin.setRawMode(Boolean(wasRaw));
-        }
-
-        process.stdout.write('\n');
-    };
-
-    const onKeypress = (character, key = {}) => {
-        if (key.ctrl && key.name === 'c') {
-            cleanup();
-            reject(new Error('API key prompt cancelled.'));
-            return;
-        }
-
-        if (key.name === 'return' || key.name === 'enter') {
-            cleanup();
-            resolve(token.trim());
-            return;
-        }
-
-        if (key.name === 'backspace' || key.name === 'delete') {
-            token = token.slice(0, -1);
-            return;
-        }
-
-        if (typeof character === 'string' && character.length === 1 && !key.ctrl && !key.meta) {
-            token += character;
-        }
-    };
-
-    readline.emitKeypressEvents(process.stdin);
-    process.stdout.write('Personal CreditSoft API key (not saved; press Enter to skip): ');
-    process.stdin.on('keypress', onKeypress);
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-});
 
 const main = async () => {
     const args = parseArgs(process.argv.slice(2));
@@ -954,13 +571,12 @@ const main = async () => {
 
     const config = readConfig();
     const pairing = parsePairing(args.pair);
-    const providedToken = args.token || pairing.token || '';
-    const token = shouldPromptForToken(args, providedToken)
-        ? await promptForToken()
-        : providedToken;
-    const strategy = normalizeStrategy(pairing.selectionStrategy || args.strategy);
+    const token = args.token || pairing.token || '';
+    const strategy = ['fastest', 'ordered'].includes(pairing.selectionStrategy)
+        ? pairing.selectionStrategy
+        : args.strategy;
+    const candidates = buildCandidates(args, config, pairing);
     const tailnet = await tailscaleStatus();
-    const candidates = buildCandidates(args, config, pairing, tailnet);
     const probes = await Promise.all(candidates.map(async (apiBase) => {
         try {
             const probe = await probeBase(apiBase, token, args.timeout);
@@ -979,27 +595,15 @@ const main = async () => {
     const selected = selectProbe(probes, token, strategy);
 
     const dashboardPath = pairing.dashboardPath || config.dashboardPath || DEFAULT_DASHBOARD_PATH;
-    const officeName = pairing.officeName || config.officeName || 'CreditSoft Office';
     const dashboardUrl = selected ? `${originFromApiBase(selected.apiBase)}${dashboardPath}` : null;
-    const router = args.serve
-        ? (selected
-            ? await startLocalRouter({
+    const router = selected && args.serve
+        ? await startLocalRouter({
             selected,
             token,
             listen: args.listen,
             listenPort: args.listenPort,
             dashboardPath,
-            officeName,
-            })
-            : await startWaitingRouter({
-                token,
-                listen: args.listen,
-                listenPort: args.listenPort,
-                dashboardPath,
-                officeName,
-                candidates,
-                probes,
-            }))
+        })
         : null;
     const launchUrl = router?.dashboardUrl || dashboardUrl;
     let opened = false;
@@ -1011,7 +615,7 @@ const main = async () => {
 
     if (args.save && selected) {
         saveConfig({
-            officeName,
+            officeName: pairing.officeName || config.officeName || 'CreditSoft Office',
             lastConnectedBaseUrl: selected.apiBase,
             candidateBaseUrls: unique([selected.apiBase, ...candidates]),
             dashboardPath,
@@ -1035,11 +639,6 @@ const main = async () => {
         opened,
         tokenProvided: Boolean(token),
         tailscale: tailnet,
-        candidateCount: candidates.length,
-        tailscaleCandidateCount: args.tailscaleDiscover
-            ? tailscaleCandidateBases(tailnet, args.tailscalePorts).length
-            : 0,
-        tailscalePorts: args.tailscalePorts,
         probes,
         configPath: CONFIG_PATH,
     };
@@ -1048,8 +647,7 @@ const main = async () => {
         console.log(JSON.stringify(result, null, 2));
     } else {
         console.log('CreditSoft Intranet Client');
-        console.log(`Tailscale: ${tailnet.running ? `running (${tailnet.dnsName || tailnet.ipv4 || 'connected'}; ${tailnet.onlinePeers ?? 0} online peers, ${tailnet.pingablePeers ?? 0} pingable)` : tailnet.message}`);
-        console.log(`Candidates: ${result.candidateCount} total${result.tailscaleCandidateCount ? `, ${result.tailscaleCandidateCount} from Tailscale ports ${result.tailscalePorts.join(',')}` : ''}`);
+        console.log(`Tailscale: ${tailnet.running ? `running (${tailnet.dnsName || tailnet.ipv4 || 'connected'})` : tailnet.message}`);
         console.log(`Selection: ${strategy}`);
         console.log(`API: ${result.selectedApiBase || 'no reachable API found'}${selected?.latencyMs ? ` (${selected.latencyMs}ms)` : ''}`);
         console.log(`Authenticated: ${result.authenticated ? 'yes' : (result.tokenProvided ? 'no' : 'no token supplied')}`);

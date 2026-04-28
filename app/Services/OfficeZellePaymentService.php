@@ -370,7 +370,7 @@ class OfficeZellePaymentService
     protected function recordClientPayment(Client $client, ?float $amount, string $transactionId, string $memoText, CarbonInterface|string|null $paidAt): ClientPayment
     {
         $paidAt = $paidAt instanceof CarbonInterface ? $paidAt : ($paidAt ? Carbon::parse($paidAt) : now());
-        $profile = $this->profileForPayment($client, $amount, $paidAt);
+        $profile = ClientBillingProfile::query()->where('client_id', $client->getKey())->first();
         $payment = $transactionId !== ''
             ? ClientPayment::query()
                 ->where('gateway_name', 'Zelle')
@@ -404,53 +404,6 @@ class OfficeZellePaymentService
         }
 
         return $payment;
-    }
-
-    protected function profileForPayment(Client $client, ?float $amount, CarbonInterface $paidAt): ClientBillingProfile
-    {
-        $profile = ClientBillingProfile::query()->firstOrNew([
-            'client_id' => $client->getKey(),
-        ]);
-
-        if (! $profile->exists) {
-            $profile->fill([
-                'status' => 'active',
-                'amount' => $amount ?? 0,
-                'currency' => 'USD',
-                'billing_interval' => 'monthly',
-                'started_at' => $paidAt,
-                'last_paid_at' => $paidAt,
-                'next_due_at' => $paidAt->copy()->addMonth(),
-                'gateway_name' => 'Zelle',
-                'notes' => 'Created automatically from an imported Zelle payment.',
-                'metadata' => [
-                    'source' => 'office_zelle_mailbox',
-                    'created_from_payment_at' => now()->toIso8601String(),
-                ],
-            ])->save();
-
-            return $profile;
-        }
-
-        if ((float) $profile->amount <= 0 && $amount !== null && $amount > 0) {
-            $profile->amount = $amount;
-        }
-
-        if (! $profile->gateway_name) {
-            $profile->gateway_name = 'Zelle';
-        }
-
-        if (! $profile->last_paid_at || Carbon::parse($profile->last_paid_at)->lessThan($paidAt)) {
-            $profile->last_paid_at = $paidAt;
-            $profile->next_due_at = $this->nextDueAt($profile, $paidAt);
-        }
-
-        $metadata = $profile->metadata ?? [];
-        data_set($metadata, 'payment_sources.zelle.last_seen_at', now()->toIso8601String());
-        $profile->metadata = $metadata;
-        $profile->save();
-
-        return $profile;
     }
 
     protected function clientByEmail(string $email): ?Client

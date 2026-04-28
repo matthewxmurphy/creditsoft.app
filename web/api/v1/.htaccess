@@ -1,6 +1,0 @@
-Options -MultiViews
-RewriteEngine On
-
-RewriteRule ^meta/callback/?$ meta/callback.php [END,QSA]
-RewriteRule ^$ index.php [END,QSA]
-RewriteRule ^(.+)$ index.php [END,QSA]

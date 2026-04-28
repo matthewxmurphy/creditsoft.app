@@ -38,7 +38,7 @@ class HrController extends Controller
         $activityEntriesByUser = $activityEntries->groupBy('user_id');
         $activitySamplesByUser = $activitySamples->groupBy('user_id');
         $timezone = (string) config('app.timezone', 'America/Los_Angeles');
-        $activityDates = collect(range(13, 0))
+        $activityDates = collect(range(29, 0))
             ->map(fn (int $daysAgo) => now($timezone)->subDays($daysAgo)->startOfDay())
             ->values();
         $clientCounts = Client::query()
@@ -82,7 +82,7 @@ class HrController extends Controller
                     'manual' => 0,
                 ];
                 $input = $inputActivity[$user->id] ?? [
-                    'samples' => 0,
+                    'capture_count' => 0,
                     'active_minutes' => 0,
                     'keypresses' => 0,
                     'clicks' => 0,
@@ -271,13 +271,14 @@ class HrController extends Controller
         return back()->with('status', 'HR note saved.');
     }
 
-    public function storeActivitySample(Request $request): \Illuminate\Http\JsonResponse
+    public function storeActivityCapture(Request $request): \Illuminate\Http\JsonResponse
     {
         $actor = $request->user();
 
         abort_unless($actor, 403);
 
         $validated = $request->validate([
+            'captured_at' => ['nullable', 'date'],
             'sampled_at' => ['nullable', 'date'],
             'route_path' => ['nullable', 'string', 'max:255'],
             'page_title' => ['nullable', 'string', 'max:255'],
@@ -309,8 +310,8 @@ class HrController extends Controller
 
         EmployeeActivitySample::query()->create([
             'user_id' => $actor->id,
-            'sampled_at' => isset($validated['sampled_at'])
-                ? Carbon::parse($validated['sampled_at'])
+            'sampled_at' => isset($validated['captured_at']) || isset($validated['sampled_at'])
+                ? Carbon::parse((string) ($validated['captured_at'] ?? $validated['sampled_at']))
                 : now(),
             'route_path' => $this->cleanRoutePath($validated['route_path'] ?? null),
             'page_title' => isset($validated['page_title']) ? str($validated['page_title'])->limit(120)->value() : null,
@@ -407,7 +408,7 @@ class HrController extends Controller
         $activeMinutes = (float) ($input['active_minutes'] ?? 0);
         $keypresses = (int) ($input['keypresses'] ?? 0);
         $clicks = (int) ($input['clicks'] ?? 0);
-        $samples = (int) ($input['samples'] ?? 0);
+        $activityCaptures = (int) ($input['capture_count'] ?? 0);
         $activityTotal = (int) ($audit['total'] ?? 0);
 
         $strengths = collect([
@@ -423,7 +424,7 @@ class HrController extends Controller
 
         $risks = collect([
             $openTasks > 0 ? "Has {$openTasks} open or in-progress task(s) that need continued movement." : null,
-            $samples === 0 ? 'No browser activity samples were recorded for this week, so input-signal scoring is incomplete.' : null,
+            $activityCaptures === 0 ? 'No browser activity captures were recorded for this week, so input-signal scoring is incomplete.' : null,
             ((int) ($reviews['open'] ?? 0)) > 0 ? 'Has open HR review item(s) that should be acknowledged or closed.' : null,
             ((int) ($reviews['write_ups_this_week'] ?? 0)) > 0 ? 'Has write-up activity during the selected week.' : null,
         ])->filter()->values()->all();
@@ -434,7 +435,7 @@ class HrController extends Controller
 
         $nextFocus = collect([
             $openTasks > 0 ? 'Close, update, or reassign open tasks before the next review cycle.' : 'Keep task completion notes current as work is finished.',
-            $samples === 0 ? 'Confirm the intranet browser is open during work sessions so activity counts can build a fair baseline.' : 'Keep work sessions consistent so activity baselines become more useful over time.',
+            $activityCaptures === 0 ? 'Confirm the intranet browser is open during work sessions so activity counts can build a fair baseline.' : 'Keep work sessions consistent so activity baselines become more useful over time.',
             'Use HR notes for context when numbers alone do not explain performance.',
         ])->values()->all();
 
@@ -494,7 +495,7 @@ class HrController extends Controller
         return $samples
             ->groupBy('user_id')
             ->map(fn (Collection $rows): array => [
-                'samples' => $rows->count(),
+                'capture_count' => $rows->count(),
                 'active_minutes' => round(((int) $rows->sum('active_ms')) / 60000, 1),
                 'keypresses' => (int) $rows->sum('keypress_count'),
                 'clicks' => (int) $rows->sum('click_count'),
@@ -524,7 +525,7 @@ class HrController extends Controller
                 ->whereBetween('sampled_at', [$periodStart, $periodEnd])
                 ->get()
         )[$employee->id] ?? [
-            'samples' => 0,
+            'capture_count' => 0,
             'active_minutes' => 0,
             'keypresses' => 0,
             'clicks' => 0,
@@ -619,7 +620,7 @@ class HrController extends Controller
             '#4d7c0f',
         ];
         $visibleUsers = $users->take(8)->values();
-        $labels = collect(range(13, 0))
+        $labels = collect(range(29, 0))
             ->map(fn (int $daysAgo) => now($timezone)->subDays($daysAgo))
             ->values();
         $hourLabels = collect(range(0, 23))->map(fn (int $hour) => $this->hourLabel($hour))->all();

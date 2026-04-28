@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Settings\ProfileDeleteRequest;
-use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Models\UserApiKey;
 use App\Services\AuditTrail;
 use App\Services\ConnectivityLaneService;
 use App\Services\CreditsoftApiAccess;
 use App\Services\LicenseStateService;
 use App\Services\TailscaleStatusService;
+use App\Http\Requests\Settings\ProfileDeleteRequest;
+use App\Http\Requests\Settings\ProfileUpdateRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,7 +29,8 @@ class ProfileController extends Controller
         TailscaleStatusService $tailscaleStatus,
         ConnectivityLaneService $laneService,
         LicenseStateService $licenseState,
-    ): Response {
+    ): Response
+    {
         $detectedTailscale = $tailscaleStatus->current();
         $apiUrls = $laneService->apiUrls($request, $apiAccess, $detectedTailscale);
 

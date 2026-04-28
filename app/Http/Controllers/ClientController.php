@@ -1708,6 +1708,7 @@ class ClientController extends Controller
             'letters' => fn ($query) => $query->latest()->limit(3),
             'violations' => fn ($query) => $query->latest()->limit(6),
             'tasks' => fn ($query) => $query->latest('due_at')->limit(6),
+            'portalEvents' => fn ($query) => $query->latest('occurred_at')->latest()->limit(8),
             'sopRuns.template',
             'browserCaptures' => fn ($query) => $query->latest('imported_at')->limit(5),
             'documents' => fn ($query) => $query->with('reportingCycle')->latest('uploaded_at')->limit(50),
@@ -1787,6 +1788,18 @@ class ClientController extends Controller
                 ? route('clients.documents.download', [$client, $document])
                 : null,
         ])->values()->all() : [];
+        $clientPayload['portal_events'] = $client->portalEvents->map(fn ($event) => [
+            'id' => $event->getKey(),
+            'source' => $event->source,
+            'event_type' => $event->event_type,
+            'tool_key' => $event->tool_key,
+            'title' => $event->title,
+            'summary' => $event->summary,
+            'message' => $event->message,
+            'score' => $event->score,
+            'status' => $event->status,
+            'occurred_at' => optional($event->occurred_at)?->toIso8601String(),
+        ])->values()->all();
 
         return Inertia::render('clients/Show', [
             'client' => $clientPayload,

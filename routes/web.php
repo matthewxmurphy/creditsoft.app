@@ -20,6 +20,7 @@ use App\Http\Controllers\InstallerController;
 use App\Http\Controllers\Internal\AiAssistantController;
 use App\Http\Controllers\Internal\ConfigReloadController;
 use App\Http\Controllers\Internal\CreditsoftBackupController;
+use App\Http\Controllers\Internal\CreditsoftCrmFrameController;
 use App\Http\Controllers\Internal\CreditsoftCrmLaunchController;
 use App\Http\Controllers\Internal\CreditsoftDiagnosticsController;
 use App\Http\Controllers\Internal\CreditsoftUpdateController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\ReportingCycleController;
 use App\Http\Controllers\Settings\CtoController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ViolationController;
+use App\Http\Middleware\AuthenticateOrAllowLocalBypass;
 use App\Models\Client;
 use App\Models\ClientBillingProfile;
 use App\Models\MetricSnapshot;
@@ -103,7 +105,7 @@ Route::redirect('ops', '/violations')->name('ops.redirect');
 Route::get('internal/diagnostics/summary', [CreditsoftDiagnosticsController::class, 'show'])->name('internal.diagnostics.summary');
 Route::get('internal/diagnostics/bandwidth', [CreditsoftDiagnosticsController::class, 'bandwidth'])->name('internal.diagnostics.bandwidth');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware([AuthenticateOrAllowLocalBypass::class, 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('calendar/social', [CalendarController::class, 'social'])->name('calendar.social');
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
@@ -131,7 +133,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('hr', [HrController::class, 'index'])->name('hr.index');
     Route::post('hr/profiles', [HrController::class, 'storeProfile'])->name('hr.profiles.store');
     Route::post('hr/reviews', [HrController::class, 'storeReview'])->name('hr.reviews.store');
-    Route::post('hr/activity-samples', [HrController::class, 'storeActivitySample'])
+    Route::post('hr/activity-captures', [HrController::class, 'storeActivityCapture'])
+        ->middleware('throttle:180,1')
+        ->name('hr.activity-captures.store');
+    Route::post('hr/activity-samples', [HrController::class, 'storeActivityCapture'])
         ->middleware('throttle:180,1')
         ->name('hr.activity-samples.store');
     Route::post('hr/weekly-reports/generate', [HrController::class, 'generateWeeklyReport'])->name('hr.weekly-reports.generate');
@@ -184,6 +189,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('violations', [ViolationController::class, 'queue'])->name('violations.index');
 
     Route::get('cfo', [CfoController::class, 'index'])->name('cfo.index');
+    Route::get('crm', CreditsoftCrmFrameController::class)->name('integrations.crm.frame');
     Route::get('integrations/crm/launch', CreditsoftCrmLaunchController::class)->name('integrations.crm.launch');
     Route::get('browser-companion/download', [BrowserCompanionController::class, 'download'])
         ->name('browser-companion.download');

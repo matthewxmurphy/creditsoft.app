@@ -35,10 +35,8 @@ Flow:
    - `http://127.0.0.1:8001/api/v1`
    - Tailscale or private office URL
    - public API bridge or ngrok fallback
-4. When no key was supplied by the installer/keychain, the interactive runner asks for the staff member's personal API key without saving it.
-5. The client validates the personal key against `/api/v1/client/handshake`, then falls back to `/api/v1/office-stats`.
-6. If Tailscale is running, the client reads MagicDNS peers from `tailscale status --json`, pings those peers, and probes likely CreditSoft ports (`8001`, `8000`, `8877`, `443`, and `80`) for `/api/v1`.
-7. The client opens the dashboard/PWA against the real host, not the employee machine's localhost.
+4. The client validates the personal key against `/api/v1/office-stats`.
+5. The client opens the dashboard/PWA against the real host, not the employee machine's localhost.
 
 The first Node runner lives in `intranet-client/`.
 

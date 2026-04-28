@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /vendor/
+Sitemap: https://www.creditsoft.app/sitemap.xml

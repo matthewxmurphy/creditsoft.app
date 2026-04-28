@@ -397,45 +397,6 @@
         .feature-state.on { color: #166534; }
         .feature-state.off { color: #991b1b; }
 
-        .companion-trial {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 18px;
-            align-items: center;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            padding: 16px 0;
-        }
-
-        .companion-trial h3 {
-            margin: 0;
-            font-size: 1.15rem;
-            letter-spacing: -0.02em;
-        }
-
-        .companion-trial p {
-            margin: 8px 0 0;
-            color: var(--muted);
-            line-height: 1.55;
-        }
-
-        .companion-trial-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-top: 14px;
-        }
-
-        .trial-qr {
-            width: 94px;
-            height: 94px;
-            object-fit: contain;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            background: white;
-            padding: 8px;
-        }
-
         form {
             display: grid;
             gap: 14px;
@@ -724,8 +685,7 @@
             .release-head,
             .license-head,
             .release-panel .stats,
-            .renewal-meta,
-            .companion-trial {
+            .renewal-meta {
                 grid-template-columns: 1fr;
             }
 
@@ -915,30 +875,6 @@
                     @endforeach
                 </ul>
 
-                @php($companionTrial = data_get($license, 'feature_trials.browser_companion'))
-                @if (is_array($companionTrial))
-                    <p class="section-kicker">Companion trial</p>
-                    <div class="companion-trial">
-                        <div>
-                            <h3>{{ $companionTrial['active'] ?? false ? '7-day companion trial is active.' : (($companionTrial['expired'] ?? false) ? 'Companion trial ended.' : '7-day companion trial is ready.') }}</h3>
-                            <p>{{ $companionTrial['message'] ?? 'The browser companion can be tested during setup, then renewed from the Zelle lane.' }}</p>
-                            <div class="companion-trial-actions">
-                                <a href="/browser-companion/download" class="icon-action">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10"></path><path d="m8 10 4 4 4-4"></path><path d="M5 20h14"></path></svg>
-                                    <span>Download from updates.creditsoft.app</span>
-                                </a>
-                                <a href="{{ $updates['renewal_url'] ?? 'https://updates.creditsoft.app/renewal/' }}" class="icon-action primary">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8"></path><path d="M8 12h8"></path><path d="M8 17h5"></path><path d="M5 3h14v18H5z"></path></svg>
-                                    <span>Pay with Zelle QR</span>
-                                </a>
-                            </div>
-                        </div>
-                        @if (!empty($renewal['qr_image_url']))
-                            <img class="trial-qr" src="{{ $renewal['qr_image_url'] }}" alt="CreditSoft Zelle QR code">
-                        @endif
-                    </div>
-                @endif
-
                 <form method="POST" action="{{ route('settings.license.update') }}" target="_top">
                     @csrf
                     <label>
@@ -977,7 +913,7 @@
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M5 3h14v12H5z"></path></svg>
                             <span>Try browser companion download</span>
                         </a>
-                        <a href="{{ $updates['renewal_url'] ?? 'https://updates.creditsoft.app/renewal/' }}" class="icon-action">
+                        <a href="https://updates.creditsoft.app/renew.php" class="icon-action">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8"></path><path d="M8 12h8"></path><path d="M8 17h5"></path><path d="M5 3h14v18H5z"></path></svg>
                             <span>Open renewal payment page</span>
                         </a>

@@ -25,7 +25,7 @@ class ConnectivityLaneService
             'local_base_url' => $localBaseUrl,
             'public_base_url' => $publicBaseUrl,
             'tailnet_base_url' => $tailnetBaseUrl,
-            'preferred_base_url' => $localBaseUrl ?: ($tailnetBaseUrl ?? $publicBaseUrl ?? ''),
+            'preferred_base_url' => $publicBaseUrl ?? $tailnetBaseUrl ?? $localBaseUrl,
         ];
     }
 
@@ -48,7 +48,7 @@ class ConnectivityLaneService
             'local_base_url' => $localBaseUrl,
             'public_base_url' => $publicBaseUrl,
             'tailnet_base_url' => $tailnetBaseUrl,
-            'preferred_base_url' => $localBaseUrl ?: ($tailnetBaseUrl ?? $publicBaseUrl ?? ''),
+            'preferred_base_url' => $publicBaseUrl ?? $tailnetBaseUrl ?? $localBaseUrl,
         ];
     }
 
@@ -85,7 +85,6 @@ class ConnectivityLaneService
         $host = $this->firstString(
             $tailscaleStatus['dns_name'] ?? null,
             $tailscaleStatus['ipv4'] ?? null,
-            $this->configuredTailnetHost(),
         );
 
         if (! $host) {
@@ -93,33 +92,10 @@ class ConnectivityLaneService
         }
 
         $scheme = $request->getScheme();
-        $port = $this->tailnetPort($request);
+        $port = $request->getPort();
         $portSegment = $this->shouldIncludePort($scheme, $port) ? ':'.$port : '';
 
         return "{$scheme}://{$host}{$portSegment}";
-    }
-
-    protected function tailnetPort(Request $request): int|string|null
-    {
-        $configuredPort = (int) (env('CREDITSOFT_TAILSCALE_HTTP_PORT') ?: env('CREDITSOFT_DOCKER_PORT') ?: 0);
-
-        return $configuredPort > 0 ? $configuredPort : $request->getPort();
-    }
-
-    protected function configuredTailnetHost(): ?string
-    {
-        $hostname = $this->firstString(config('creditsoft.tunnels.tailscale.hostname'));
-        $tailnet = $this->firstString(config('creditsoft.tunnels.tailscale.tailnet'));
-
-        if (! $hostname) {
-            return null;
-        }
-
-        if (str_contains($hostname, '.') || ! $tailnet) {
-            return rtrim($hostname, '.');
-        }
-
-        return rtrim($hostname, '.').'.'.trim($tailnet, '.');
     }
 
     protected function firstString(mixed ...$values): ?string

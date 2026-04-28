@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Internal;
 
 use App\Http\Controllers\Controller;
 use App\Services\CreditsoftSelfUpdateService;
+use App\Services\LicenseStateService;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -89,6 +90,7 @@ class CreditsoftUpdateController extends Controller
     protected function ensureAllowed(Request $request): void
     {
         $user = $request->user();
+        $license = app(LicenseStateService::class)->current();
 
         abort_unless(
             $user
@@ -96,6 +98,13 @@ class CreditsoftUpdateController extends Controller
             && $user->canAccessOpsPanel()
             && (! method_exists($user, 'isReadOnlyDemo') || ! $user->isReadOnlyDemo()),
             403,
+        );
+
+        abort_unless(
+            (bool) ($license['valid'] ?? false)
+            && (string) ($license['access_state'] ?? '') === 'active',
+            403,
+            'Office updates require an active CreditSoft license.',
         );
     }
 

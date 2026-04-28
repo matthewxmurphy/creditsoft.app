@@ -1,0 +1,97 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+const title = "Privacy Policy | CreditSoft";
+const description = "CreditSoft Privacy Policy covering account information, local-first client data, analytics, and customer rights.";
+---
+
+<BaseLayout title={title} description={description} path="/privacy">
+  <SiteHeader />
+  <main class="legal-page">
+    <section class="legal-hero page-wrap">
+      <p class="eyebrow">Legal</p>
+      <h1>Privacy Policy</h1>
+      <p>How CreditSoft protects public website, account, and local-first office data.</p>
+    </section>
+
+    <section class="legal-content page-wrap">
+      <p class="last-updated">Last Updated: February 2026</p>
+
+      <h2>Information We Collect</h2>
+      <p>We collect information you provide directly, including name, email, company, office details, payment-reference notes, and support messages.</p>
+
+      <h2>How We Use Information</h2>
+      <p>We use information to provide and improve CreditSoft, create customer dashboard access, match license payments, communicate with you, and meet legal and security obligations.</p>
+
+      <h2>Local-First Client Data</h2>
+      <p><strong>Important:</strong> CreditSoft office data is designed to run on your approved server or office node. Client case data is not treated like a shared SaaS database hosted for every customer.</p>
+
+      <h2>Analytics And Marketing</h2>
+      <p>We may use analytics and marketing tools such as Google Analytics and Meta Pixel after consent where required. You can decline optional cookies from the cookie banner.</p>
+
+      <h2>Your Rights</h2>
+      <ul>
+        <li>Request access to your information.</li>
+        <li>Request correction or deletion where applicable.</li>
+        <li>Ask how your account or license information is used.</li>
+      </ul>
+
+      <h2>Contact</h2>
+      <p>Questions? Email <a href="mailto:hello@creditsoft.app">hello@creditsoft.app</a>.</p>
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .legal-page {
+    background: linear-gradient(180deg, rgba(8, 8, 10, 0.98), rgba(15, 23, 42, 0.98));
+  }
+
+  .legal-hero {
+    padding-top: 86px;
+    padding-bottom: 34px;
+  }
+
+  .legal-hero h1 {
+    margin: 0;
+    font-size: clamp(3rem, 8vw, 6rem);
+    letter-spacing: -0.07em;
+    line-height: 0.95;
+  }
+
+  .legal-hero p:not(.eyebrow) {
+    max-width: 720px;
+    color: var(--muted);
+    font-size: 1.12rem;
+    line-height: 1.7;
+  }
+
+  .legal-content {
+    max-width: 850px;
+    padding-bottom: 82px;
+  }
+
+  .last-updated {
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .legal-content h2 {
+    margin: 30px 0 10px;
+    font-size: 1.45rem;
+  }
+
+  .legal-content p,
+  .legal-content li {
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .legal-content a {
+    color: #5bd695;
+    font-weight: 800;
+  }
+</style>

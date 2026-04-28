@@ -6,43 +6,53 @@ import SectionHeading from "../components/SectionHeading.astro";
 import { loadPlans, loadThemePage } from "../lib/preview-content";
 
 const theme = await loadThemePage();
-const plans = (await loadPlans()).slice(0, 3);
+const plans = await loadPlans();
 
 const money = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
-  maximumFractionDigits: 0,
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
 });
 ---
 
-<BaseLayout title="CreditSoft Pricing | Astro preview" description="Pricing page preview for the CreditSoft Astro replacement site.">
+<BaseLayout title="CreditSoft Pricing" description="Pricing for the CreditSoft public site, CRM, portal, migration, and office-node lanes.">
   <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
 
   <main>
     <section class="section page-hero">
       <div class="page-wrap section-shell">
-        <span class="eyebrow">Pricing plan</span>
-        <h1 class="display">Flexible plans built for every CreditSoft office stage.</h1>
+        <span class="eyebrow">Pricing</span>
+        <h1 class="display">Monthly, lease, or a 10-year CreditSoft license.</h1>
         <p class="lede">
-          This is the closer Zarex-style pricing lane: cleaner hierarchy, fewer excuses,
-          and one place to understand monthly, annual, and sale positioning.
+          Monthly keeps the door open. Lease terms make rollout easier to plan.
+          The 10-year license is the big value anchor for offices that already know CreditSoft
+          is going to be core infrastructure.
         </p>
       </div>
     </section>
 
     <section class="section">
       <div class="page-wrap section-shell">
-        <div class="simple-grid three stagger">
+        <div class="simple-grid pricing-grid stagger">
           {plans.map((plan) => (
             <article class:list={["info-card panel", plan.highlighted && "price-focus"]}>
               <span class="eyebrow">{plan.badge ?? "Plan"}</span>
               <h3>{plan.name}</h3>
               <p>{plan.description}</p>
               <div class="price-stack">
-                <strong>{money.format(plan.saleMonthlyPrice ?? plan.monthlyPrice)}<small>/month</small></strong>
-                <span>{money.format(plan.annualPrice)} annually</span>
+                <strong>{money.format(plan.saleMonthlyPrice ?? plan.monthlyPrice)}<small>{plan.billingLabel ?? "/month"}</small></strong>
+                <span>{plan.secondaryPriceLabel ?? `${money.format(plan.annualPrice)} annually`}</span>
                 {plan.annualDiscountPercent ? <em>Save {plan.annualDiscountPercent}% annually</em> : null}
               </div>
+              {plan.leaseTerms && plan.leaseTerms.length > 0 ? (
+                <label class="term-select">
+                  <span>Lease term</span>
+                  <select>
+                    {plan.leaseTerms.map((term) => <option>{term}</option>)}
+                  </select>
+                </label>
+              ) : null}
               <ul>
                 {plan.featureList.map((feature) => (
                   <li>{feature}</li>
@@ -61,16 +71,16 @@ const money = new Intl.NumberFormat("en-US", {
       <div class="page-wrap section-shell">
         <SectionHeading
           eyebrow="Comparison"
-          title="Pricing should still explain capability clearly"
-          text="This keeps the theme structure while making the plan differences feel more grounded in CreditSoft."
+          title="The 10-year license should feel like the obvious long-term deal."
+          text="Monthly and lease options are there for normal office cashflow. The 10-year license exists for the one to three serious companies a year that want the system locked in."
         />
 
         <div class="compare-table panel">
           <div class="compare-row compare-head">
             <div>Feature</div>
-            <div>Starter</div>
-            <div>Growth</div>
-            <div>Enterprise</div>
+            <div>Monthly</div>
+            <div>Lease</div>
+            <div>10-year</div>
           </div>
           {theme.compareRows.map((row) => (
             <div class="compare-row">
@@ -89,6 +99,10 @@ const money = new Intl.NumberFormat("en-US", {
 </BaseLayout>
 
 <style>
+  .pricing-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .price-stack {
     display: grid;
     gap: 6px;
@@ -106,8 +120,44 @@ const money = new Intl.NumberFormat("en-US", {
     color: var(--muted);
   }
 
+  .price-stack small {
+    margin-left: 8px;
+    font-size: 1rem;
+    letter-spacing: 0;
+  }
+
   .price-focus {
     border-color: rgba(241, 194, 122, 0.26);
     box-shadow: 0 24px 60px rgba(241, 194, 122, 0.1);
+  }
+
+  .term-select {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 18px;
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+  }
+
+  .term-select select {
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    padding: 0 12px;
+  }
+
+  @media (max-width: 1180px) {
+    .pricing-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 720px) {
+    .pricing-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

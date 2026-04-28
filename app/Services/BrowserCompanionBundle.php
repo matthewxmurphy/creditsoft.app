@@ -32,7 +32,7 @@ class BrowserCompanionBundle
     {
         $version = trim((string) data_get($this->manifest(), 'version'));
 
-        return $version !== '' ? $version : '0.1.0';
+        return $version !== '' ? $version : (string) config('creditsoft.updates.current_version', '2026.4.27.1');
     }
 
     public function downloadName(): string

@@ -8,9 +8,7 @@ use App\Services\NgrokTunnelService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
-use Throwable;
 
 class EnsureNgrokCallbackLane
 {
@@ -18,7 +16,8 @@ class EnsureNgrokCallbackLane
         protected CreditsoftApiAccess $apiAccess,
         protected NgrokConfigService $ngrokConfig,
         protected NgrokTunnelService $ngrokTunnel,
-    ) {}
+    ) {
+    }
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -52,15 +51,9 @@ class EnsureNgrokCallbackLane
             return;
         }
 
-        try {
-            $this->ngrokTunnel->ensureRunning(
-                $request->getPort(),
-                (string) ($status['config_path'] ?? ''),
-            );
-        } catch (Throwable $exception) {
-            Log::warning('CreditSoft ngrok callback lane could not be started during request.', [
-                'message' => $exception->getMessage(),
-            ]);
-        }
+        $this->ngrokTunnel->ensureRunning(
+            $request->getPort(),
+            (string) ($status['config_path'] ?? ''),
+        );
     }
 }

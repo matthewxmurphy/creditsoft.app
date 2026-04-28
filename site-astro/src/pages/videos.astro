@@ -1,22 +1,1578 @@
 ---
-import PageHero from '../components/PageHero.astro';
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+const shareBaseUrl = "https://www.creditsoft.app/videos";
+
+const videos = [
+  {
+    slug: "smartcredit-companion",
+    category: "Training",
+    categoryNote: "Automation walkthroughs and real workflow demos.",
+    title: "Companion plugin walkthrough",
+    captionTitle: "Companion plugin walkthrough",
+    publishedAt: "2026-04-14",
+    publishedLabel: "Apr 14, 2026",
+    description:
+      "See the companion plugin pull SmartCredit data into CreditSoft and hand the file over for review.",
+    src: "/assets/videos/smartcredit-companion-web.mp4",
+    poster: "/assets/videos/smartcredit-companion-cover.png",
+    image: "/assets/videos/smartcredit-companion-poster.jpg",
+    duration: "35.4s",
+    resolution: "2216x1440",
+    size: "2.5 MB",
+    label: "Automation demo",
+    captionLines: [
+      "This is the CreditSoft companion plugin pulling SmartCredit data into the client file automatically.",
+      "Once the capture lands, CreditSoft builds the client profile locally and hands the file into the review lane.",
+      "IdentityIQ support is in the product too, but this clip is showing the SmartCredit lane specifically.",
+      "No manual data entry. No outsourcing. This run is about 35 seconds, with real speed depending on connection quality and source-site response.",
+    ],
+  },
+  {
+    slug: "creditsoft-app",
+    category: "Setup",
+    categoryNote: "Install, launch, and local-app basics.",
+    title: "CreditSoft app overview",
+    captionTitle: "CreditSoft app on your private network",
+    publishedAt: "2026-04-14",
+    publishedLabel: "Apr 14, 2026",
+    description:
+      "See how CreditSoft runs as a local web app on your private network and installs like a native app in Chrome.",
+    src: "/assets/videos/creditsoft-app-web.mp4",
+    poster: "/assets/videos/creditsoft-app-cover.png",
+    image: "/assets/videos/creditsoft-app-poster.jpg",
+    duration: "39.1s",
+    resolution: "2216x1440",
+    size: "3.8 MB",
+    label: "Local app demo",
+    captionLines: [
+      "CreditSoft runs on your private network as a secure web app.",
+      "In Chrome, you can install it as an app so it feels much closer to native software on macOS.",
+      "It shows up in the dock, opens fast, runs locally, and stays under your company's control.",
+      "There is no dependency on outside cloud servers for the core local workflow. Performance comes from the hardware you choose to run it on.",
+      "More power means faster processing, quicker results, and more room to handle multiple client files at once.",
+    ],
+  },
+].map((video) => ({
+  ...video,
+  href: `/videos?watch=${encodeURIComponent(video.slug)}`,
+  shareUrl: `${shareBaseUrl}?watch=${encodeURIComponent(video.slug)}`,
+  facebookShareUrl: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+    `${shareBaseUrl}?watch=${video.slug}`,
+  )}`,
+}));
+
+const initialVideo = videos[0];
+const videoJson = JSON.stringify(videos);
+
+const icons = {
+  copy:
+    "<svg class='icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M9 7h8a4 4 0 0 1 0 8h-2' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/><path d='M15 17H7a4 4 0 0 1 0-8h2' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/><path d='M8 12h8' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg>",
+  expand:
+    "<svg class='icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>",
+  facebook:
+    "<svg class='icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M14 8h3V4h-3c-3 0-5 2-5 5v2H6v4h3v5h4v-5h3l1-4h-4V9c0-.6.4-1 1-1Z' fill='currentColor'/></svg>",
+  file:
+    "<svg class='icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M5 4h9l5 5v11H5V4Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/><path d='M14 4v5h5M10 11l5 3-5 3v-6Z' fill='currentColor'/></svg>",
+  play:
+    "<svg class='icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M8 5v14l11-7L8 5Z' fill='currentColor'/></svg>",
+  dots:
+    "<svg class='icon dots-icon' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='5' r='2' fill='currentColor'/><circle cx='12' cy='12' r='2' fill='currentColor'/><circle cx='12' cy='19' r='2' fill='currentColor'/></svg>",
+  clock:
+    "<svg class='meta-icon' viewBox='0 0 24 24' aria-hidden='true'><circle cx='12' cy='12' r='8' fill='none' stroke='currentColor' stroke-width='2'/><path d='M12 8v5l3 2' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>",
+  video:
+    "<svg class='meta-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M4 7h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4V7Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/><path d='m17 10 4-2v8l-4-2v-4Z' fill='currentColor'/></svg>",
+  drive:
+    "<svg class='meta-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M5 5h14l2 10v4H3v-4L5 5Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/><path d='M3 15h18M7 18h2' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg>",
+  calendar:
+    "<svg class='meta-icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M5 5h14v15H5V5Z' fill='none' stroke='currentColor' stroke-width='2' stroke-linejoin='round'/><path d='M8 3v4M16 3v4M5 9h14' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/></svg>",
+  list:
+    "<svg class='icon' viewBox='0 0 24 24' aria-hidden='true'><path d='M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01' fill='none' stroke='currentColor' stroke-width='2.4' stroke-linecap='round'/></svg>",
+};
 ---
 
-<Layout title="Videos | CreditSoft" description="Training and rollout videos for CreditSoft.">
-	<PageHero
-		eyebrow="Videos"
-		title="Training gets its own page, even before the full library is finished."
-		copy="A real software company should have a proper training lane. The player and catalog can grow, but the route should already exist."
-	/>
+<BaseLayout
+  title="CreditSoft Videos"
+  description="CreditSoft product videos, walkthroughs, and companion-plugin demonstrations."
+  image={initialVideo.poster}
+>
+  <SiteHeader />
 
-	<section class="section">
-		<div class="video-placeholder">
-			<div class="video-placeholder__screen">HTML5 player lane ready</div>
-			<div class="video-placeholder__copy">
-				<h2>Coming soon</h2>
-				<p>Drop in the first MP4 and poster image here, then expand into a searchable training library as the product grows.</p>
-			</div>
-		</div>
-	</section>
-</Layout>
+  <main class="video-page">
+    <section class="video-hero page-wrap">
+      <div class="video-hero-copy">
+        <span class="eyebrow">Videos</span>
+        <h1>Product walkthroughs and app demos.</h1>
+        <p>
+          See CreditSoft doing real work. These clips show the companion plugin and the local app itself
+          so a company can understand the workflow before buying it.
+        </p>
+      </div>
+      <div class="hero-badges" aria-label="Video library highlights">
+        <span>2 local MP4 demos</span>
+        <span>Playlist view</span>
+        <span>Shareable clips</span>
+      </div>
+    </section>
+
+    <section class="video-studio page-wrap" aria-label="CreditSoft video playlist">
+      <article class="watch-panel panel" aria-live="polite">
+        <div class="watch-frame">
+          <video
+            id="featuredVideo"
+            class="featured-video"
+            src={initialVideo.src}
+            poster={initialVideo.poster}
+            controls
+            preload="metadata"
+            playsinline
+          ></video>
+          <div class="next-video" id="nextVideoPanel" hidden>
+            <span>Next up</span>
+            <strong id="nextVideoTitle">{videos[1]?.title ?? initialVideo.title}</strong>
+            <button type="button" class="mini-button" id="playNextVideo">
+              <Fragment set:html={icons.play} />
+              Play next
+            </button>
+          </div>
+        </div>
+
+        <div class="watch-body">
+          <div class="watch-kicker">
+            <span id="activeCategory">{initialVideo.category}</span>
+            <time id="activePublished" datetime={initialVideo.publishedAt}>
+              Published {initialVideo.publishedLabel}
+            </time>
+          </div>
+
+          <div class="watch-title-row">
+            <div>
+              <h2 id="activeTitle">{initialVideo.title}</h2>
+              <p id="activeDescription">{initialVideo.description}</p>
+            </div>
+            <div class="watch-actions" aria-label="Video actions">
+              <button type="button" class="video-action" id="copyActiveVideo">
+                <Fragment set:html={icons.copy} />
+                Copy link
+              </button>
+              <button type="button" class="video-action" id="openTheater">
+                <Fragment set:html={icons.expand} />
+                Large player
+              </button>
+              <div class="video-menu" data-video-menu>
+                <button
+                  type="button"
+                  class="icon-button"
+                  data-video-menu-toggle
+                  aria-label="Open video share menu"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  <Fragment set:html={icons.dots} />
+                </button>
+                <div class="video-menu-panel" role="menu">
+                  <a id="activeFacebook" href={initialVideo.facebookShareUrl} target="_blank" rel="noopener">
+                    <Fragment set:html={icons.facebook} />
+                    Share on Facebook
+                  </a>
+                  <a id="activeFile" href={initialVideo.src} target="_blank" rel="noopener">
+                    <Fragment set:html={icons.file} />
+                    Open video file
+                  </a>
+                  <a href="/videos">
+                    <Fragment set:html={icons.list} />
+                    All videos
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="video-meta" aria-label="Current video metadata">
+            <span>
+              <Fragment set:html={icons.clock} />
+              <span data-active-meta="duration">{initialVideo.duration}</span>
+            </span>
+            <span>
+              <Fragment set:html={icons.video} />
+              <span data-active-meta="resolution">{initialVideo.resolution}</span>
+            </span>
+            <span>
+              <Fragment set:html={icons.drive} />
+              <span data-active-meta="size">{initialVideo.size}</span>
+            </span>
+            <span>
+              <Fragment set:html={icons.calendar} />
+              <span data-active-meta="label">{initialVideo.label}</span>
+            </span>
+          </div>
+
+          <div class="watch-details" data-watch-details>
+            <div class="watch-details-content" data-watch-details-content>
+              <strong id="activeCaptionTitle">{initialVideo.captionTitle}</strong>
+              <div id="activeCaptionLines">
+                {initialVideo.captionLines.map((line) => <p>{line}</p>)}
+              </div>
+            </div>
+            <button type="button" class="details-toggle" data-watch-details-toggle aria-expanded="false">
+              More
+            </button>
+          </div>
+        </div>
+      </article>
+
+      <aside class="playlist" aria-label="Playlist">
+        <div class="playlist-heading">
+          <span>Playlist</span>
+          <strong>Product videos</strong>
+        </div>
+
+        <div class="playlist-list">
+          {videos.map((video, index) => (
+            <article
+              class:list={["playlist-card", index === 0 && "is-active"]}
+              data-video-card
+              data-video-slug={video.slug}
+              data-video-src={video.src}
+            >
+              <a
+                href={video.href}
+                class="playlist-thumb"
+                data-video-select={video.slug}
+                aria-label={`Play ${video.title}`}
+              >
+                <img src={video.poster} alt="" loading={index === 0 ? "eager" : "lazy"} />
+                <video class="playlist-preview-video" muted loop playsinline preload="metadata"></video>
+                <span class="thumb-play" aria-hidden="true">
+                  <Fragment set:html={icons.play} />
+                </span>
+                <button
+                  type="button"
+                  class="thumb-sound"
+                  data-preview-sound
+                  aria-label="Unmute preview"
+                  title="Unmute preview"
+                >
+                  <span aria-hidden="true">Sound</span>
+                </button>
+              </a>
+
+              <div class="playlist-copy">
+                <span>{video.category}</span>
+                <h3>{video.title}</h3>
+                <p>{video.description}</p>
+                <div class="playlist-meta">
+                  <span>{video.duration}</span>
+                  <span>{video.size}</span>
+                </div>
+              </div>
+
+              <div class="video-menu card-menu" data-video-menu>
+                <button
+                  type="button"
+                  class="icon-button"
+                  data-video-menu-toggle
+                  aria-label={`Open actions for ${video.title}`}
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  <Fragment set:html={icons.dots} />
+                </button>
+                <div class="video-menu-panel" role="menu">
+                  <button type="button" data-play-in-theater={video.slug}>
+                    <Fragment set:html={icons.expand} />
+                    Open larger player
+                  </button>
+                  <button type="button" data-copy-share={video.shareUrl}>
+                    <Fragment set:html={icons.copy} />
+                    Copy share link
+                  </button>
+                  <a href={video.facebookShareUrl} target="_blank" rel="noopener">
+                    <Fragment set:html={icons.facebook} />
+                    Share on Facebook
+                  </a>
+                  <a href={video.href}>
+                    <Fragment set:html={icons.list} />
+                    Open share page
+                  </a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </aside>
+    </section>
+
+    <section class="library-strip page-wrap" aria-label="Video sections">
+      {videos.map((video) => (
+        <article class="library-item panel-soft">
+          <span>{video.category}</span>
+          <h2>{video.captionTitle}</h2>
+          <p>{video.categoryNote}</p>
+          <a href={video.href} data-video-select={video.slug}>
+            <Fragment set:html={icons.play} />
+            Watch clip
+          </a>
+        </article>
+      ))}
+    </section>
+  </main>
+
+  <div class="video-lightbox" id="videoLightbox" aria-hidden="true">
+    <div class="video-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Large video player">
+      <button type="button" class="lightbox-close" id="closeVideoLightbox" aria-label="Close large video player">
+        Close
+      </button>
+      <video id="lightboxVideo" controls preload="metadata" playsinline></video>
+      <div class="lightbox-meta">
+        <span id="lightboxCategory">{initialVideo.category}</span>
+        <strong id="lightboxTitle">{initialVideo.title}</strong>
+        <p id="lightboxDescription">{initialVideo.description}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="video-toast" id="videoToast" aria-live="polite"></div>
+  <script type="application/json" id="creditsoft-video-data" set:html={videoJson}></script>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  :global(body.video-lightbox-open) {
+    overflow: hidden;
+  }
+
+  :global(.video-page .icon),
+  :global(.video-page .meta-icon),
+  :global(.video-lightbox .icon) {
+    display: block;
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+  }
+
+  :global(.video-page .meta-icon) {
+    color: var(--accent);
+  }
+
+  .video-page {
+    padding: 56px 0 96px;
+  }
+
+  .video-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: end;
+    margin-bottom: 34px;
+  }
+
+  .video-hero-copy {
+    max-width: 980px;
+  }
+
+  .video-hero h1 {
+    margin: 18px 0 0;
+    max-width: 960px;
+    font-size: clamp(56px, 5vw, 84px);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .video-hero p {
+    margin: 18px 0 0;
+    max-width: 900px;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1.75;
+  }
+
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px 18px;
+    max-width: 360px;
+  }
+
+  .hero-badges span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding-left: 12px;
+    border-left: 2px solid rgba(91, 214, 149, 0.62);
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .video-studio {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(400px, 460px);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .watch-panel {
+    overflow: hidden;
+  }
+
+  .watch-frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: #000;
+  }
+
+  .featured-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    object-fit: contain;
+  }
+
+  .next-video {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    display: grid;
+    gap: 10px;
+    width: min(320px, calc(100% - 36px));
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    background: rgba(6, 7, 12, 0.92);
+    box-shadow: 0 22px 46px rgba(0, 0, 0, 0.34);
+  }
+
+  .next-video[hidden] {
+    display: none;
+  }
+
+  .next-video span,
+  .playlist-heading span,
+  .playlist-copy span,
+  .library-item span,
+  .watch-kicker span {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .next-video strong {
+    font-size: 20px;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .mini-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: fit-content;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #101114;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .watch-body {
+    display: grid;
+    gap: 18px;
+    padding: 30px;
+  }
+
+  .watch-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    align-items: center;
+  }
+
+  .watch-kicker time {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .watch-title-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .watch-title-row h2 {
+    margin: 0;
+    font-size: clamp(34px, 2.5vw, 44px);
+    line-height: 1.08;
+    letter-spacing: 0;
+  }
+
+  .watch-title-row p {
+    margin: 12px 0 0;
+    max-width: 940px;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.72;
+  }
+
+  .watch-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .video-action,
+  .icon-button,
+  .video-menu-panel a,
+  .video-menu-panel button,
+  .library-item a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 38px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+      transform 180ms ease,
+      color 180ms ease;
+  }
+
+  .video-action {
+    padding: 0;
+  }
+
+  .icon-button {
+    width: 38px;
+    padding: 0;
+  }
+
+  .video-action:hover,
+  .icon-button:hover,
+  .library-item a:hover {
+    transform: translateY(-1px);
+    color: var(--accent);
+  }
+
+  .video-menu {
+    position: relative;
+  }
+
+  .video-menu-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 20;
+    display: none;
+    width: 238px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: rgba(14, 14, 19, 0.98);
+    box-shadow: 0 24px 54px rgba(0, 0, 0, 0.42);
+  }
+
+  .video-menu.is-open .video-menu-panel {
+    display: grid;
+    gap: 6px;
+  }
+
+  .video-menu-panel a,
+  .video-menu-panel button {
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 42px;
+    padding: 0 11px;
+    border: 0;
+    background: transparent;
+    color: var(--text-soft);
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .video-menu-panel a:hover,
+  .video-menu-panel button:hover {
+    background: rgba(241, 194, 122, 0.08);
+    color: var(--text);
+  }
+
+  .video-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+  }
+
+  .video-meta > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 750;
+  }
+
+  .watch-details {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .watch-details-content {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    max-height: 154px;
+    overflow: hidden;
+  }
+
+  .watch-details-content::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 46px;
+    background: linear-gradient(180deg, rgba(18, 18, 24, 0), rgba(18, 18, 24, 1));
+    pointer-events: none;
+  }
+
+  .watch-details.is-expanded .watch-details-content {
+    max-height: 560px;
+  }
+
+  .watch-details.is-expanded .watch-details-content::after {
+    display: none;
+  }
+
+  .watch-details strong {
+    font-size: 18px;
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+
+  .watch-details p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.72;
+  }
+
+  .details-toggle {
+    justify-self: start;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    font-weight: 850;
+    cursor: pointer;
+  }
+
+  .details-toggle:hover {
+    text-decoration: underline;
+  }
+
+  .playlist {
+    display: grid;
+    gap: 14px;
+  }
+
+  .playlist-heading {
+    display: grid;
+    gap: 4px;
+  }
+
+  .playlist-heading strong {
+    font-size: 24px;
+    letter-spacing: 0;
+  }
+
+  .playlist-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .playlist-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 144px minmax(0, 1fr) 42px;
+    gap: 14px;
+    align-items: start;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.035);
+    transition:
+      border-color 180ms ease,
+      background 180ms ease,
+      transform 180ms ease;
+  }
+
+  .playlist-card:hover,
+  .playlist-card.is-active {
+    border-color: rgba(241, 194, 122, 0.36);
+    background: rgba(241, 194, 122, 0.075);
+  }
+
+  .playlist-card:hover {
+    transform: translateY(-1px);
+  }
+
+  .playlist-thumb {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border-radius: 12px;
+    background: #000;
+  }
+
+  .playlist-thumb img,
+  .playlist-preview-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .playlist-preview-video {
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 160ms ease;
+  }
+
+  .playlist-card.is-previewing .playlist-preview-video {
+    opacity: 1;
+  }
+
+  .playlist-thumb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.42));
+  }
+
+  .thumb-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    color: #fff;
+    transform: translate(-50%, -50%);
+    filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.5));
+  }
+
+  .thumb-sound {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 4;
+    display: none;
+    min-height: 28px;
+    padding: 0 8px;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .playlist-card.is-previewing .thumb-sound {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .playlist-copy {
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  .playlist-copy h3 {
+    margin: 5px 0 0;
+    font-size: 17px;
+    line-height: 1.22;
+    letter-spacing: 0;
+  }
+
+  .playlist-copy p {
+    display: -webkit-box;
+    margin: 8px 0 0;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .playlist-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    color: var(--muted-soft);
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .card-menu {
+    align-self: start;
+    justify-self: end;
+  }
+
+  .library-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 32px;
+  }
+
+  .library-item {
+    display: grid;
+    gap: 12px;
+    padding: 24px;
+  }
+
+  .library-item h2 {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.15;
+    letter-spacing: 0;
+  }
+
+  .library-item p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .library-item a {
+    justify-self: start;
+    padding: 0;
+  }
+
+  .video-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(14px);
+  }
+
+  .video-lightbox.is-open {
+    display: flex;
+  }
+
+  .video-lightbox-dialog {
+    position: relative;
+    display: grid;
+    gap: 16px;
+    width: min(1400px, 100%);
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    background: #08090d;
+    box-shadow: 0 34px 90px rgba(0, 0, 0, 0.46);
+  }
+
+  .video-lightbox video {
+    display: block;
+    width: 100%;
+    max-height: 72vh;
+    border-radius: 16px;
+    background: #000;
+  }
+
+  .lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    min-height: 38px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 850;
+    cursor: pointer;
+  }
+
+  .lightbox-meta {
+    display: grid;
+    gap: 7px;
+    padding: 0 4px 4px;
+  }
+
+  .lightbox-meta span {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .lightbox-meta strong {
+    font-size: 28px;
+    line-height: 1.15;
+    letter-spacing: 0;
+  }
+
+  .lightbox-meta p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .video-toast {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 110;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    background: rgba(12, 13, 18, 0.96);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease;
+  }
+
+  .video-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 1120px) {
+    .video-studio {
+      grid-template-columns: 1fr;
+    }
+
+    .playlist-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .playlist-card {
+      grid-template-columns: 138px minmax(0, 1fr) 42px;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .video-page {
+      padding-top: 36px;
+    }
+
+    .video-hero {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .video-hero h1 {
+      font-size: 42px;
+    }
+
+    .hero-badges {
+      justify-content: flex-start;
+      max-width: none;
+    }
+
+    .watch-title-row {
+      grid-template-columns: 1fr;
+    }
+
+    .watch-actions {
+      justify-content: flex-start;
+    }
+
+    .library-strip {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .video-page {
+      padding-bottom: 72px;
+    }
+
+    .video-hero h1 {
+      font-size: 34px;
+      line-height: 1.08;
+    }
+
+    .video-hero p {
+      font-size: 16px;
+    }
+
+    .watch-body {
+      padding: 18px;
+    }
+
+    .watch-title-row h2 {
+      font-size: 27px;
+    }
+
+    .video-action {
+      width: 100%;
+    }
+
+    .watch-actions {
+      width: 100%;
+    }
+
+    .watch-actions .video-menu {
+      width: 100%;
+    }
+
+    .watch-actions .icon-button {
+      width: 100%;
+    }
+
+    .video-menu-panel {
+      right: auto;
+      left: 0;
+      width: min(284px, calc(100vw - 64px));
+    }
+
+    .playlist-list {
+      grid-template-columns: 1fr;
+    }
+
+    .playlist-card {
+      grid-template-columns: 126px minmax(0, 1fr) 38px;
+      gap: 10px;
+    }
+
+    .playlist-copy p {
+      -webkit-line-clamp: 2;
+    }
+
+    .next-video {
+      right: 12px;
+      bottom: 12px;
+      width: min(292px, calc(100% - 24px));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .playlist-card {
+      grid-template-columns: 1fr 38px;
+    }
+
+    .playlist-thumb {
+      grid-column: 1 / -1;
+    }
+
+    .playlist-copy {
+      grid-column: 1;
+    }
+
+    .card-menu {
+      grid-column: 2;
+      grid-row: 2;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const dataElement = document.getElementById("creditsoft-video-data");
+    const videos = JSON.parse(dataElement?.textContent || "[]");
+    if (!Array.isArray(videos) || videos.length === 0) {
+      return;
+    }
+
+    const bySlug = new Map(videos.map((video) => [video.slug, video]));
+    const featuredVideo = document.getElementById("featuredVideo");
+    const activeCategory = document.getElementById("activeCategory");
+    const activePublished = document.getElementById("activePublished");
+    const activeTitle = document.getElementById("activeTitle");
+    const activeDescription = document.getElementById("activeDescription");
+    const activeCaptionTitle = document.getElementById("activeCaptionTitle");
+    const activeCaptionLines = document.getElementById("activeCaptionLines");
+    const activeFacebook = document.getElementById("activeFacebook");
+    const activeFile = document.getElementById("activeFile");
+    const copyActiveVideo = document.getElementById("copyActiveVideo");
+    const openTheater = document.getElementById("openTheater");
+    const lightbox = document.getElementById("videoLightbox");
+    const lightboxVideo = document.getElementById("lightboxVideo");
+    const closeVideoLightbox = document.getElementById("closeVideoLightbox");
+    const lightboxCategory = document.getElementById("lightboxCategory");
+    const lightboxTitle = document.getElementById("lightboxTitle");
+    const lightboxDescription = document.getElementById("lightboxDescription");
+    const toast = document.getElementById("videoToast");
+    const nextPanel = document.getElementById("nextVideoPanel");
+    const nextTitle = document.getElementById("nextVideoTitle");
+    const playNextVideo = document.getElementById("playNextVideo");
+    const detailBox = document.querySelector("[data-watch-details]");
+    const detailContent = document.querySelector("[data-watch-details-content]");
+    const detailToggle = document.querySelector("[data-watch-details-toggle]");
+    const cards = Array.from(document.querySelectorAll("[data-video-card]"));
+    const menus = Array.from(document.querySelectorAll("[data-video-menu]"));
+    const menuToggles = Array.from(document.querySelectorAll("[data-video-menu-toggle]"));
+    const metaNodes = Array.from(document.querySelectorAll("[data-active-meta]"));
+
+    if (!(featuredVideo instanceof HTMLVideoElement)) {
+      return;
+    }
+
+    let activeVideo = videos[0];
+    let toastTimer = 0;
+
+    const getNextVideo = (video) => {
+      const currentIndex = videos.findIndex((item) => item.slug === video.slug);
+      const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % videos.length : 0;
+      return videos[nextIndex] || videos[0];
+    };
+
+    const showToast = (message) => {
+      if (!toast) {
+        return;
+      }
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => {
+        toast.classList.remove("is-visible");
+      }, 2200);
+    };
+
+    const fallbackCopy = (value) => {
+      const textarea = document.createElement("textarea");
+      textarea.value = value;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.append(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      textarea.remove();
+      return copied;
+    };
+
+    const copyShareLink = async (value) => {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(value);
+        } else if (!fallbackCopy(value)) {
+          throw new Error("copy failed");
+        }
+        showToast("Share link copied");
+      } catch {
+        showToast("Could not copy link");
+      }
+    };
+
+    const closeMenus = (exceptMenu = null) => {
+      menus.forEach((menu) => {
+        if (menu === exceptMenu) {
+          return;
+        }
+        menu.classList.remove("is-open");
+        const toggle = menu.querySelector("[data-video-menu-toggle]");
+        toggle?.setAttribute("aria-expanded", "false");
+      });
+    };
+
+    const syncDetailsToggle = () => {
+      if (!(detailBox instanceof HTMLElement) || !(detailContent instanceof HTMLElement) || !(detailToggle instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      const expanded = detailBox.classList.contains("is-expanded");
+      const needsToggle = expanded || detailContent.scrollHeight - detailContent.clientHeight > 8;
+      detailToggle.hidden = !needsToggle;
+      detailToggle.textContent = expanded ? "Less" : "More";
+      detailToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    };
+
+    const updateMeta = (video) => {
+      const values = {
+        duration: video.duration,
+        resolution: video.resolution,
+        size: video.size,
+        label: video.label,
+      };
+
+      metaNodes.forEach((node) => {
+        const key = node.getAttribute("data-active-meta");
+        node.textContent = values[key] || "";
+      });
+    };
+
+    const updateActiveClasses = (video) => {
+      cards.forEach((card) => {
+        card.classList.toggle("is-active", card.getAttribute("data-video-slug") === video.slug);
+      });
+    };
+
+    const updateUrl = (video, mode) => {
+      if (!mode) {
+        return;
+      }
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set("watch", video.slug);
+      const state = { videoSlug: video.slug };
+      if (mode === "replace") {
+        window.history.replaceState(state, "", nextUrl);
+      } else {
+        window.history.pushState(state, "", nextUrl);
+      }
+    };
+
+    const renderCaptionLines = (video) => {
+      if (!activeCaptionLines) {
+        return;
+      }
+      activeCaptionLines.textContent = "";
+      video.captionLines.forEach((line) => {
+        const paragraph = document.createElement("p");
+        paragraph.textContent = line;
+        activeCaptionLines.append(paragraph);
+      });
+    };
+
+    const setActiveVideo = (video, options = {}) => {
+      activeVideo = video;
+      closeMenus();
+      if (nextPanel) {
+        nextPanel.hidden = true;
+      }
+
+      featuredVideo.pause();
+      featuredVideo.src = video.src;
+      featuredVideo.poster = video.poster;
+      featuredVideo.load();
+
+      if (activeCategory) {
+        activeCategory.textContent = video.category;
+      }
+      if (activePublished instanceof HTMLTimeElement) {
+        activePublished.dateTime = video.publishedAt;
+        activePublished.textContent = `Published ${video.publishedLabel}`;
+      }
+      if (activeTitle) {
+        activeTitle.textContent = video.title;
+      }
+      if (activeDescription) {
+        activeDescription.textContent = video.description;
+      }
+      if (activeCaptionTitle) {
+        activeCaptionTitle.textContent = video.captionTitle;
+      }
+      if (activeFacebook instanceof HTMLAnchorElement) {
+        activeFacebook.href = video.facebookShareUrl;
+      }
+      if (activeFile instanceof HTMLAnchorElement) {
+        activeFile.href = video.src;
+      }
+
+      renderCaptionLines(video);
+      updateMeta(video);
+      updateActiveClasses(video);
+      updateUrl(video, options.history);
+      syncDetailsToggle();
+
+      const nextVideo = getNextVideo(video);
+      if (nextTitle) {
+        nextTitle.textContent = nextVideo.title;
+      }
+
+      document.title = `${video.title} | CreditSoft Videos`;
+
+      if (options.autoplay) {
+        featuredVideo.play().catch(() => {});
+      }
+    };
+
+    const selectVideo = (slug, options = {}) => {
+      const video = bySlug.get(slug);
+      if (!video) {
+        return;
+      }
+      setActiveVideo(video, options);
+    };
+
+    const openLargePlayer = (video = activeVideo) => {
+      if (!(lightbox instanceof HTMLElement) || !(lightboxVideo instanceof HTMLVideoElement)) {
+        return;
+      }
+
+      const resumeAt = Number.isFinite(featuredVideo.currentTime) ? featuredVideo.currentTime : 0;
+      featuredVideo.pause();
+      lightboxVideo.addEventListener(
+        "loadedmetadata",
+        () => {
+          if (resumeAt > 0 && resumeAt < lightboxVideo.duration) {
+            lightboxVideo.currentTime = resumeAt;
+          }
+          lightboxVideo.play().catch(() => {});
+        },
+        { once: true },
+      );
+      lightboxVideo.src = video.src;
+      lightboxVideo.poster = video.poster;
+      lightboxVideo.load();
+
+      if (lightboxCategory) {
+        lightboxCategory.textContent = video.category;
+      }
+      if (lightboxTitle) {
+        lightboxTitle.textContent = video.title;
+      }
+      if (lightboxDescription) {
+        lightboxDescription.textContent = video.description;
+      }
+
+      lightbox.classList.add("is-open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.classList.add("video-lightbox-open");
+    };
+
+    const closeLargePlayer = () => {
+      if (!(lightbox instanceof HTMLElement) || !(lightboxVideo instanceof HTMLVideoElement)) {
+        return;
+      }
+      lightboxVideo.pause();
+      lightboxVideo.removeAttribute("src");
+      lightboxVideo.removeAttribute("poster");
+      lightboxVideo.load();
+      lightbox.classList.remove("is-open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("video-lightbox-open");
+    };
+
+    const stopPreview = (card) => {
+      const preview = card.querySelector(".playlist-preview-video");
+      const sound = card.querySelector("[data-preview-sound] span");
+      if (!(preview instanceof HTMLVideoElement)) {
+        return;
+      }
+      preview.pause();
+      preview.currentTime = 0;
+      preview.muted = true;
+      card.classList.remove("is-previewing");
+      if (sound) {
+        sound.textContent = "Sound";
+      }
+    };
+
+    const startPreview = (card) => {
+      const preview = card.querySelector(".playlist-preview-video");
+      if (!(preview instanceof HTMLVideoElement)) {
+        return;
+      }
+      cards.forEach((item) => {
+        if (item !== card) {
+          stopPreview(item);
+        }
+      });
+
+      const src = card.getAttribute("data-video-src") || "";
+      if (!src) {
+        return;
+      }
+      if (preview.getAttribute("src") !== src) {
+        preview.src = src;
+        preview.load();
+      }
+      preview.muted = true;
+      card.classList.add("is-previewing");
+      preview.play().catch(() => {});
+    };
+
+    menuToggles.forEach((toggle) => {
+      toggle.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const menu = toggle.closest("[data-video-menu]");
+        if (!menu) {
+          return;
+        }
+        const willOpen = !menu.classList.contains("is-open");
+        closeMenus(menu);
+        menu.classList.toggle("is-open", willOpen);
+        toggle.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      });
+    });
+
+    document.querySelectorAll("[data-video-select]").forEach((trigger) => {
+      trigger.addEventListener("click", (event) => {
+        event.preventDefault();
+        const slug = trigger.getAttribute("data-video-select") || "";
+        selectVideo(slug, { history: "push", autoplay: false });
+        featuredVideo.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    });
+
+    document.querySelectorAll("[data-copy-share]").forEach((trigger) => {
+      trigger.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        closeMenus();
+        copyShareLink(trigger.getAttribute("data-copy-share") || window.location.href);
+      });
+    });
+
+    document.querySelectorAll("[data-play-in-theater]").forEach((trigger) => {
+      trigger.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const slug = trigger.getAttribute("data-play-in-theater") || "";
+        const video = bySlug.get(slug);
+        if (!video) {
+          return;
+        }
+        setActiveVideo(video, { history: "push", autoplay: false });
+        openLargePlayer(video);
+      });
+    });
+
+    cards.forEach((card) => {
+      card.addEventListener("mouseenter", () => {
+        if (window.matchMedia("(hover: hover)").matches) {
+          startPreview(card);
+        }
+      });
+      card.addEventListener("mouseleave", () => {
+        stopPreview(card);
+      });
+      card.addEventListener("focusin", () => {
+        if (window.matchMedia("(hover: hover)").matches) {
+          startPreview(card);
+        }
+      });
+      card.addEventListener("focusout", (event) => {
+        if (!card.contains(event.relatedTarget)) {
+          stopPreview(card);
+        }
+      });
+    });
+
+    document.querySelectorAll("[data-preview-sound]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const card = button.closest("[data-video-card]");
+        if (!card) {
+          return;
+        }
+        const preview = card.querySelector(".playlist-preview-video");
+        const label = button.querySelector("span");
+        if (!(preview instanceof HTMLVideoElement)) {
+          return;
+        }
+        if (!card.classList.contains("is-previewing")) {
+          startPreview(card);
+        }
+        preview.muted = !preview.muted;
+        if (label) {
+          label.textContent = preview.muted ? "Sound" : "Mute";
+        }
+      });
+    });
+
+    copyActiveVideo?.addEventListener("click", () => {
+      copyShareLink(activeVideo.shareUrl);
+    });
+
+    openTheater?.addEventListener("click", () => {
+      openLargePlayer(activeVideo);
+    });
+
+    closeVideoLightbox?.addEventListener("click", closeLargePlayer);
+
+    lightbox?.addEventListener("click", (event) => {
+      if (event.target === lightbox) {
+        closeLargePlayer();
+      }
+    });
+
+    detailToggle?.addEventListener("click", () => {
+      detailBox?.classList.toggle("is-expanded");
+      syncDetailsToggle();
+    });
+
+    featuredVideo.addEventListener("play", () => {
+      if (nextPanel) {
+        nextPanel.hidden = true;
+      }
+    });
+
+    featuredVideo.addEventListener("ended", () => {
+      if (nextPanel) {
+        nextPanel.hidden = false;
+      }
+    });
+
+    playNextVideo?.addEventListener("click", () => {
+      const nextVideo = getNextVideo(activeVideo);
+      setActiveVideo(nextVideo, { history: "push", autoplay: true });
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-video-menu]")) {
+        closeMenus();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeMenus();
+        closeLargePlayer();
+      }
+    });
+
+    window.addEventListener("resize", syncDetailsToggle);
+    window.addEventListener("popstate", () => {
+      const slug = new URLSearchParams(window.location.search).get("watch") || videos[0].slug;
+      selectVideo(slug, { history: false, autoplay: false });
+    });
+
+    const initialSlug = new URLSearchParams(window.location.search).get("watch");
+    if (initialSlug && bySlug.has(initialSlug)) {
+      selectVideo(initialSlug, { history: "replace", autoplay: false });
+    } else {
+      syncDetailsToggle();
+    }
+  })();
+</script>

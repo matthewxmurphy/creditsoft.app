@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import OfficeBrandLogo from '@/components/OfficeBrandLogo.vue';
+import CreditsoftWordmark from '@/components/CreditsoftWordmark.vue';
 import { home } from '@/routes';
 
 const page = usePage();
@@ -24,10 +24,7 @@ defineProps<{
                 :href="home()"
                 class="relative z-20 flex items-center text-lg font-medium"
             >
-                <OfficeBrandLogo
-                    class-name="mr-3 max-h-10 w-auto max-w-48 object-contain"
-                    fallback-class-name="mr-3 h-8 w-auto"
-                />
+                <CreditsoftWordmark class-name="mr-3 h-8 w-auto" />
                 {{ name }}
             </Link>
         </div>

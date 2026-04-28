@@ -10,6 +10,7 @@ use App\Services\LicenseCheckService;
 use App\Services\BrowserCompanionBundle;
 use App\Services\CreditsoftAiRegistry;
 use App\Services\CreditsoftApiAccess;
+use App\Services\CreditsoftClusterLicenseSyncService;
 use App\Services\EnvironmentEditor;
 use App\Services\IntranetClientInstallerBundle;
 use App\Services\IntranetNodeInstallerBundle;
@@ -117,6 +118,7 @@ class InstallerController extends Controller
         InstallerState $installerState,
         LicenseCheckService $licenseCheckService,
         EnvironmentEditor $editor,
+        CreditsoftClusterLicenseSyncService $licenseSync,
     ): RedirectResponse {
         abort_unless(config('creditsoft.installer.enabled', true), 404);
 
@@ -150,6 +152,8 @@ class InstallerController extends Controller
             'license_key' => Str::upper(trim((string) $validated['license_key'])),
             'license' => $license,
         ]);
+
+        $licenseSync->queueCurrentLicenseSync();
 
         Inertia::flash('toast', [
             'type' => $license['valid'] ? 'success' : 'error',

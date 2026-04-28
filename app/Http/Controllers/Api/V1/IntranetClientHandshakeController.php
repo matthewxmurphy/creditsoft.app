@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\UserApiKey;
 use App\Services\ConnectivityLaneService;
 use App\Services\CreditsoftApiAccess;
-use App\Services\CreditsoftSystemDiagnosticsService;
-use App\Services\InstallerState;
 use App\Services\LicenseStateService;
 use App\Services\OfficeBackupFilesystemSettingsService;
 use App\Services\TailscaleStatusService;
@@ -23,8 +21,6 @@ class IntranetClientHandshakeController extends Controller
         ConnectivityLaneService $laneService,
         LicenseStateService $licenseState,
         OfficeBackupFilesystemSettingsService $backupSettings,
-        InstallerState $installerState,
-        CreditsoftSystemDiagnosticsService $diagnostics,
     ): JsonResponse {
         $user = $request->user();
         abort_unless($user, 403);
@@ -79,7 +75,6 @@ class IntranetClientHandshakeController extends Controller
                         'dashboard_urls' => $this->dashboardUrls($portalUrls),
                     ],
                 ],
-                'router' => $this->routerHints($installerState->read(), $apiUrls, $backup, $diagnostics->clusterSummary()),
                 'tunnels' => [
                     'tailscale' => $detectedTailscale,
                     'ngrok' => [
@@ -166,52 +161,6 @@ class IntranetClientHandshakeController extends Controller
         $trimmed = trim((string) $value);
 
         return $trimmed !== '' ? $trimmed : null;
-    }
-
-    /**
-     * @param array<string, mixed> $state
-     * @param array<string, mixed> $apiUrls
-     * @param array<string, mixed> $backup
-     * @param array<string, mixed> $summary
-     * @return array<string, mixed>
-     */
-    protected function routerHints(array $state, array $apiUrls, array $backup, array $summary): array
-    {
-        $preferredApiBase = trim((string) data_get($state, 'router.preferred_api_base_url', ''));
-        $memoryTotal = max((float) data_get($summary, 'memory.total_bytes', 0), 1.0);
-        $memoryUsed = max((float) data_get($summary, 'memory.used_bytes', 0), 0.0);
-        $memoryAvailable = data_get($summary, 'memory.available_bytes');
-        $pressureFreePercent = data_get($summary, 'memory.pressure_free_percent');
-        $swapTotal = max((float) data_get($summary, 'swap.total_bytes', 0), 1.0);
-        $swapUsed = max((float) data_get($summary, 'swap.used_bytes', 0), 0.0);
-        $memoryUsedPercent = round($memoryUsed / $memoryTotal * 100, 1);
-
-        if (is_numeric($pressureFreePercent)) {
-            $memoryUsedPercent = round(max(0, min(100, 100 - (float) $pressureFreePercent)), 1);
-        } elseif (is_numeric($memoryAvailable)) {
-            $memoryUsedPercent = round(max(0, min(100, 100 - (((float) $memoryAvailable / $memoryTotal) * 100))), 1);
-        }
-
-        return [
-            'selection_strategy' => trim((string) data_get($state, 'router.selection_strategy', 'resource-aware')) ?: 'resource-aware',
-            'preferred_node_label' => trim((string) data_get($state, 'router.preferred_node_label', '')) ?: null,
-            'preferred_api_base_url' => $preferredApiBase !== ''
-                ? $preferredApiBase
-                : (string) data_get($apiUrls, 'preferred_base_url', ''),
-            'updated_at' => trim((string) data_get($state, 'router.updated_at', '')) ?: null,
-            'node_health' => [
-                'label' => (string) data_get($backup, 'cluster.office_label', data_get($summary, 'machine.office_label', 'CreditSoft Office')),
-                'memory_used_percent' => $memoryUsedPercent,
-                'memory_available_percent' => is_numeric($pressureFreePercent)
-                    ? round((float) $pressureFreePercent, 1)
-                    : (is_numeric($memoryAvailable) ? round(((float) $memoryAvailable / $memoryTotal) * 100, 1) : null),
-                'memory_pressure_level' => data_get($summary, 'memory.pressure_level'),
-                'memory_pressure_free_percent' => is_numeric($pressureFreePercent) ? round((float) $pressureFreePercent, 1) : null,
-                'swap_used_percent' => round($swapUsed / $swapTotal * 100, 1),
-                'load_one' => (float) data_get($summary, 'load.one', 0),
-                'cpu_cores' => max((int) data_get($summary, 'machine.cpu_cores', 1), 1),
-            ],
-        ];
     }
 
     /**

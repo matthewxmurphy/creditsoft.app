@@ -1,0 +1,350 @@
+---
+const supportEmail = "hello@creditsoft.app";
+---
+
+<div class="creditsoft-chat" data-creditsoft-chat>
+  <button class="creditsoft-chat-toggle" type="button" aria-expanded="false" aria-controls="creditsoftChatPanel">
+    <span>Chat</span>
+    <strong aria-hidden="true">+</strong>
+  </button>
+  <section class="creditsoft-chat-panel" id="creditsoftChatPanel" hidden>
+    <div class="creditsoft-chat-log" data-chat-log>
+      <div class="creditsoft-chat-message is-bot">Hi. Ask me about CreditSoft pricing, Metro2 review, migration, local office nodes, or the client portal.</div>
+    </div>
+    <form class="creditsoft-chat-form" data-chat-form>
+      <input type="text" name="message" placeholder="Type a message..." autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+    <a class="creditsoft-chat-email" href={`mailto:${supportEmail}`}>Email {supportEmail}</a>
+  </section>
+</div>
+
+<div class="creditsoft-cookie-banner" data-cookie-banner hidden>
+  <div class="creditsoft-cookie-copy">
+    <strong>We value your privacy</strong>
+    <p>We use essential cookies for the site and optional analytics/marketing cookies when you accept. Read the <a href="/privacy">Privacy Policy</a> and <a href="/cookies">Cookie Policy</a>.</p>
+    <small>Supports GDPR, CCPA/CPRA, DMA, LGPD, POPIA, and Google Consent Mode v2.</small>
+  </div>
+  <div class="creditsoft-cookie-actions">
+    <button type="button" data-cookie-decline>Decline</button>
+    <button type="button" data-cookie-accept>Accept all</button>
+  </div>
+</div>
+
+<script is:inline>
+  (() => {
+    const cookieName = "cookie_consent";
+    const getCookie = (name) => document.cookie.split("; ").find((row) => row.startsWith(`${name}=`))?.split("=")[1] || "";
+    const setCookie = (value) => {
+      document.cookie = `${cookieName}=${value};max-age=31536000;path=/;SameSite=Lax`;
+    };
+    const updateConsent = (accepted) => {
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          ad_storage: accepted ? "granted" : "denied",
+          analytics_storage: accepted ? "granted" : "denied",
+          ad_user_data: accepted ? "granted" : "denied",
+          ad_personalization: accepted ? "granted" : "denied",
+        });
+      }
+      if (typeof window.fbq === "function") {
+        window.fbq("consent", accepted ? "grant" : "revoke");
+      }
+    };
+
+    const banner = document.querySelector("[data-cookie-banner]");
+    const updateCookieOffset = () => {
+      const visible = Boolean(banner && !banner.hidden);
+      document.documentElement.classList.toggle("creditsoft-cookie-visible", visible);
+      document.documentElement.style.setProperty(
+        "--creditsoft-cookie-offset",
+        visible && banner ? `${banner.getBoundingClientRect().height}px` : "0px"
+      );
+    };
+
+    if (banner && !getCookie(cookieName)) {
+      banner.hidden = false;
+      requestAnimationFrame(updateCookieOffset);
+    } else {
+      updateCookieOffset();
+    }
+
+    document.querySelector("[data-cookie-accept]")?.addEventListener("click", () => {
+      setCookie("accepted");
+      updateConsent(true);
+      if (banner) banner.hidden = true;
+      updateCookieOffset();
+    });
+
+    document.querySelector("[data-cookie-decline]")?.addEventListener("click", () => {
+      setCookie("declined");
+      updateConsent(false);
+      if (banner) banner.hidden = true;
+      updateCookieOffset();
+    });
+
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(updateCookieOffset);
+    });
+
+    if (getCookie(cookieName) === "accepted") {
+      updateConsent(true);
+    }
+
+    const chat = document.querySelector("[data-creditsoft-chat]");
+    const toggle = chat?.querySelector(".creditsoft-chat-toggle");
+    const panel = chat?.querySelector(".creditsoft-chat-panel");
+    const log = chat?.querySelector("[data-chat-log]");
+    const form = chat?.querySelector("[data-chat-form]");
+    const input = form?.querySelector("input");
+
+    const replies = [
+      {
+        test: /price|pricing|cost|lease|monthly|year|annual/i,
+        text: "CreditSoft offers monthly, annual, lease-style terms, and a ten-year license. The pricing page shows the current plan paths.",
+      },
+      {
+        test: /metro|fcra|fdcpa|law|lawsuit|dispute/i,
+        text: "CreditSoft is Metro2-first and keeps FCRA / FDCPA review close to the client file, so disputes start from report facts instead of generic letter prompts.",
+      },
+      {
+        test: /migration|disputefox|smartcredit|identityiq|import/i,
+        text: "CreditSoft can help migrate legacy CRM records, documents, billing history, and provider report pulls through the browser companion and office API.",
+      },
+      {
+        test: /node|server|backup|office|local|pwa|intranet/i,
+        text: "CreditSoft runs as a local-first office system with optional multi-office nodes, backups, and a public API bridge for portals and updates.",
+      },
+      {
+        test: /portal|client|upload|dashboard/i,
+        text: "The client portal is meant for uploads, status, agreements, and safe client-facing updates while casework stays inside the office system.",
+      },
+    ];
+
+    const addMessage = (text, type) => {
+      if (!log) return;
+      const message = document.createElement("div");
+      message.className = `creditsoft-chat-message is-${type}`;
+      message.textContent = text;
+      log.appendChild(message);
+      log.scrollTop = log.scrollHeight;
+    };
+
+    toggle?.addEventListener("click", () => {
+      const open = panel?.hidden;
+      if (!panel) return;
+      panel.hidden = !open;
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.querySelector("strong").textContent = open ? "-" : "+";
+      if (open) input?.focus();
+    });
+
+    form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = input?.value.trim() || "";
+      if (!text) return;
+      input.value = "";
+      addMessage(text, "user");
+      const match = replies.find((reply) => reply.test.test(text));
+      addMessage(match?.text || `I can help route that. Email ${supportEmail} and include what you are trying to set up, migrate, or license.`, "bot");
+    });
+  })();
+</script>
+
+<style>
+  .creditsoft-chat {
+    position: fixed;
+    right: 20px;
+    bottom: calc(20px + var(--creditsoft-cookie-offset, 0px));
+    z-index: 70;
+    width: min(360px, calc(100vw - 28px));
+    color: var(--text);
+    transition: bottom 180ms ease;
+  }
+
+  .creditsoft-chat-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid rgba(241, 194, 122, 0.34);
+    background:
+      linear-gradient(135deg, rgba(241, 194, 122, 0.98), rgba(91, 214, 149, 0.82)),
+      var(--accent);
+    color: #101114;
+    padding: 14px 18px;
+    border-radius: 14px 14px 0 0;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 20px 46px rgba(0, 0, 0, 0.34);
+  }
+
+  .creditsoft-chat-panel {
+    display: grid;
+    grid-template-rows: minmax(160px, 300px) auto auto;
+    background: rgba(12, 12, 17, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 0;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 20px 46px rgba(0, 0, 0, 0.34);
+    overflow: hidden;
+  }
+
+  .creditsoft-chat-panel[hidden] {
+    display: none;
+  }
+
+  .creditsoft-chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    overflow: auto;
+    background:
+      radial-gradient(circle at top left, rgba(241, 194, 122, 0.08), transparent 38%),
+      rgba(255, 255, 255, 0.03);
+  }
+
+  .creditsoft-chat-message {
+    max-width: 86%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .creditsoft-chat-message.is-bot {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-soft);
+  }
+
+  .creditsoft-chat-message.is-user {
+    align-self: flex-end;
+    background: rgba(241, 194, 122, 0.96);
+    color: #101114;
+  }
+
+  .creditsoft-chat-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .creditsoft-chat-form input {
+    min-width: 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    padding: 11px 12px;
+    font: inherit;
+  }
+
+  .creditsoft-chat-form input::placeholder {
+    color: var(--muted-soft);
+  }
+
+  .creditsoft-chat-form button,
+  .creditsoft-cookie-actions button {
+    border: 1px solid rgba(241, 194, 122, 0.32);
+    border-radius: 10px;
+    background: var(--accent);
+    color: #101114;
+    padding: 11px 14px;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .creditsoft-chat-email {
+    padding: 0 12px 12px;
+    color: var(--accent-alt);
+    font-size: 0.86rem;
+    font-weight: 800;
+  }
+
+  .creditsoft-cookie-banner {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 80;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    padding: 20px clamp(18px, 4vw, 42px);
+    background:
+      linear-gradient(135deg, rgba(241, 194, 122, 0.08), transparent 42%),
+      rgba(12, 12, 17, 0.98);
+    color: var(--text);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 -22px 54px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(18px);
+  }
+
+  .creditsoft-cookie-copy {
+    max-width: 860px;
+  }
+
+  .creditsoft-cookie-copy strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 1rem;
+  }
+
+  .creditsoft-cookie-copy p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .creditsoft-cookie-copy small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted-soft);
+  }
+
+  .creditsoft-cookie-copy a {
+    color: var(--accent-alt);
+    font-weight: 800;
+  }
+
+  .creditsoft-cookie-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 10px;
+  }
+
+  .creditsoft-cookie-actions button:first-child {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-soft);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  @media (max-width: 760px) {
+    .creditsoft-chat {
+      right: 14px;
+      bottom: calc(14px + var(--creditsoft-cookie-offset, 0px));
+    }
+
+    .creditsoft-cookie-banner {
+      display: grid;
+      padding-bottom: 92px;
+    }
+
+    .creditsoft-cookie-actions {
+      width: 100%;
+    }
+
+    .creditsoft-cookie-actions button {
+      flex: 1;
+    }
+  }
+</style>

@@ -16,6 +16,11 @@ class CreditsoftOfficeUpdatePackage
      */
     protected ?array $devVendorPrefixes = null;
 
+    /**
+     * @var array<int, string>|null
+     */
+    protected ?array $devComposerPackageNames = null;
+
     public function build(?string $version = null, ?string $build = null): array
     {
         $version = trim($version ?: $this->releaseVersion());
@@ -53,8 +58,18 @@ class CreditsoftOfficeUpdatePackage
             $zip->addFromString($packageName.'/manifest.json', json_encode($manifest, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $zip->addFromString($packageName.'/README.txt', $readme);
 
+            $composerMetadata = $this->sanitizedComposerMetadata();
+
             foreach ($this->sourceFiles() as $relativePath => $absolutePath) {
+                if (array_key_exists($relativePath, $composerMetadata)) {
+                    continue;
+                }
+
                 $zip->addFile($absolutePath, $packageName.DIRECTORY_SEPARATOR.$relativePath);
+            }
+
+            foreach ($composerMetadata as $relativePath => $contents) {
+                $zip->addFromString($packageName.DIRECTORY_SEPARATOR.$relativePath, $contents);
             }
 
             $zip->close();
@@ -89,14 +104,14 @@ class CreditsoftOfficeUpdatePackage
         $path = base_path('update.creditsoft.app/data/update-feed.json');
 
         if (! File::exists($path)) {
-            return '0.5.1';
+            return '2026.4.27.1';
         }
 
         $decoded = json_decode((string) File::get($path), true);
 
         return is_array($decoded) && filled((string) ($decoded['latest_version'] ?? ''))
             ? trim((string) $decoded['latest_version'])
-            : '0.5.1';
+            : '2026.4.27.1';
     }
 
     protected function dumpComposerAutoload(bool $noDev): void
@@ -107,12 +122,15 @@ class CreditsoftOfficeUpdatePackage
             return;
         }
 
+        $this->clearBootstrapDiscoveryCache();
+
         $process = new Process([
             'composer',
             'dump-autoload',
             $noDev ? '--no-dev' : '--dev',
             '--optimize',
             '--no-interaction',
+            '--no-scripts',
         ], base_path());
         $process->setTimeout(900);
         $process->run();
@@ -120,6 +138,40 @@ class CreditsoftOfficeUpdatePackage
         if (! $process->isSuccessful()) {
             throw new RuntimeException(trim(
                 'CreditSoft could not prepare the Composer autoloader for the office package. '.
+                $process->getErrorOutput().' '.$process->getOutput()
+            ));
+        }
+
+        if (! $noDev) {
+            $this->discoverPackages();
+        }
+    }
+
+    protected function clearBootstrapDiscoveryCache(): void
+    {
+        foreach (['packages*.php', 'services*.php'] as $pattern) {
+            foreach (glob(base_path('bootstrap/cache/'.$pattern)) ?: [] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+        }
+    }
+
+    protected function discoverPackages(): void
+    {
+        $process = new Process([
+            PHP_BINARY,
+            'artisan',
+            'package:discover',
+            '--ansi',
+        ], base_path());
+        $process->setTimeout(300);
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            throw new RuntimeException(trim(
+                'CreditSoft could not restore Laravel package discovery after building the office package. '.
                 $process->getErrorOutput().' '.$process->getOutput()
             ));
         }
@@ -264,6 +316,124 @@ class CreditsoftOfficeUpdatePackage
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function sanitizedComposerMetadata(): array
+    {
+        $metadata = [];
+
+        foreach ([
+            'vendor/composer/installed.json' => 'sanitizeInstalledJson',
+            'vendor/composer/installed.php' => 'sanitizeInstalledPhp',
+        ] as $relativePath => $method) {
+            $path = base_path($relativePath);
+
+            if (! File::exists($path)) {
+                continue;
+            }
+
+            $metadata[$relativePath] = $this->{$method}((string) File::get($path));
+        }
+
+        return $metadata;
+    }
+
+    protected function sanitizeInstalledJson(string $contents): string
+    {
+        $decoded = json_decode($contents, true);
+
+        if (! is_array($decoded)) {
+            return $contents;
+        }
+
+        $devPackages = array_flip($this->devComposerPackageNames());
+        $packagesKey = array_key_exists('packages', $decoded) ? 'packages' : null;
+        $packages = $packagesKey !== null ? $decoded[$packagesKey] : $decoded;
+
+        if (! is_array($packages)) {
+            return $contents;
+        }
+
+        $packages = array_values(array_filter($packages, function ($package) use ($devPackages): bool {
+            if (! is_array($package)) {
+                return false;
+            }
+
+            $name = (string) ($package['name'] ?? '');
+
+            return $name === '' || ! isset($devPackages[$name]);
+        }));
+
+        if ($packagesKey !== null) {
+            $decoded[$packagesKey] = $packages;
+            $decoded['dev'] = false;
+            $decoded['dev-package-names'] = [];
+        } else {
+            $decoded = $packages;
+        }
+
+        return json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL;
+    }
+
+    protected function sanitizeInstalledPhp(string $contents): string
+    {
+        $path = base_path('vendor/composer/installed.php');
+        $installed = is_file($path) ? require $path : null;
+
+        if (! is_array($installed)) {
+            return $contents;
+        }
+
+        $devPackages = array_flip($this->devComposerPackageNames());
+
+        if (isset($installed['versions']) && is_array($installed['versions'])) {
+            $installed['versions'] = array_filter($installed['versions'], function ($package, string $name) use ($devPackages): bool {
+                if (isset($devPackages[$name])) {
+                    return false;
+                }
+
+                return ! (is_array($package) && (bool) ($package['dev_requirement'] ?? false));
+            }, ARRAY_FILTER_USE_BOTH);
+        }
+
+        $installed['dev-package-names'] = [];
+
+        if (isset($installed['root']) && is_array($installed['root'])) {
+            $installed['root']['dev'] = false;
+        }
+
+        return '<?php return '.var_export($installed, true).';'.PHP_EOL;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function devComposerPackageNames(): array
+    {
+        if (is_array($this->devComposerPackageNames)) {
+            return $this->devComposerPackageNames;
+        }
+
+        $path = base_path('composer.lock');
+
+        if (! File::exists($path)) {
+            return $this->devComposerPackageNames = [];
+        }
+
+        $lock = json_decode((string) File::get($path), true);
+
+        if (! is_array($lock)) {
+            return $this->devComposerPackageNames = [];
+        }
+
+        return $this->devComposerPackageNames = collect($lock['packages-dev'] ?? [])
+            ->map(fn (array $package): string => trim((string) ($package['name'] ?? '')))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function manifest(string $version, string $build): array
@@ -289,12 +459,12 @@ class CreditsoftOfficeUpdatePackage
                 'CreditSoft '.$version.' adds a companion Recovery sweep button for 90+ day terminated, canceled, graduated, or payment-reactivation candidates while keeping fired clients and invalid credentials excluded.',
                 'CreditSoft '.$version.' bases recovery-sweep age on real activity such as last successful report import, imported payment history, billing last-paid date, or relationship end date instead of today\'s database import timestamp.',
                 'CreditSoft '.$version.' keeps fresh SmartCredit reactivation failures out of the recovery sweep until they age past the comeback window, so a stopped run cannot restart the same failed accounts immediately.',
-                'CreditSoft '.$version.' ships browser companion 0.5.10 with a focused processing screen that hides extra buttons during active report pulls and DisputeFox imports.',
-                'CreditSoft '.$version.' keeps browser companion 0.5.9 cleanup for the unused DisputeFox login form in the popup and side panel import lanes.',
+                'CreditSoft '.$version.' ships the browser companion plugin with the same date-format version as the office release.',
+                'CreditSoft '.$version.' keeps companion processing focused by hiding extra buttons during active report pulls and DisputeFox imports.',
                 'CreditSoft '.$version.' makes DisputeFox migration explicitly browser-session based: log in manually, then import the current page, lists, profile history, billing, and files.',
                 'CreditSoft '.$version.' keeps Import client profiles on client/profile pages and stops that pass from opening the admin billing_report.jsp invoice report automatically.',
                 'CreditSoft '.$version.' labels the invoice lane as Admin invoices so client Billing/profile history stays distinct from admin invoice reports.',
-                'CreditSoft '.$version.' keeps browser companion 0.5.8 profile-history preservation for Billing, Messages, Scores, Tasks, Letters, Disputes, and related migration pages.',
+                'CreditSoft '.$version.' keeps companion profile-history preservation for Billing, Messages, Scores, Tasks, Letters, Disputes, and related migration pages.',
                 'CreditSoft '.$version.' normalizes DisputeFox profile Billing rows into client payment history while also staging the raw rows for migration audit review.',
                 'CreditSoft '.$version.' keeps static freeze-address lookup tables out of migrated history so real client activity is not mixed with template data.',
                 'CreditSoft '.$version.' forces update-feed and package downloads over IPv4 so Docker containers with broken IPv6 paths can still reach updates.creditsoft.app.',
@@ -328,16 +498,16 @@ class CreditsoftOfficeUpdatePackage
                 'Moves the successful browser companion download to the canonical updates.creditsoft.app package URL while keeping the local intranet license and 7-day trial gate in front of it.',
                 'Normalizes DisputeFox Leads list rows into the Leads roster instead of only staging them, keeps lead/intake customers out of the active client lane, and preserves lead source metadata when a profile sync exposes Lead Status.',
                 'Changes the local router failure path so normal browser visits get a maintenance/reconnect page and Inertia visits get a proper reload signal instead of a plain JSON 502 modal.',
-                'Ships browser companion 0.5.3 with exact SmartCredit FusionAuth invalid-login detection: the real "Invalid login credentials." page is marked needs credentials, noted internally, queued for CRM email review, and skipped so the queue keeps moving.',
-                'Ships browser companion 0.5.1 with report-first wording, explicit SmartCredit and IdentityIQ report-pull lanes, and a legacy import menu for DisputeFox plus upcoming Client Dispute Manager, Cloud Credit Repair, and white-label CRO sources.',
-                'Ships browser companion 0.5.0 with local-router autodetection first, so browser installs try http://127.0.0.1:8877 before any direct app port.',
-                'Ships browser companion 0.4.22 with SmartCredit reactivation detection: unpaid/inactive SmartCredit accounts are marked needs client payment, noted internally, assigned a staff follow-up task, and skipped so the queue keeps moving.',
-                'Ships browser companion 0.4.21 with separate DisputeFox import buttons for all lists, Clients, Leads, Affiliates, Invoices, Automation, Profile details, and Current page.',
+                'Ships the date-versioned browser companion with SmartCredit FusionAuth invalid-login detection: the real "Invalid login credentials." page is marked needs credentials, noted internally, queued for CRM email review, and skipped so the queue keeps moving.',
+                'Ships the date-versioned browser companion with report-first wording, explicit SmartCredit and IdentityIQ report-pull lanes, and a legacy import menu for DisputeFox plus upcoming Client Dispute Manager, Cloud Credit Repair, and white-label CRO sources.',
+                'Ships the date-versioned browser companion with local-router autodetection first, so browser installs try http://127.0.0.1:8877 before any direct app port.',
+                'Ships the date-versioned browser companion with SmartCredit reactivation detection: unpaid/inactive SmartCredit accounts are marked needs client payment, noted internally, assigned a staff follow-up task, and skipped so the queue keeps moving.',
+                'Ships the date-versioned browser companion with separate DisputeFox import buttons for all lists, Clients, Leads, Affiliates, Invoices, Automation, Profile details, and Current page.',
                 'Renames the visible companion migration copy from Pulse to DisputeFox / legacy CRM language so the UI reads like the source product instead of internal plumbing.',
                 'Captures opened DisputeFox invoice detail modals, including invoice number, client, totals, due date, notes, and line items, so clicking an Invoice ID can be imported from Current page.',
                 'Adds a Client Process Checklist to client profiles with intake, assignment, portal, onboarding, billing, report import, dispute, and letter readiness steps.',
                 'Reduces the main rail icons from the oversized pass to 26px and gives HR a yellow accent without adding another icon container.',
-                'Ships browser companion 0.4.20 with named Pulse profile failures so retry lists show which clients or leads need attention.',
+                'Ships the date-versioned browser companion with named Pulse profile failures so retry lists show which clients or leads need attention.',
                 'Makes Pulse profile migration sweep supporting Pulse lanes after profiles, including Invoices, Affiliates, and Automation.',
                 'Points the Pulse invoice lane at billing_report.jsp and classifies billing_report / billing pages as invoice imports.',
                 'Expands Pulse row-count selectors before importing supporting lanes so invoices and affiliates are less likely to be cut off by page size.',
@@ -346,14 +516,14 @@ class CreditsoftOfficeUpdatePackage
                 'Enlarges the main rail icons and speeds up hover feedback so the rail feels easier to hit and less sluggish.',
                 'Adds Chart.js HR activity visuals: a per-employee daily activity line chart, a 24-hour work-pattern line chart, and activity-window cards showing peak hour, usual span, active days, and last event.',
                 'Adds HR and Payroll as first-class intranet lanes with left-rail icons, employee files, performance mix, reviews, write-ups, onboarding notes, saved pay methods, payroll ledger records, and Sendwave referral guidance.',
-                'Ships browser companion 0.4.19 with Pulse profile processing raised to 500 visible profiles per run so a 341-lead list is not stopped at the old 120-profile safety cap.',
+                'Ships the date-versioned browser companion with Pulse profile processing raised to 500 visible profiles per run so a 341-lead list is not stopped at the old 120-profile safety cap.',
                 'Raises Pulse list intake to 2,000 rows so full Leads lists such as 341 rows are not cut off at 250.',
                 'Updates staged Pulse Leads and Affiliates captures in place instead of creating duplicate staged imports every time the companion is run.',
                 'Stages Pulse Leads as lead import captures instead of creating client roster rows from the leads list.',
                 'Separates the Clients page into Clients, Leads, and All views so imported Pulse leads do not make the active client roster look inflated.',
                 'Pins Pulse Secret Key fields to IdentityIQ only, so SmartCredit, MyScoreIQ, and other provider rows do not inherit an IdentityIQ-only security value.',
                 'Fixes Pulse / DisputeFox profile reimport so Account and Monitoring fields hidden inside tabs or modals can be captured intentionally instead of being dropped by the visible-field filter.',
-                'Ships browser companion 0.4.17 with hidden Pulse DOB, SSN, monitoring agency, provider username, provider password, and secret-key capture.',
+                'Ships the date-versioned browser companion with hidden Pulse DOB, SSN, monitoring agency, provider username, provider password, and secret-key capture.',
                 'Maps Pulse monitoring-agency IDs into provider rows for IdentityIQ, SmartCredit, and MyScoreIQ, including CreditSmart wording when Pulse uses that label.',
                 'Keeps the client roster provider-login signal compact with a simple Login column instead of bulky audit cards.',
                 'Removes the intranet-wide floating bug-report/page-actions gear so pages no longer render dual upper-right gears.',
@@ -393,37 +563,37 @@ class CreditsoftOfficeUpdatePackage
                 'Switches the active intranet cutover path to PostgreSQL with fixed migration ordering for Postgres-strict foreign keys.',
                 'The SQLite-to-PostgreSQL copier now handles tables without id columns and collapses duplicate unique-key seed rows instead of blocking the migration.',
                 'The Docker PostgreSQL service now exposes a configurable host port so the existing local intranet process can use Docker Postgres without starting the full web container.',
-                'Ships browser companion 0.4.16 with Pulse provider credential sync so client profiles can attach SmartCredit, IdentityIQ, MyScoreIQ, and Credit Karma provider rows when Pulse exposes the saved login fields.',
+                'Ships the date-versioned browser companion with Pulse provider credential sync so client profiles can attach SmartCredit, IdentityIQ, MyScoreIQ, and Credit Karma provider rows when Pulse exposes the saved login fields.',
                 'Pulse profile matching now stores and checks source record IDs from both list pages and profile pages so imported people do not split into duplicate client records as easily.',
                 'The companion Update action can now force a provider report pass from the button, while background queue checks still respect next-due timing.',
-                'Ships browser companion 0.4.15 with the correct lane split: Import is for DisputeFox/Pulse CRM data, and Update is for fresh provider report pulls.',
+                'Ships the date-versioned browser companion with the correct lane split: Import is for DisputeFox/Pulse CRM data, and Update is for fresh provider report pulls.',
                 'Renames the main companion surface to Update / Provider reports so SmartCredit and IdentityIQ work reads like report updates instead of imports.',
                 'Renames the Pulse surface to Import / DisputeFox import, with Import profiles and Import page actions for legacy CRM data.',
-                'Ships browser companion 0.4.14 with one clear client-processing lane for Pulse imports and provider report capture.',
+                'Ships the date-versioned browser companion with one clear client-processing lane for Pulse imports and provider report capture.',
                 'Pulse / DisputeFox now uses the same primary Process action to open client and lead profiles, sync full details, and stage/download reports and documents where Pulse allows file access.',
                 'The old Pulse import wording is now list-import wording, and opening the import menu no longer shows SmartCredit/IdentityIQ provider queue messages.',
-                'Ships browser companion 0.4.13 with Pulse profile processing for imported Clients and Leads.',
+                'Ships the date-versioned browser companion with Pulse profile processing for imported Clients and Leads.',
                 'Adds a Process profiles action that opens visible Pulse client/lead profile pages, syncs full profile details, and stages/uploads reports and documents from the logged-in Pulse session.',
                 'DisputeFox document capture now includes credit reports instead of filtering them out before import.',
                 'Pulse list capture now keeps up to 250 visible rows per list so profile processing can cover larger imported pages.',
-                'Ships browser companion 0.4.12 with a compact scrollable side panel so long Pulse activity stays visible.',
+                'Ships the date-versioned browser companion with a compact scrollable side panel so long Pulse activity stays visible.',
                 'Removes the large Office pairing card from the companion; the green status dot now carries API key state and the gear opens settings.',
                 'Shortens duplicate client-ready instructions and reduces the Process button size so the activity log gets more room.',
-                'Ships browser companion 0.4.11 with a clearer Pulse import completion state so old Automation opening/reading breadcrumbs do not make a finished import look stuck.',
+                'Ships the date-versioned browser companion with a clearer Pulse import completion state so old Automation opening/reading breadcrumbs do not make a finished import look stuck.',
                 'Pulse list import now ends with a single summary line showing the imported lanes and returns the companion to normal CreditSoft client processing.',
-                'Ships browser companion 0.4.10 with an explicit Pulse source mode separate from normal SmartCredit and IdentityIQ client processing.',
+                'Ships the date-versioned browser companion with an explicit Pulse source mode separate from normal SmartCredit and IdentityIQ client processing.',
                 'Adds an Import lists button that walks Pulse Clients, Leads, Invoices, Affiliates, and Automation instead of stopping after the first visible list page.',
                 'Adds a Done action so the companion shuts the Pulse source off and returns to normal CreditSoft client processing.',
                 'Improves Pulse list-table detection for invoice, lead, affiliate, and datatable-shaped pages that do not expose the same table id every time.',
-                'Ships browser companion 0.4.9 with Pulse client document detection, document metadata staging, and authenticated file upload attempts from the logged-in browser session.',
+                'Ships the date-versioned browser companion with Pulse client document detection, document metadata staging, and authenticated file upload attempts from the logged-in browser session.',
                 'Adds a browser-companion client-document API endpoint so Pulse files can be upserted against the matched CreditSoft client instead of creating duplicates.',
                 'Removes the visible tiny-dot credential affordance from the companion; Pulse credentials now live behind the CreditSoft logo/import menu.',
                 'Companion sync status now reports document records and file uploads instead of repeating only the profile sync message.',
-                'Ships browser companion 0.4.8 with real Pulse list importing for Leads, Clients, Affiliates, and Invoices instead of stopping after one opened profile.',
+                'Ships the date-versioned browser companion with real Pulse list importing for Leads, Clients, Affiliates, and Invoices instead of stopping after one opened profile.',
                 'Pulse Leads and Clients tables now create or update CreditSoft client records directly from visible list rows.',
                 'Pulse Invoices and Billing rows now create or update imported client payment records tied to the matched or stubbed client.',
                 'Pulse Affiliates and other business lists are now staged as imported browser-companion list captures instead of being discarded after detection.',
-                'Ships browser companion 0.4.7 with hardened Pulse profile capture so visible customer selectors win over hidden modal fields.',
+                'Ships the date-versioned browser companion with hardened Pulse profile capture so visible customer selectors win over hidden modal fields.',
                 'Adds the creditsoft:database:migrate-postgres command to copy the current SQLite office data into a PostgreSQL office database when the node is ready.',
                 'Adds a full Docker office profile so CreditSoft, queue, scheduler, PostgreSQL, local router, and the white-label CRM sidecar can be started together.',
                 'Adds --office and -Office installer flags that turn on PostgreSQL, router, and CRM sidecar support in one generated installer path.',

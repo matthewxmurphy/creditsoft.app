@@ -19,7 +19,6 @@ class EnvironmentEditor
         'CREDITSOFT_TAILSCALE_HOSTNAME' => 'creditsoft.tunnels.tailscale.hostname',
         'CREDITSOFT_TAILSCALE_TAILNET' => 'creditsoft.tunnels.tailscale.tailnet',
         'CREDITSOFT_TAILSCALE_API_KEY' => 'creditsoft.tunnels.tailscale.api_key',
-        'CREDITSOFT_TAILSCALE_API_AUTHTOKEN' => 'creditsoft.tunnels.tailscale.api_authtoken',
         'CREDITSOFT_TAILSCALE_API_KEY_EXPIRES_AT' => 'creditsoft.tunnels.tailscale.api_key_expires_at',
         'CREDITSOFT_TAILSCALE_API_KEY_WARNING_DAYS' => 'creditsoft.tunnels.tailscale.api_key_warning_days',
         'CREDITSOFT_NGROK_ENABLED' => 'creditsoft.tunnels.ngrok.enabled',
@@ -38,27 +37,7 @@ class EnvironmentEditor
         'WASABI_USE_PATH_STYLE_ENDPOINT' => 'filesystems.disks.wasabi.use_path_style_endpoint',
         'OPENROUTER_API_KEY' => 'ai.providers.openrouter_creditsoft.key',
         'OLLAMA_CLOUD_API_KEY' => 'ai.providers.ollama_cloud.key',
-        'OLLAMA_CLOUD_BASE_URL' => 'ai.providers.ollama_cloud.url',
         'OPENCODE_API_KEY' => 'creditsoft.ai.providers.opencode_zen.key',
-        'OPENCODE_BASE_URL' => 'creditsoft.ai.providers.opencode_zen.url',
-        'CREDITSOFT_MAIL_ENABLED' => 'creditsoft.mail.enabled',
-        'CREDITSOFT_MAIL_PROVIDER' => 'creditsoft.mail.provider',
-        'CREDITSOFT_MAIL_PROVIDER_SETTINGS' => 'creditsoft.mail.provider_settings',
-        'CREDITSOFT_MAIL_LOCAL_RELAY' => 'creditsoft.mail.local_relay',
-        'MAIL_MAILER' => 'mail.default',
-        'MAIL_SENDMAIL_PATH' => 'mail.mailers.sendmail.path',
-        'MAIL_SCHEME' => 'mail.mailers.smtp.scheme',
-        'MAIL_HOST' => 'mail.mailers.smtp.host',
-        'MAIL_PORT' => 'mail.mailers.smtp.port',
-        'MAIL_USERNAME' => 'mail.mailers.smtp.username',
-        'MAIL_PASSWORD' => 'mail.mailers.smtp.password',
-        'MAIL_EHLO_DOMAIN' => 'mail.mailers.smtp.local_domain',
-        'MAIL_FROM_ADDRESS' => 'mail.from.address',
-        'MAIL_FROM_NAME' => 'mail.from.name',
-        'MAIL_REPLY_TO_ADDRESS' => 'mail.reply_to.address',
-        'MAIL_REPLY_TO_NAME' => 'mail.reply_to.name',
-        'SENDGRID_API_KEY' => 'services.sendgrid.key',
-        'AWS_DEFAULT_REGION' => 'services.ses.region',
     ];
 
     /**
@@ -69,8 +48,6 @@ class EnvironmentEditor
         'CREDITSOFT_NGROK_ENABLED',
         'CREDITSOFT_NGROK_API_ONLY',
         'CREDITSOFT_API_ENABLED',
-        'CREDITSOFT_MAIL_ENABLED',
-        'CREDITSOFT_MAIL_LOCAL_RELAY',
         'WASABI_USE_PATH_STYLE_ENDPOINT',
     ];
 
@@ -144,16 +121,7 @@ class EnvironmentEditor
             return '';
         }
 
-        if (
-            preg_match('/\s/', $value) === 1
-            || str_contains($value, '#')
-            || str_contains($value, '"')
-            || str_contains($value, '=')
-            || str_contains($value, '{')
-            || str_contains($value, '}')
-            || str_contains($value, '[')
-            || str_contains($value, ']')
-        ) {
+        if (preg_match('/\s/', $value) === 1 || str_contains($value, '#')) {
             return '"'.addcslashes($value, "\"\\").'"';
         }
 

@@ -335,8 +335,7 @@ class OfficeCashAppPaymentService
             return null;
         }
 
-        $paidAt = now();
-        $profile = $this->profileForPayment($request, $paidAt);
+        $profile = ClientBillingProfile::query()->where('client_id', $request->client_id)->first();
         $payment = ClientPayment::query()
             ->where('gateway_name', 'Cash App Pay')
             ->where('gateway_transaction_id', $paymentId !== '' ? $paymentId : $request->cash_app_request_id)
@@ -349,7 +348,7 @@ class OfficeCashAppPaymentService
                 'amount' => $request->amount,
                 'currency' => $request->currency,
                 'status' => 'paid',
-                'paid_at' => $paidAt,
+                'paid_at' => now(),
                 'gateway_name' => 'Cash App Pay',
                 'gateway_transaction_id' => $paymentId !== '' ? $paymentId : $request->cash_app_request_id,
                 'reference' => 'Cash App Pay request '.$request->reference_id,
@@ -369,53 +368,6 @@ class OfficeCashAppPaymentService
         }
 
         return $payment;
-    }
-
-    protected function profileForPayment(CashAppPaymentRequest $request, CarbonInterface $paidAt): ClientBillingProfile
-    {
-        $profile = ClientBillingProfile::query()->firstOrNew([
-            'client_id' => $request->client_id,
-        ]);
-
-        if (! $profile->exists) {
-            $profile->fill([
-                'status' => 'active',
-                'amount' => $request->amount,
-                'currency' => $request->currency,
-                'billing_interval' => 'monthly',
-                'started_at' => $paidAt,
-                'last_paid_at' => $paidAt,
-                'next_due_at' => $paidAt->copy()->addMonth(),
-                'gateway_name' => 'Cash App Pay',
-                'notes' => 'Created automatically from an imported Cash App Pay payment.',
-                'metadata' => [
-                    'source' => 'cash_app_pay_api',
-                    'created_from_payment_at' => now()->toIso8601String(),
-                ],
-            ])->save();
-
-            return $profile;
-        }
-
-        if ((float) $profile->amount <= 0 && (float) $request->amount > 0) {
-            $profile->amount = $request->amount;
-        }
-
-        if (! $profile->gateway_name) {
-            $profile->gateway_name = 'Cash App Pay';
-        }
-
-        if (! $profile->last_paid_at || Carbon::parse($profile->last_paid_at)->lessThan($paidAt)) {
-            $profile->last_paid_at = $paidAt;
-            $profile->next_due_at = $this->nextDueAt($profile, $paidAt);
-        }
-
-        $metadata = $profile->metadata ?? [];
-        data_set($metadata, 'payment_sources.cash_app_pay.last_seen_at', now()->toIso8601String());
-        $profile->metadata = $metadata;
-        $profile->save();
-
-        return $profile;
     }
 
     protected function setting(): OfficeCashAppSetting

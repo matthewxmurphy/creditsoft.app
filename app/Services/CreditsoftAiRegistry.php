@@ -24,7 +24,7 @@ class CreditsoftAiRegistry
         $models = Arr::get($config, 'models', []);
 
         return [
-            'default_provider' => config('ai.default', Arr::get($config, 'default_provider')),
+            'default_provider' => Arr::get($config, 'default_provider'),
             'providers' => collect($providers)
                 ->map(fn (array $provider, string $name) => $this->providerSummary($name, $provider, $withValidation))
                 ->values()

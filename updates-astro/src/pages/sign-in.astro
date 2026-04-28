@@ -7,7 +7,7 @@ import { loadThemePage } from "../lib/preview-content";
 const theme = await loadThemePage();
 ---
 
-<BaseLayout title="Sign in | CreditSoft preview" description="Sign-in page preview for the CreditSoft Astro replacement site.">
+<BaseLayout title="Sign in | CreditSoft" description="Sign in to the CreditSoft CRM and intranet at admin.creditsoft.app.">
   <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
 
   <main>
@@ -17,10 +17,10 @@ const theme = await loadThemePage();
           <span class="eyebrow">Sign in</span>
           <h1>One login lane that routes the right people to the right place.</h1>
           <p>
-            The live site already handles the redirect logic. This preview keeps the page
+            The protected CRM and intranet live under admin.creditsoft.app. This page keeps the public site
             simple so the visual system still feels like the main site.
           </p>
-          <form class="sign-form" action="https://creditsoft.app/login" method="get">
+          <form class="sign-form" action="https://admin.creditsoft.app/login" method="get">
             <label>
               <span>Email</span>
               <input type="email" name="email" placeholder="you@company.com" />

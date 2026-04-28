@@ -9,6 +9,7 @@ use App\Services\LicenseStateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class BrowserCompanionController extends Controller
@@ -40,9 +41,11 @@ class BrowserCompanionController extends Controller
             return $this->redirectToLicenseHub($request, $licenseState->featureUnavailableMessage('browser_companion'));
         }
 
-        $bundle->build();
-
-        return redirect()->away($bundle->publicDownloadUrl());
+        return response()->download(
+            $bundle->build(),
+            $bundle->downloadName(),
+            ['Content-Type' => 'application/zip'],
+        );
     }
 
     protected function redirectToLicenseHub(Request $request, string $message): RedirectResponse

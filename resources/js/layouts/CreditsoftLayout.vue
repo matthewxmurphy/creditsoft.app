@@ -316,6 +316,30 @@ const updateStatusLabel = computed(() => {
 
     return 'Latest';
 });
+const updateBannerVisible = computed(
+    () => Boolean(currentUser.value) && Boolean(updates.value?.update_available),
+);
+const updateBannerTitle = computed(() =>
+    updates.value?.update_required
+        ? 'Required CreditSoft update is ready'
+        : 'CreditSoft update is ready',
+);
+const updateBannerDetail = computed(() => {
+    const summary = String(updates.value?.summary || '').trim();
+    const latest = String(updates.value?.latest_version || '').trim();
+    const current = String(updates.value?.current_version || '').trim();
+    const versionDetail =
+        latest && current
+            ? `Latest ${latest}; this intranet is running ${current}.`
+            : latest
+              ? `Latest ${latest}.`
+              : '';
+    const companionDetail = browserCompanionEnabled.value
+        ? 'Close the browser companion and pause staff imports before applying.'
+        : 'Pause staff imports before applying.';
+
+    return [summary, versionDetail, companionDetail].filter(Boolean).join(' ');
+});
 const licenseContextTone = computed(() =>
     license.value?.access_state === 'locked'
         ? 'bg-rose-100 text-rose-700'
@@ -332,6 +356,9 @@ const licenseRailLabel = computed(() => {
 });
 
 const railExpanded = ref(false);
+const railWidth = ref(214);
+const railMinWidth = 176;
+const railMaxWidth = 272;
 
 const leftRail = computed(() => [
     { label: 'Overview', href: '/dashboard', icon: faSliders, badge: 0 },
@@ -413,10 +440,9 @@ const leftRail = computed(() => [
         ? [
               {
                   label: 'CRM',
-                  href: '/integrations/crm/launch',
+                  href: '/crm',
                   icon: faHandshake,
                   badge: 0,
-                  external: true,
               },
           ]
         : []),
@@ -465,26 +491,18 @@ const leftRail = computed(() => [
         icon: faServer,
         badge: 0,
     },
-    ...(canViewUserDirectory.value
-        ? [
-              {
-                  label: 'HR',
-                  href: '/hr',
-                  icon: faPersonCircleCheck,
-                  badge: 0,
-              },
-          ]
-        : []),
-    ...(canManageUsers.value
-        ? [
-              {
-                  label: 'Payroll',
-                  href: '/payroll',
-                  icon: faMoneyCheckDollar,
-                  badge: 0,
-              },
-          ]
-        : []),
+    {
+        label: 'HR',
+        href: '/hr',
+        icon: faPersonCircleCheck,
+        badge: 0,
+    },
+    {
+        label: 'Payroll',
+        href: '/payroll',
+        icon: faMoneyCheckDollar,
+        badge: 0,
+    },
 ]);
 
 const headerContext = computed(() => {
@@ -655,6 +673,11 @@ const railExternalIconStyle = {
     width: '11px',
     height: '11px',
 };
+const clampRailWidth = (value: number) =>
+    Math.min(railMaxWidth, Math.max(railMinWidth, Math.round(value)));
+const railStyle = computed(() =>
+    railExpanded.value ? { width: `${railWidth.value}px` } : undefined,
+);
 const mobileRailIconStyle = {
     width: '16px',
     height: '16px',
@@ -673,7 +696,7 @@ const activeRailButtonClass = () => [
 const railItemClass = (active = false) => [
     'relative flex items-center overflow-visible rounded-xl transition-colors duration-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300',
     railExpanded.value
-        ? 'h-9 w-full justify-start gap-3 px-3'
+        ? 'min-h-9 w-full justify-start gap-3 px-3 py-2'
         : 'h-[42px] w-11 justify-center',
     active ? activeRailButtonClass() : inactiveRailButtonClass,
 ];
@@ -686,6 +709,34 @@ const toggleRailExpanded = () => {
             railExpanded.value ? '1' : '0',
         );
     }
+};
+const startRailResize = (event: PointerEvent) => {
+    if (!railExpanded.value || typeof window === 'undefined') {
+        return;
+    }
+
+    const startX = event.clientX;
+    const startWidth = railWidth.value;
+
+    const resize = (moveEvent: PointerEvent) => {
+        railWidth.value = clampRailWidth(
+            startWidth + moveEvent.clientX - startX,
+        );
+    };
+
+    const stop = () => {
+        window.localStorage.setItem(
+            'creditsoft.leftRailWidth',
+            String(railWidth.value),
+        );
+        window.removeEventListener('pointermove', resize);
+        window.removeEventListener('pointerup', stop);
+        window.removeEventListener('pointercancel', stop);
+    };
+
+    window.addEventListener('pointermove', resize);
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
 };
 const railBadgeText = (badge = 0) => {
     if (!Number.isFinite(Number(badge)) || Number(badge) <= 0) {
@@ -834,7 +885,7 @@ const startHrActivitySampler = () => {
         }
 
         const payload = {
-            sampled_at: new Date().toISOString(),
+            captured_at: new Date().toISOString(),
             route_path: window.location.pathname,
             page_title: document.title,
             session_uuid: sessionUuid,
@@ -847,7 +898,7 @@ const startHrActivitySampler = () => {
         resetCounters();
 
         try {
-            await fetch('/hr/activity-samples', {
+            await fetch('/hr/activity-captures', {
                 method: 'POST',
                 credentials: 'same-origin',
                 keepalive,
@@ -917,6 +968,14 @@ onMounted(() => {
 
     railExpanded.value =
         window.localStorage.getItem('creditsoft.leftRailExpanded') === '1';
+    const storedRailWidth = Number(
+        window.localStorage.getItem('creditsoft.leftRailWidth'),
+    );
+
+    if (Number.isFinite(storedRailWidth)) {
+        railWidth.value = clampRailWidth(storedRailWidth);
+    }
+
     stopHrActivitySampler = startHrActivitySampler();
 });
 
@@ -1187,8 +1246,22 @@ const footerTooltipAlign = (index: number) => {
         <div class="flex h-full flex-col lg:flex-row">
             <aside
                 class="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:justify-between lg:self-start lg:overflow-visible lg:border-r lg:border-amber-400/55 lg:bg-stone-950 lg:px-2 lg:py-3 lg:transition-[width] lg:duration-100"
-                :class="railExpanded ? 'lg:w-[190px]' : 'lg:w-[64px]'"
+                :class="railExpanded ? 'lg:w-[214px]' : 'lg:w-[64px]'"
+                :style="railStyle"
             >
+                <button
+                    v-if="railExpanded"
+                    type="button"
+                    class="group absolute top-0 -right-[5px] hidden h-full w-2 cursor-ew-resize items-center justify-center lg:flex"
+                    aria-label="Resize icon rail"
+                    title="Drag to resize icon rail"
+                    @pointerdown.prevent="startRailResize"
+                >
+                    <span
+                        class="h-12 w-px rounded-full bg-stone-700/70 transition group-hover:bg-amber-300"
+                    />
+                </button>
+
                 <nav
                     class="flex flex-col gap-0 overflow-visible"
                     :class="railExpanded ? 'items-stretch' : 'items-center'"
@@ -1204,13 +1277,13 @@ const footerTooltipAlign = (index: number) => {
                         "
                         :aria-label="
                             railExpanded
-                                ? 'Collapse icon rail'
-                                : 'Expand icon rail'
+                                ? 'Collapse rail'
+                                : 'Show rail labels'
                         "
                         :title="
                             railExpanded
-                                ? 'Collapse icon rail'
-                                : 'Expand icon rail'
+                                ? 'Collapse rail'
+                                : 'Show rail labels'
                         "
                         @click="toggleRailExpanded"
                     >
@@ -1220,7 +1293,7 @@ const footerTooltipAlign = (index: number) => {
                         />
                         <span
                             v-if="railExpanded"
-                            class="truncate text-xs font-semibold tracking-[0.18em] uppercase"
+                            class="text-xs font-semibold tracking-[0.18em] uppercase"
                         >
                             Collapse
                         </span>
@@ -1272,7 +1345,7 @@ const footerTooltipAlign = (index: number) => {
                                     />
                                     <span
                                         v-if="railExpanded"
-                                        class="truncate text-sm font-medium"
+                                        class="min-w-0 text-left text-sm leading-tight font-medium"
                                     >
                                         {{ item.label }}
                                     </span>
@@ -1386,9 +1459,9 @@ const footerTooltipAlign = (index: number) => {
                                 </span>
                                 <span
                                     v-if="railExpanded"
-                                    class="flex min-w-0 items-center text-sm font-medium"
+                                    class="flex min-w-0 items-center text-left text-sm leading-tight font-medium"
                                 >
-                                    <span class="truncate">{{
+                                    <span class="min-w-0">{{
                                         item.label
                                     }}</span>
                                     <span
@@ -1432,7 +1505,7 @@ const footerTooltipAlign = (index: number) => {
                                 />
                                 <span
                                     v-if="railExpanded"
-                                    class="truncate text-sm font-medium"
+                                    class="min-w-0 text-left text-sm leading-tight font-medium"
                                 >
                                     {{ item.label }}
                                 </span>
@@ -1479,7 +1552,7 @@ const footerTooltipAlign = (index: number) => {
                                     />
                                     <span
                                         v-if="railExpanded"
-                                        class="truncate text-sm font-medium"
+                                        class="min-w-0 text-left text-sm leading-tight font-medium"
                                         >Info</span
                                     >
                                 </Link>
@@ -1537,7 +1610,7 @@ const footerTooltipAlign = (index: number) => {
                         />
                         <span
                             v-if="railExpanded"
-                            class="truncate text-sm font-medium"
+                            class="min-w-0 text-left text-sm leading-tight font-medium"
                             >Companion</span
                         >
                     </a>
@@ -1554,7 +1627,7 @@ const footerTooltipAlign = (index: number) => {
                         />
                         <span
                             v-if="railExpanded"
-                            class="truncate text-sm font-medium"
+                            class="min-w-0 text-left text-sm leading-tight font-medium"
                             >Companion</span
                         >
                     </a>
@@ -1571,7 +1644,7 @@ const footerTooltipAlign = (index: number) => {
                                 />
                                 <span
                                     v-if="railExpanded"
-                                    class="truncate text-sm font-medium"
+                                    class="min-w-0 text-left text-sm leading-tight font-medium"
                                     >Settings</span
                                 >
                             </button>
@@ -1940,6 +2013,58 @@ const footerTooltipAlign = (index: number) => {
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
+                    </div>
+                </div>
+
+                <div
+                    v-if="updateBannerVisible"
+                    class="shrink-0 border-b border-red-950 bg-red-700 px-4 py-3 text-white shadow-[0_10px_22px_rgba(127,29,29,0.22)] md:px-6"
+                >
+                    <div
+                        class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+                    >
+                        <div class="flex min-w-0 items-start gap-3">
+                            <span
+                                class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-white/14 text-white ring-1 ring-white/30"
+                                aria-hidden="true"
+                            >
+                                <FontAwesomeIcon
+                                    :icon="faTriangleExclamation"
+                                />
+                            </span>
+                            <div class="min-w-0">
+                                <p
+                                    class="text-sm font-semibold tracking-[0.22em] uppercase"
+                                >
+                                    {{ updateBannerTitle }}
+                                </p>
+                                <p
+                                    class="mt-1 max-w-5xl text-sm leading-5 text-red-50"
+                                >
+                                    {{ updateBannerDetail }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex shrink-0 flex-wrap items-center gap-2 pl-11 md:pl-0"
+                        >
+                            <Link
+                                href="/settings/license"
+                                class="inline-flex h-9 items-center gap-2 rounded-md bg-white px-3 text-xs font-semibold tracking-[0.18em] text-red-800 uppercase transition hover:bg-red-50"
+                            >
+                                <FontAwesomeIcon :icon="faDownload" />
+                                Updates
+                            </Link>
+                            <a
+                                v-if="browserCompanionEnabled"
+                                href="/browser-companion/download"
+                                class="inline-flex h-9 items-center gap-2 rounded-md border border-white/35 px-3 text-xs font-semibold tracking-[0.18em] text-white uppercase transition hover:bg-white/10"
+                            >
+                                <FontAwesomeIcon :icon="faPuzzlePiece" />
+                                Companion
+                            </a>
+                        </div>
                     </div>
                 </div>
 

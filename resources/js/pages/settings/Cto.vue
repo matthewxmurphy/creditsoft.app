@@ -176,7 +176,9 @@ const props = defineProps<{
                 document_coverage_percent?: number;
                 total_label: string;
                 average_label: string;
+                file_backed_average_label?: string | null;
                 database_average_label: string;
+                estimated_client_footprint_bytes?: number | null;
                 estimated_client_footprint_label: string;
                 estimated_more_clients?: number | null;
                 estimate_ready?: boolean;
@@ -273,11 +275,15 @@ const props = defineProps<{
                 swap_used_label: string;
                 disk_total_label: string;
                 disk_used_label: string;
+                disk_free_bytes?: number | null;
+                disk_free_label?: string | null;
                 network_rx_label: string;
                 network_tx_label: string;
             };
             nodes: Array<{
                 label: string;
+                configured_label?: string | null;
+                detail_label?: string | null;
                 base_url?: string | null;
                 license_key?: string | null;
                 source: string;
@@ -292,6 +298,7 @@ const props = defineProps<{
                     transfer_label: string;
                     throughput_bps: number;
                     throughput_label: string;
+                    measured_at?: string | null;
                     measured_at_label: string;
                 };
                 summary?: {
@@ -299,6 +306,8 @@ const props = defineProps<{
                         hostname: string;
                         cpu_cores: number;
                         os_family?: string | null;
+                        architecture?: string | null;
+                        diagnostics_source?: string | null;
                     };
                     memory: {
                         total_bytes?: number | null;
@@ -532,6 +541,39 @@ const exactCount = (value?: number | null) => {
     return new Intl.NumberFormat('en-US').format(value);
 };
 
+const capacityEstimate = computed(() => {
+    const footprint =
+        props.diagnostics.current.client_storage
+            .estimated_client_footprint_bytes ?? 0;
+    const clusterFree = props.diagnostics.cluster.totals.disk_free_bytes ?? 0;
+    const localEstimate =
+        props.diagnostics.current.client_storage.estimated_more_clients ?? null;
+
+    if (footprint > 0 && clusterFree > 0) {
+        const reservedBytes = Math.min(clusterFree * 0.15, 20 * 1024 ** 3);
+
+        return {
+            ready: true,
+            value: Math.floor(Math.max(clusterFree - reservedBytes, 0) / footprint),
+            scope:
+                props.diagnostics.cluster.online_count > 1
+                    ? 'cluster capacity estimate'
+                    : 'capacity estimate',
+            detail:
+                props.diagnostics.cluster.online_count > 1
+                    ? `Uses ${props.diagnostics.cluster.totals.disk_free_label ?? 'available disk'} free across online nodes and ${props.diagnostics.current.client_storage.estimated_client_footprint_label} per client. ${props.diagnostics.current.client_storage.estimate_note}`
+                    : props.diagnostics.current.client_storage.estimate_note,
+        };
+    }
+
+    return {
+        ready: localEstimate !== null,
+        value: localEstimate,
+        scope: 'capacity estimate',
+        detail: props.diagnostics.current.client_storage.estimate_note,
+    };
+});
+
 const clusterNodes = computed(() =>
     [...props.diagnostics.cluster.nodes].sort((left, right) => {
         if (left.source === 'local' && right.source !== 'local') {
@@ -602,6 +644,17 @@ const nodeStatusLabel = (
 
     return node.source === 'local' ? 'Local' : 'Online peer';
 };
+
+const nodeDetailLabel = (
+    node: (typeof props.diagnostics.cluster.nodes)[number],
+) => node.detail_label ?? node.base_url ?? 'No endpoint';
+
+const nodeProbeLabel = (
+    node: (typeof props.diagnostics.cluster.nodes)[number],
+) =>
+    node.source === 'local'
+        ? 'Local loopback'
+        : `Auto probe ${node.connection.measured_at_label}`;
 </script>
 
 <template>
@@ -720,11 +773,7 @@ const nodeStatusLabel = (
                                 <p
                                     class="mt-1 truncate text-xs text-stone-600"
                                 >
-                                    {{
-                                        node.summary?.machine.hostname ??
-                                        node.base_url ??
-                                        'No endpoint'
-                                    }}
+                                    {{ nodeDetailLabel(node) }}
                                 </p>
                             </div>
                             <div
@@ -804,7 +853,7 @@ const nodeStatusLabel = (
                             class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-black/10 pt-3 text-xs text-stone-600"
                         >
                             <span>{{ node.connection.status_label }}</span>
-                            <span>Tested {{ node.connection.measured_at_label }}</span>
+                            <span>{{ nodeProbeLabel(node) }}</span>
                             <span v-if="node.summary">
                                 {{ node.summary.machine.os_family }}
                             </span>
@@ -909,9 +958,7 @@ const nodeStatusLabel = (
                                             type="button"
                                             class="inline-flex w-fit items-end gap-2 text-left"
                                             :class="
-                                                diagnostics.current
-                                                    .client_storage
-                                                    .estimate_ready
+                                                capacityEstimate.ready
                                                     ? ''
                                                     : 'cursor-help'
                                             "
@@ -921,16 +968,12 @@ const nodeStatusLabel = (
                                             >
                                                 <template
                                                     v-if="
-                                                        diagnostics.current
-                                                            .client_storage
-                                                            .estimate_ready
+                                                        capacityEstimate.ready
                                                     "
                                                 >
                                                     {{
                                                         compactCount(
-                                                            diagnostics.current
-                                                                .client_storage
-                                                                .estimated_more_clients,
+                                                            capacityEstimate.value,
                                                         )
                                                     }}
                                                 </template>
@@ -939,7 +982,7 @@ const nodeStatusLabel = (
                                             <span
                                                 class="pb-1 text-[10px] font-medium tracking-[0.2em] text-stone-500 uppercase"
                                             >
-                                                capacity estimate
+                                                {{ capacityEstimate.scope }}
                                             </span>
                                         </button>
                                     </TooltipTrigger>
@@ -961,16 +1004,12 @@ const nodeStatusLabel = (
                                             >
                                                 <template
                                                     v-if="
-                                                        diagnostics.current
-                                                            .client_storage
-                                                            .estimate_ready
+                                                        capacityEstimate.ready
                                                     "
                                                 >
                                                     {{
                                                         exactCount(
-                                                            diagnostics.current
-                                                                .client_storage
-                                                                .estimated_more_clients,
+                                                            capacityEstimate.value,
                                                         )
                                                     }}
                                                     more clients
@@ -983,9 +1022,7 @@ const nodeStatusLabel = (
                                                 class="text-[11px] leading-5 text-stone-600"
                                             >
                                                 {{
-                                                    diagnostics.current
-                                                        .client_storage
-                                                        .estimate_note
+                                                    capacityEstimate.detail
                                                 }}
                                             </div>
                                         </div>
@@ -1504,38 +1541,36 @@ const nodeStatusLabel = (
                             >
                             {{
                                 exactCount(
-                                    diagnostics.current.storage.documents
-                                        .record_count ??
-                                        diagnostics.current.storage.documents
-                                            .count,
+                                    diagnostics.current.client_storage
+                                        .document_count ??
+                                        diagnostics.current.storage.documents.count,
                                 )
                             }}
                             records ·
                             {{
                                 exactCount(
-                                    diagnostics.current.storage.documents
-                                        .file_backed_count,
+                                    diagnostics.current.client_storage
+                                        .file_backed_document_count,
                                 )
                             }}
                             file-backed ·
                             {{
-                                diagnostics.current.storage.documents
-                                    .filesystem_size_label ?? '0 B'
+                                diagnostics.current.client_storage.total_label
                             }}
                             on disk at
                             {{ diagnostics.current.storage.documents.path }}
                         </p>
                         <p
                             v-if="
-                                (diagnostics.current.storage.documents
-                                    .metadata_only_count ?? 0) > 0
+                                (diagnostics.current.client_storage
+                                    .metadata_only_document_count ?? 0) > 0
                             "
                             class="mt-2 text-xs leading-5 text-amber-800"
                         >
                             {{
                                 exactCount(
-                                    diagnostics.current.storage.documents
-                                        .metadata_only_count,
+                                    diagnostics.current.client_storage
+                                        .metadata_only_document_count,
                                 )
                             }}
                             imported document records are metadata-only right
@@ -2042,9 +2077,7 @@ const nodeStatusLabel = (
                                         class="mt-1 text-sm break-all text-stone-600"
                                     >
                                         {{
-                                            node.summary?.machine.hostname ??
-                                            node.base_url ??
-                                            'No endpoint'
+                                            nodeDetailLabel(node)
                                         }}
                                     </p>
                                 </div>
@@ -2160,14 +2193,13 @@ const nodeStatusLabel = (
                                         <p
                                             class="text-[10px] tracking-[0.16em] text-stone-500 uppercase"
                                         >
-                                            Tested
+                                            Probe
                                         </p>
                                         <p
                                             class="mt-1 font-semibold text-stone-950"
                                         >
                                             {{
-                                                node.connection
-                                                    .measured_at_label
+                                                nodeProbeLabel(node)
                                             }}
                                         </p>
                                     </div>

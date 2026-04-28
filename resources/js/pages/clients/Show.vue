@@ -282,6 +282,18 @@ const props = defineProps<{
             reporting_cycle?: string | null;
             download_url?: string | null;
         }>;
+        portal_events: Array<{
+            id: number;
+            source?: string | null;
+            event_type: string;
+            tool_key?: string | null;
+            title?: string | null;
+            summary?: string | null;
+            message?: string | null;
+            score?: number | null;
+            status?: string | null;
+            occurred_at?: string | null;
+        }>;
         document_access?: {
             can_view_files: boolean;
             document_count: number;
@@ -4959,7 +4971,56 @@ const pruneBrowserCaptureDuplicates = () => {
             </div>
         </section>
 
-        <section v-if="!focusPanelMode" class="grid gap-6 lg:grid-cols-3">
+        <section v-if="!focusPanelMode" class="grid gap-6 lg:grid-cols-4">
+            <div v-if="client.portal_events.length" class="space-y-3">
+                <p
+                    class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"
+                >
+                    Portal signals
+                </p>
+                <div
+                    v-for="event in client.portal_events"
+                    :key="event.id"
+                    class="rounded-2xl border border-amber-200/80 bg-amber-50/60 px-4 py-3"
+                >
+                    <div class="flex items-start justify-between gap-3">
+                        <p class="min-w-0 font-semibold text-stone-950">
+                            {{
+                                event.title ||
+                                event.tool_key?.replaceAll('_', ' ') ||
+                                event.event_type.replaceAll('_', ' ')
+                            }}
+                        </p>
+                        <p
+                            v-if="event.score"
+                            class="shrink-0 text-sm font-semibold text-stone-900"
+                        >
+                            {{ event.score }}
+                        </p>
+                    </div>
+                    <p
+                        class="mt-1 text-[11px] tracking-[0.2em] text-stone-500 uppercase"
+                    >
+                        {{ event.event_type.replaceAll('_', ' ') }}
+                        <span v-if="event.occurred_at">
+                            · {{ formatDate(event.occurred_at) }}</span
+                        >
+                    </p>
+                    <p
+                        v-if="event.summary || event.message"
+                        class="mt-2 line-clamp-3 text-sm leading-6 text-stone-700"
+                    >
+                        {{ event.summary || event.message }}
+                    </p>
+                    <p
+                        v-if="event.status"
+                        class="mt-2 text-xs font-medium text-stone-600 capitalize"
+                    >
+                        {{ event.status.replaceAll('_', ' ') }}
+                    </p>
+                </div>
+            </div>
+
             <div class="space-y-3">
                 <p
                     class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"

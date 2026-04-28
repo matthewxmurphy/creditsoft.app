@@ -108,7 +108,7 @@
       top: calc(100% + 8px);
       left: 0;
       z-index: 40;
-      width: min(336px, calc(100vw - 44px));
+      width: min(286px, calc(100vw - 44px));
       display: grid;
       gap: 8px;
       padding: 8px;
@@ -134,55 +134,15 @@
       gap: 3px;
     }
 
-    .integration-menu-item[disabled],
-    .integration-menu-item.is-static {
-      cursor: default;
-      opacity: 0.72;
-    }
-
-    .integration-menu-item:not([disabled]):not(.is-static) {
-      cursor: pointer;
-    }
-
-    .integration-menu-heading {
-      margin: 3px 4px 0;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(31, 26, 23, 0.46);
-    }
-
     .integration-menu-item span {
       font-size: 13px;
       font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
     }
 
     .integration-menu-item small {
       font-size: 11px;
       line-height: 1.35;
       color: var(--muted);
-    }
-
-    .integration-menu-status {
-      flex-shrink: 0;
-      border-radius: 999px;
-      background: rgba(31, 26, 23, 0.07);
-      padding: 3px 6px;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: rgba(31, 26, 23, 0.58);
-    }
-
-    .integration-menu-status.is-live {
-      background: rgba(47, 159, 91, 0.14);
-      color: #1f7a46;
     }
 
     .integration-menu-note {
@@ -551,37 +511,15 @@
     <section class="panel">
       <div class="header">
         <div class="brand-menu">
-          <button id="integrationMenuToggle" class="logo-button" type="button" aria-label="Open report and import menu" aria-expanded="false" aria-controls="integrationMenu">
+          <button id="integrationMenuToggle" class="logo-button" type="button" aria-label="Open import systems menu" aria-expanded="false" aria-controls="integrationMenu">
             <img src="creditsoft-wordmark.png" alt="CreditSoft">
           </button>
           <div id="integrationMenu" class="integration-menu" hidden>
-            <p class="integration-menu-heading">Report pulls</p>
-            <div class="integration-menu-item is-static" role="note">
-              <span>SmartCredit reports <small class="integration-menu-status is-live">Live</small></span>
-              <small>Open the side panel to pull queued SmartCredit reports automatically.</small>
-            </div>
-            <div class="integration-menu-item is-static" role="note">
-              <span>IdentityIQ reports <small class="integration-menu-status is-live">Live</small></span>
-              <small>Open the side panel to pull queued IdentityIQ dashboard and report pages.</small>
-            </div>
-            <p class="integration-menu-heading">Legacy imports</p>
             <button id="openDisputeFoxImport" class="integration-menu-item" type="button">
-              <span>DisputeFox <small class="integration-menu-status is-live">v0.5.9</small></span>
-              <small>Import the current DisputeFox page here, or use the side panel for the full legacy import pass.</small>
+              <span>Migrate Pulse</span>
+              <small>One-time Pulse import lane. Use the side panel Migrate button for the full pass.</small>
             </button>
-            <button class="integration-menu-item" type="button" disabled>
-              <span>Client Dispute Manager <small class="integration-menu-status">Soon</small></span>
-              <small>Reserved import lane for CDM clients, notes, letters, and portal history.</small>
-            </button>
-            <button class="integration-menu-item" type="button" disabled>
-              <span>Cloud Credit Repair <small class="integration-menu-status">Soon</small></span>
-              <small>Reserved import lane for CCR rosters, billing, disputes, and saved document history.</small>
-            </button>
-            <button class="integration-menu-item" type="button" disabled>
-              <span>White-label CRO <small class="integration-menu-status">Soon</small></span>
-              <small>Reserved generic importer for branded credit repair portals and custom CRM exports.</small>
-            </button>
-            <p class="integration-menu-note">Capture current page is manual. Pull next report lives in the side panel queue.</p>
+            <p class="integration-menu-note">More credit repair systems can plug into this same customer import lane later.</p>
           </div>
         </div>
         <div class="header-actions">
@@ -611,20 +549,23 @@
         <section id="credentialFeature" class="credential-card" hidden>
           <div class="credential-top">
             <div>
-              <p class="eyebrow">DisputeFox legacy import</p>
-              <p class="subtle">Log into DisputeFox in this browser first, then import the page you are viewing.</p>
+              <p class="eyebrow">Pulse migration</p>
+              <p class="subtle">Local credentials only. Use Sync page here, or open the side panel to run the full migration.</p>
             </div>
           </div>
 
           <div id="credentialPanel" class="credential-panel" hidden>
+            <input id="disputefoxUsername" type="text" placeholder="Pulse username" autocomplete="username">
+            <input id="disputefoxPassword" type="password" placeholder="Pulse password" autocomplete="current-password">
             <div class="credential-actions">
-              <button id="syncDisputeFoxProfile" class="primary" type="button">Import current page</button>
+              <button id="saveDisputeFoxCredentials" class="secondary" type="button">Save locally</button>
+              <button id="syncDisputeFoxProfile" class="primary" type="button">Sync page</button>
             </div>
           </div>
         </section>
 
         <section class="actions">
-          <button id="goCapture" class="primary" type="button">Capture current page</button>
+          <button id="goCapture" class="primary" type="button">Go</button>
         </section>
 
         <p id="status" class="status" aria-live="polite"></p>

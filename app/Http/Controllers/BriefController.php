@@ -9,7 +9,6 @@ use App\Models\OutboundSignal;
 use App\Services\AuditTrail;
 use App\Services\BriefAutoSeedService;
 use App\Services\BriefPdfDocumentService;
-use App\Services\ClientHealthSignalService;
 use App\Services\CreditsoftAiRegistry;
 use App\Services\CreditsoftAiService;
 use App\Services\InstallationFeedbackPolicy;
@@ -25,7 +24,6 @@ class BriefController extends Controller
     public function index(
         Request $request,
         Client $client,
-        ClientHealthSignalService $clientHealth,
         CreditsoftAiRegistry $registry,
         BriefAutoSeedService $autoSeeder,
         AuditTrail $auditTrail,
@@ -63,7 +61,6 @@ class BriefController extends Controller
 
         return Inertia::render('clients/Briefs', [
             'client' => $client,
-            'clientHealth' => $clientHealth->signal($client),
             'briefs' => $briefs->map(function (CaseBrief $brief) use ($client, $documentsByBrief): array {
                 $document = $documentsByBrief->get($brief->getKey());
 

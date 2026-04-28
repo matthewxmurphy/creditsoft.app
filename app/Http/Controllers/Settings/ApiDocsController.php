@@ -56,7 +56,6 @@ class ApiDocsController extends Controller
                     'updates_feed_url' => (string) config('creditsoft.updates.feed_url'),
                     'dropin_path' => '/api/v1/index.php',
                     'wordpress_plugin_path' => 'wp-content/plugins/creditsoft-api-bridge/',
-                    'wordpress_plugin_zip_url' => url('/downloads/creditsoft-api-bridge.zip'),
                 ],
                 'endpoints' => [
                     [
@@ -67,7 +66,7 @@ class ApiDocsController extends Controller
                     [
                         'method' => 'GET',
                         'path' => '/office-stats',
-                        'summary' => 'Read website-safe office impact metrics for proof cards and dashboards.',
+                        'summary' => 'Read public-safe office brag metrics for website hero cards and dashboards.',
                     ],
                     [
                         'method' => 'POST',

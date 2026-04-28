@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" role="img" aria-label="Brevo">
-  <rect width="300" height="80" fill="none"/>
-  <g transform="translate(16 16)">
-    <rect width="48" height="48" rx="16" fill="#0b63ff"/>
-    <path d="M13 28c6-12 15-17 26-15-8 5-11 12-10 22-5-6-10-8-16-7Z" fill="#fff"/>
-    <path d="M15 35c8-2 16-2 24 1-7 5-15 7-24 5Z" fill="#a7f3d0"/>
-  </g>
-  <text x="80" y="50" fill="#0b2240" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="900">Brevo</text>
-</svg>

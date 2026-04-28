@@ -5,13 +5,11 @@ const DEFAULT_SETTINGS = {
 };
 
 const API_OVERVIEW_PATH = '/api/v1';
-const CREDITSOFT_PUBLIC_API_BASE = 'https://www.creditsoft.app';
 const LOCAL_API_CANDIDATES = [
-    'http://127.0.0.1:8877',
-    'http://localhost:8877',
     'http://127.0.0.1',
     'http://localhost',
-    CREDITSOFT_PUBLIC_API_BASE,
+    'http://127.0.0.1:8001',
+    'http://localhost:8001',
 ];
 
 const elements = {
@@ -239,7 +237,7 @@ async function resolveApiBaseUrl(settings) {
         }
     }
 
-    throw new Error('Could not auto-detect the local CreditSoft API. It tries the local router first, then localhost port 80.');
+    throw new Error('Could not auto-detect the local CreditSoft API. It tries port 80 first, then 8001.');
 }
 
 async function parseJsonResponse(response) {

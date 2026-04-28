@@ -35,7 +35,7 @@ return [
         'ollama_cloud' => [
             'driver' => 'ollama',
             'key' => env('OLLAMA_CLOUD_API_KEY', ''),
-            'url' => env('OLLAMA_CLOUD_BASE_URL', 'https://ollama.com'),
+            'url' => 'https://ollama.com',
             'models' => [
                 'text' => [
                     'default' => env('OLLAMA_CLOUD_TEXT_MODEL', 'nemotron-3-super:cloud'),
@@ -57,8 +57,7 @@ return [
             'models' => [
                 'text' => [
                     'default' => env('OPENROUTER_TEXT_MODEL', 'arcee-ai/trinity-large-thinking'),
-                    'cto' => env('OPENROUTER_CTO_MODEL', 'nvidia/nemotron-3-super-120b-a12b:free'),
-                    'cheapest' => env('OPENROUTER_CHEAPEST_MODEL', 'nvidia/nemotron-nano-9b-v2'),
+                    'cheapest' => env('OPENROUTER_CHEAPEST_MODEL', 'nvidia/llama-3.1-nemotron-nano-8b-v1'),
                     'smartest' => env('OPENROUTER_SMARTEST_MODEL', 'arcee-ai/trinity-large-thinking'),
                 ],
             ],

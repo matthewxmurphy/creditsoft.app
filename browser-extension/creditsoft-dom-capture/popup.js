@@ -13,13 +13,11 @@ const API_CLIENT_SYNC_PATH = '/api/v1/browser-companion/client-sync';
 const API_CLIENT_DOCUMENT_PATH = '/api/v1/browser-companion/client-document';
 const CLIENT_PICKER_PATH = '/api/v1/clients/picker?limit=24';
 const DISPUTEFOX_LOGIN_URL = 'https://pulse.disputeprocess.com/jsp/client/login.jsp?cdn/';
-const CREDITSOFT_PUBLIC_API_BASE = 'https://www.creditsoft.app';
 const LOCAL_API_CANDIDATES = [
-    'http://127.0.0.1:8877',
-    'http://localhost:8877',
     'http://127.0.0.1',
     'http://localhost',
-    CREDITSOFT_PUBLIC_API_BASE,
+    'http://127.0.0.1:8001',
+    'http://localhost:8001',
 ];
 
 const elements = {
@@ -208,7 +206,7 @@ function renderSelectedClient() {
         elements.selectedClient.innerHTML = '';
         elements.clientEmpty.hidden = false;
         elements.clientEmpty.textContent = settingsCache.office_token
-            ? 'Choose a client, then press Capture current page.'
+            ? 'Choose a client, then press Go.'
             : 'Save a CreditSoft API key, then load clients from CreditSoft.';
         return;
     }
@@ -391,8 +389,7 @@ async function captureActiveTab() {
             const isPulsePage = /pulse\.disputeprocess\.com$/i.test(window.location.hostname);
             const hasProfileMarker = /customer_dashboard\.jsp/i.test(currentUrl)
                 || Boolean(document.querySelector('title[customer_name], #client_card_info_name, .client_card_info_name'));
-            const ignoredPulseTable = (table) =>
-                /^(DFMessage|DFAllMessage|DFPortalMessage|DFLeadChat|DFClientsDocuments|bureauForFreezeLetter)$/i.test(table.id || '');
+            const ignoredPulseTable = (table) => /^(DFMessage|DFAllMessage|DFPortalMessage|DFLeadChat|DFClientsDocuments)/i.test(table.id || '');
             const hasUsableRecordRows = (table) => {
                 if (!(table instanceof HTMLTableElement) || ignoredPulseTable(table)) {
                     return false;
@@ -419,24 +416,14 @@ async function captureActiveTab() {
                 }
             };
             const mimeFromFilename = (value) => {
-                const raw = String(value ?? '').trim();
-                const candidates = [raw];
+                const name = String(value ?? '').toLowerCase();
 
-                try {
-                    const url = new URL(raw, currentUrl);
-                    candidates.push(url.searchParams.get('file') || '', url.pathname || '');
-                } catch (_) {
-                    // Plain file names still work below.
-                }
-
-                const name = candidates.filter(Boolean).join(' ').toLowerCase();
-
-                if (/\.(pdf)(?:$|[?#\s])/.test(name)) return 'application/pdf';
-                if (/\.(png)(?:$|[?#\s])/.test(name)) return 'image/png';
-                if (/\.(jpg|jpeg)(?:$|[?#\s])/.test(name)) return 'image/jpeg';
-                if (/\.(gif)(?:$|[?#\s])/.test(name)) return 'image/gif';
-                if (/\.(webp)(?:$|[?#\s])/.test(name)) return 'image/webp';
-                if (/\.(heic|heif)(?:$|[?#\s])/.test(name)) return 'image/heif';
+                if (name.endsWith('.pdf')) return 'application/pdf';
+                if (name.endsWith('.png')) return 'image/png';
+                if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return 'image/jpeg';
+                if (name.endsWith('.gif')) return 'image/gif';
+                if (name.endsWith('.webp')) return 'image/webp';
+                if (name.endsWith('.heic') || name.endsWith('.heif')) return 'image/heif';
 
                 return '';
             };
@@ -454,43 +441,6 @@ async function captureActiveTab() {
                 } catch (_) {
                     return text.split(/[/?#]/)[0].split('/').filter(Boolean).pop() || '';
                 }
-            };
-            const pulseDownloadUrl = (value) => {
-                try {
-                    const url = new URL(value || '', currentUrl);
-
-                    return url;
-                } catch (_) {
-                    return null;
-                }
-            };
-            const titleFromDocumentUrl = (value) => {
-                const url = pulseDownloadUrl(value);
-                const docName = url?.searchParams.get('docName') || '';
-
-                return docName ? short(docName, 255) : '';
-            };
-            const filenameFromDocumentUrl = (value) => {
-                const url = pulseDownloadUrl(value);
-                const file = url?.searchParams.get('file') || '';
-
-                if (file) {
-                    return filenameFromPath(file);
-                }
-
-                const filename = filenameFromPath(value);
-
-                return filename === 'document' ? '' : filename;
-            };
-            const uidFromDocumentUrl = (value) => {
-                const filename = filenameFromDocumentUrl(value);
-
-                return filename ? filename.replace(/\.[a-z0-9]+$/i, '') : '';
-            };
-            const previewPathFromOnclick = (value) => {
-                const match = String(value || '').match(/(?:previewDocument|editUploadedDocument)\('([^']+)'/i);
-
-                return match?.[1] || '';
             };
             const clientUidFromPage = () => {
                 try {
@@ -522,64 +472,9 @@ async function captureActiveTab() {
             const normalizePulseDocument = (doc, source = 'pulse-api') => {
                 const sourcePath = String(doc?.client_document_url || doc?.source_path || '').trim();
                 const downloadUrl = absoluteUrl(doc?.client_document_full_url || doc?.download_url || '');
-                const sourcePreviewPath = sourcePath && !/^\/?document\?/i.test(sourcePath)
-                    ? `/static-resources/client_documents/${sourcePath.replace(/^\/+/, '')}`
-                    : '';
-                const previewUrl = absoluteUrl(doc?.preview_url || sourcePreviewPath);
-                const fileName = String(doc?.file_name || filenameFromDocumentUrl(downloadUrl) || filenameFromPath(sourcePath) || '').trim();
-                const title = short(doc?.client_document_name_text || doc?.title || titleFromDocumentUrl(downloadUrl) || fileName || 'Client document', 255);
-                const downloadParams = pulseDownloadUrl(downloadUrl)?.searchParams;
-                const documentCategory = (() => {
-                    const rawCategory = String(doc?.category || '')
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, '_')
-                        .replace(/^_+|_+$/g, '');
-                    const text = [rawCategory, title, fileName, doc?.notes]
-                        .filter(Boolean)
-                        .join(' ')
-                        .toLowerCase();
-
-                    if (
-                        downloadParams?.get('isCreditReport') === '1' ||
-                        doc?.is_creditReport === '1' ||
-                        doc?.is_credit_report === true ||
-                        ['credit_report', 'credit_reports', 'credit_report_pdf'].includes(rawCategory) ||
-                        ['credit report', '3-bureau', '3 bureau', 'smart credit report', 'smartcredit report'].some((needle) => text.includes(needle))
-                    ) {
-                        return 'credit_report';
-                    }
-
-                    if (
-                        ['progress', 'progress_report', 'client_progress'].includes(rawCategory) ||
-                        ['progress report', 'client progress'].some((needle) => text.includes(needle))
-                    ) {
-                        return 'progress_report';
-                    }
-
-                    if (
-                        ['audit', 'audit_report'].includes(rawCategory) ||
-                        ['audit report', 'credit audit'].some((needle) => text.includes(needle))
-                    ) {
-                        return 'audit_report';
-                    }
-
-                    if (
-                        ['letter', 'letters', 'letter_pdf', 'client_letters'].includes(rawCategory) ||
-                        [
-                            'letter',
-                            'lexisnexis',
-                            'lexis nexis',
-                            'innovis',
-                            'credco',
-                            'creditor statement',
-                            'investigation results',
-                        ].some((needle) => text.includes(needle))
-                    ) {
-                        return 'letter_pdf';
-                    }
-
-                    return rawCategory || 'client_documents';
-                })();
+                const previewUrl = absoluteUrl(doc?.preview_url || (sourcePath ? `/static-resources/client_documents/${sourcePath}` : ''));
+                const fileName = String(doc?.file_name || filenameFromPath(sourcePath || downloadUrl) || '').trim();
+                const title = short(doc?.client_document_name_text || doc?.title || fileName || 'Pulse document', 255);
 
                 if (!title && !downloadUrl && !sourcePath) {
                     return null;
@@ -588,10 +483,10 @@ async function captureActiveTab() {
                 return {
                     source_system: 'disputefox',
                     source,
-                    source_document_uid: short(doc?.client_document_u_id || doc?.source_document_uid || uidFromDocumentUrl(downloadUrl) || '', 255),
+                    source_document_uid: short(doc?.client_document_u_id || doc?.source_document_uid || '', 255),
                     source_client_uid: short(doc?.client_uid || doc?.source_client_uid || clientUidFromPage(), 255),
                     title,
-                    category: documentCategory,
+                    category: doc?.is_creditReport === '1' || doc?.is_credit_report === true ? 'credit_report' : 'pulse_client_document',
                     file_name: short(fileName || title, 255),
                     mime_type: short(doc?.mime_type || mimeFromFilename(fileName || sourcePath), 255),
                     file_size: Number(doc?.file_size || 0) || 0,
@@ -599,7 +494,7 @@ async function captureActiveTab() {
                     download_url: downloadUrl,
                     preview_url: previewUrl,
                     source_path: short(sourcePath, 2048),
-                    is_credit_report: downloadParams?.get('isCreditReport') === '1' || doc?.is_creditReport === '1' || doc?.is_credit_report === true,
+                    is_credit_report: doc?.is_creditReport === '1' || doc?.is_credit_report === true,
                 };
             };
             const detectPulseDocuments = async () => {
@@ -623,43 +518,6 @@ async function captureActiveTab() {
                     seen.add(key);
                     documents.push(documentRecord);
                 };
-                const clientUid = clientUidFromPage();
-
-                for (const row of Array.from(document.querySelectorAll('#RequiredIdentificationDiv .documents-row1, #RequiredIdentificationDiv .documents-row2, #clientUploadedDocumentsDiv .documents-row1, #clientUploadedDocumentsDiv .documents-row2, #progressCreditReportUploadedDiv .documents-row1, #progressCreditReportUploadedDiv .documents-row2, .documents-row1:has(a[href*="/document"][href*="method=clientDocument"]), .documents-row2:has(a[href*="/document"][href*="method=clientDocument"])')).slice(0, 220)) {
-                    const downloadLink = row.querySelector('a[href*="/document"][href*="method=clientDocument"], a[href*="/document"][href*="method=downloadCreditAuditReport"], a.documents-email-link[href*="/document"]');
-                    const downloadHref = downloadLink?.getAttribute('href') || '';
-                    const downloadUrl = pulseDownloadUrl(downloadHref);
-                    const method = downloadUrl?.searchParams.get('method') || '';
-
-                    if (!downloadUrl || !['clientDocument', 'downloadCreditAuditReport'].includes(method)) {
-                        continue;
-                    }
-
-                    const downloadClientUid = downloadUrl.searchParams.get('clientUid') || downloadUrl.searchParams.get('client_u_id') || '';
-
-                    if (downloadClientUid && clientUid && downloadClientUid !== clientUid) {
-                        continue;
-                    }
-
-                    const rowTitle = row.querySelector('.documents-row-name-text')?.textContent || titleFromDocumentUrl(downloadHref);
-                    const previewPath = Array.from(row.querySelectorAll('[onclick]'))
-                        .map((element) => previewPathFromOnclick(element.getAttribute('onclick')))
-                        .find(Boolean);
-                    const isAudit = method === 'downloadCreditAuditReport' || /audit report/i.test(rowTitle);
-                    const isCreditReport = downloadUrl.searchParams.get('isCreditReport') === '1' || row.closest('#progressCreditReportUploadedDiv') && !isAudit;
-
-                    addDocument(normalizePulseDocument({
-                        source_document_uid: row.querySelector('[data-docid]')?.getAttribute('data-docid') || uidFromDocumentUrl(downloadHref),
-                        source_client_uid: downloadClientUid || clientUid,
-                        client_document_full_url: downloadHref,
-                        preview_url: previewPath ? `/static-resources/client_documents/${previewPath.replace(/^\/+/, '')}` : '',
-                        client_document_name_text: rowTitle,
-                        client_document_date: row.querySelector('.documents-row-date i')?.getAttribute('title') || row.querySelector('.documents-row-date')?.textContent || '',
-                        category: isAudit ? 'audit_report' : (isCreditReport ? 'credit_report' : 'client_documents'),
-                        file_name: filenameFromDocumentUrl(downloadHref),
-                        is_credit_report: isCreditReport,
-                    }, 'disputefox-document-row'));
-                }
 
                 for (const row of Array.from(document.querySelectorAll('.messages-modal-document-list .df-sidebar-document-row')).slice(0, 80)) {
                     const args = Array.from(String(row.getAttribute('onclick') || '').matchAll(/'([^']*)'/g)).map((match) => match[1]);
@@ -687,6 +545,8 @@ async function captureActiveTab() {
                         client_document_date: document.querySelector('.messages-modal-document-list .activeDoconSidebar .messages-modal-item-time')?.textContent || '',
                     }, 'pulse-selected-document'));
                 }
+
+                const clientUid = clientUidFromPage();
 
                 if (/pulse\.disputeprocess\.com$/i.test(window.location.hostname) && clientUid) {
                     try {
@@ -921,7 +781,7 @@ async function captureActiveTab() {
             const dataTables = Array.from(document.querySelectorAll('#clientsORleadsDatatable, #affiliate_table, #client_invoice_table, table.dataTable, table.datatable, table'))
                 .filter(hasUsableRecordRows)
                 .filter((table, index, tables) => tables.indexOf(table) === index)
-                .slice(0, 16);
+                .slice(0, 8);
 
             for (const table of dataTables) {
                 const headers = Array.from(table.querySelectorAll('thead th'))
@@ -1341,161 +1201,50 @@ function contentDispositionFilename(value) {
     return header.match(/filename="?([^";]+)"?/i)?.[1] || '';
 }
 
-function pulseDocumentCandidateUrls(documentRecord) {
-    const sourcePath = String(documentRecord?.source_path || '').trim();
-    const absoluteSourcePath = (() => {
-        if (!sourcePath) {
-            return '';
-        }
-
-        if (/^https?:\/\//i.test(sourcePath)) {
-            return sourcePath;
-        }
-
-        if (/^\/?document\?/i.test(sourcePath)) {
-            return `https://pulse.disputeprocess.com/${sourcePath.replace(/^\/+/, '')}`;
-        }
-
-        return '';
-    })();
-    const staticSourcePath = sourcePath && !absoluteSourcePath
-        ? `https://pulse.disputeprocess.com/static-resources/client_documents/${sourcePath.replace(/^\/+/, '')}`
-        : '';
-    const candidates = [
-        documentRecord?.download_url,
-        absoluteSourcePath,
-        staticSourcePath,
-        documentRecord?.preview_url,
-    ];
-
-    return Array.from(new Set(candidates.map((value) => String(value || '').trim()).filter(Boolean)));
-}
-
-function pulseDocumentUrlLooksLikePreview(url) {
-    const value = String(url || '').toLowerCase();
-
-    return (
-        value.includes('/static-resources/client_documents/') ||
-        /\.(?:gif|jpe?g|png|webp)(?:[?#]|$)/i.test(value)
-    );
-}
-
-function pulseDocumentHasFullDownloadUrl(documentRecord, candidateUrls = []) {
-    const values = [
-        documentRecord?.download_url,
-        documentRecord?.source_path,
-        ...candidateUrls,
-    ]
-        .map((value) => String(value || '').toLowerCase())
-        .filter(Boolean);
-
-    return values.some((value) => (
-        value.includes('/document?') ||
-        value.includes('method=clientdocument') ||
-        value.includes('clientdocument') ||
-        value.includes('.pdf')
-    ));
-}
-
-async function pulseDocumentBlobLooksLikeThumbnail(blob, contentType) {
-    const normalizedType = String(contentType || blob?.type || '').toLowerCase();
-
-    if (!normalizedType.startsWith('image/')) {
-        return false;
-    }
-
-    if ((blob?.size || 0) > 0 && (blob?.size || 0) < 8192) {
-        return true;
-    }
-
-    if ((blob?.size || 0) < 65536 && typeof createImageBitmap === 'function') {
-        try {
-            const bitmap = await createImageBitmap(blob);
-            const looksTiny = bitmap.width <= 180 && bitmap.height <= 180;
-            bitmap.close?.();
-
-            return looksTiny;
-        } catch (_) {
-            return false;
-        }
-    }
-
-    return false;
-}
-
-function safePulseDocumentFilename(documentRecord, response, sourceUrl = '') {
+function safePulseDocumentFilename(documentRecord, response) {
     const headerName = contentDispositionFilename(response?.headers?.get?.('content-disposition'));
-    const fallback = documentRecord?.file_name || documentRecord?.title || 'disputefox-document';
+    const fallback = documentRecord?.file_name || documentRecord?.title || 'pulse-document';
     const fromUrl = (() => {
         try {
-            const url = new URL(sourceUrl || response?.url || documentRecord?.download_url || documentRecord?.preview_url || '');
-            const file = url.searchParams.get('file') || '';
-
-            const filename = decodeURIComponent(file || url.pathname.split('/').filter(Boolean).pop() || '');
-
-            return filename === 'document' ? '' : filename;
+            const url = new URL(documentRecord?.download_url || documentRecord?.preview_url || '');
+            return decodeURIComponent(url.pathname.split('/').filter(Boolean).pop() || '');
         } catch (_) {
             return '';
         }
     })();
     const candidate = String(headerName || fromUrl || fallback).replace(/[\\/:*?"<>|]+/g, '-').trim();
 
-    return candidate || 'disputefox-document';
+    return candidate || 'pulse-document';
 }
 
 async function fetchPulseDocumentFile(documentRecord) {
-    const candidateUrls = pulseDocumentCandidateUrls(documentRecord);
+    const url = documentRecord?.download_url || documentRecord?.preview_url || '';
 
-    if (candidateUrls.length === 0) {
-        throw new Error('DisputeFox did not expose a document download URL.');
+    if (!url) {
+        throw new Error('Pulse did not expose a document download URL.');
     }
 
-    let lastError = null;
-    let tinyPreviewSeen = false;
-    const hasFullDownloadUrl = pulseDocumentHasFullDownloadUrl(documentRecord, candidateUrls);
+    const response = await fetch(url, {
+        credentials: 'include',
+        redirect: 'follow',
+    });
 
-    for (const url of candidateUrls) {
-        try {
-            const response = await fetch(url, {
-                credentials: 'include',
-                redirect: 'follow',
-            });
-
-            if (!response.ok) {
-                throw new Error(`DisputeFox returned HTTP ${response.status} for the document download.`);
-            }
-
-            const contentType = response.headers.get('content-type') || documentRecord.mime_type || 'application/octet-stream';
-            const blob = await response.blob();
-
-            if (contentType.includes('text/html') && blob.size < 1024 * 1024) {
-                throw new Error('DisputeFox returned a page instead of the document file. Open the document drawer and try again.');
-            }
-
-            if (
-                (candidateUrls.length > 1 || hasFullDownloadUrl) &&
-                (pulseDocumentUrlLooksLikePreview(url) || hasFullDownloadUrl) &&
-                (await pulseDocumentBlobLooksLikeThumbnail(blob, contentType))
-            ) {
-                tinyPreviewSeen = true;
-                continue;
-            }
-
-            return {
-                blob,
-                fileName: safePulseDocumentFilename(documentRecord, response, url),
-                mimeType: contentType || blob.type || 'application/octet-stream',
-            };
-        } catch (error) {
-            lastError = error;
-        }
+    if (!response.ok) {
+        throw new Error(`Pulse returned HTTP ${response.status} for the document download.`);
     }
 
-    if (tinyPreviewSeen) {
-        throw new Error('DisputeFox only returned thumbnail-sized document images. Open the document drawer and try again.');
+    const contentType = response.headers.get('content-type') || documentRecord.mime_type || 'application/octet-stream';
+    const blob = await response.blob();
+
+    if (contentType.includes('text/html') && blob.size < 1024 * 1024) {
+        throw new Error('Pulse returned a page instead of the document file. Open the document drawer and try again.');
     }
 
-    throw lastError || new Error('DisputeFox did not return the document file.');
+    return {
+        blob,
+        fileName: safePulseDocumentFilename(documentRecord, response),
+        mimeType: contentType || blob.type || 'application/octet-stream',
+    };
 }
 
 async function postClientDocument(clientCuid, documentRecord, filePayload, settings, capture) {
@@ -1538,7 +1287,7 @@ async function postClientDocument(clientCuid, documentRecord, filePayload, setti
     const parsed = await parseJsonResponse(response);
 
     if (!response.ok) {
-        throw new Error(apiErrorMessage(parsed, response.status, 'CreditSoft rejected the document upload.'));
+        throw new Error(apiErrorMessage(parsed, response.status, 'CreditSoft rejected the Pulse document upload.'));
     }
 
     return parsed;
@@ -1547,7 +1296,7 @@ async function postClientDocument(clientCuid, documentRecord, filePayload, setti
 async function uploadPulseDocumentsForClient(documents, clientCuid, settings, capture) {
     const records = (Array.isArray(documents) ? documents : [])
         .filter((documentRecord) => documentRecord?.download_url || documentRecord?.preview_url)
-        .slice(0, 80);
+        .slice(0, 25);
     const stats = {
         attempted: records.length,
         uploaded: 0,
@@ -1567,7 +1316,7 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
             stats.uploaded++;
         } catch (error) {
             stats.failed++;
-            stats.last_error = error instanceof Error ? error.message : 'Could not import a document.';
+            stats.last_error = error instanceof Error ? error.message : 'Could not import a Pulse document.';
         }
     }
 
@@ -1606,7 +1355,7 @@ async function syncDisputeFoxRecordList(capture = null) {
         throw new Error('This Pulse page did not expose any list rows to import.');
     }
 
-    setStatus(`Sending ${rowCount} DisputeFox list rows into CreditSoft...`, 'info');
+    setStatus(`Sending ${rowCount} Pulse list rows into CreditSoft...`, 'info');
 
     const result = await postClientSync({
         client_cuid: null,
@@ -1628,7 +1377,7 @@ async function syncDisputeFoxRecordList(capture = null) {
         + Number(data.payments_created || 0)
         + Number(data.payments_updated || 0)
         + Number(data.captures_created || 0);
-    const message = result?.message || `Imported ${rowCount} DisputeFox list rows.`;
+    const message = result?.message || `Imported ${rowCount} Pulse list rows.`;
 
     setStatus(`${message} (${imported} saved/updated).`, 'success');
 
@@ -1706,13 +1455,13 @@ async function syncDisputeFoxProfile() {
     let documentMessage = '';
 
     if (client?.cuid && documents.length > 0) {
-        setStatus(`Found ${documents.length} document records. Importing files when the source allows it...`, 'info');
+        setStatus(`Found ${documents.length} Pulse document records. Importing files when Pulse allows it...`, 'info');
         const uploadStats = await uploadPulseDocumentsForClient(documents, client.cuid, settings, capture);
 
         if (uploadStats.uploaded > 0) {
             documentMessage = ` Imported ${uploadStats.uploaded} file${uploadStats.uploaded === 1 ? '' : 's'}.`;
         } else if (Number(syncedDocuments.total || 0) > 0) {
-            documentMessage = ` Staged ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}; open the document drawer if file downloads are blocked.`;
+            documentMessage = ` Staged ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}; open the Pulse document drawer if file downloads are blocked.`;
         }
     } else if (Number(syncedDocuments.total || 0) > 0) {
         documentMessage = ` Staged ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}.`;
@@ -1805,7 +1554,7 @@ async function resolveApiBaseUrl(settings) {
         }
     }
 
-    throw new Error('Could not auto-detect the local CreditSoft API. It tries the local router first, then localhost port 80.');
+    throw new Error('Could not auto-detect the local CreditSoft API. It tries port 80 first, then 8001.');
 }
 
 function escapeHtml(value) {
@@ -1824,12 +1573,7 @@ elements.openSettings?.addEventListener('click', async () => {
 elements.integrationMenuToggle?.addEventListener('click', () => {
     integrationMenuOpen = !integrationMenuOpen;
     syncIntegrationMenu();
-    setStatus(
-        integrationMenuOpen
-            ? 'Choose a source. Report pulls run from the side panel queue; legacy CRM pages can be imported here.'
-            : 'Source menu closed.',
-        integrationMenuOpen ? 'info' : 'success',
-    );
+    setStatus(integrationMenuOpen ? 'Import systems menu opened.' : 'Import systems menu closed.', integrationMenuOpen ? 'info' : 'success');
 });
 
 elements.openDisputeFoxImport?.addEventListener('click', async () => {
@@ -1852,12 +1596,12 @@ elements.openDisputeFoxImport?.addEventListener('click', async () => {
             await navigateActiveTab(DISPUTEFOX_LOGIN_URL);
         }
     } catch (error) {
-        setStatus(error instanceof Error ? error.message : 'Could not open the DisputeFox login page.', 'error');
+        setStatus(error instanceof Error ? error.message : 'Could not open the Pulse login page.', 'error');
 
         return;
     }
 
-    setStatus('DisputeFox import is open. Use Import current page here, or open the side panel for the full legacy import pass.', 'info');
+    setStatus('Pulse migration mode is open. Use Sync page here, or open the side panel to run the full migration.', 'info');
 });
 
 elements.credentialToggle?.addEventListener('click', () => {
@@ -1882,12 +1626,12 @@ elements.saveDisputeFoxCredentials?.addEventListener('click', async () => {
 elements.syncDisputeFoxProfile?.addEventListener('click', async () => {
     try {
         elements.syncDisputeFoxProfile.disabled = true;
-        elements.syncDisputeFoxProfile.textContent = 'Importing...';
+        elements.syncDisputeFoxProfile.textContent = 'Syncing...';
         await syncDisputeFoxProfile();
     } catch (error) {
         setStatus(error instanceof Error ? error.message : 'Could not sync DisputeFox client data.', 'error');
     } finally {
-        elements.syncDisputeFoxProfile.textContent = 'Import current page';
+        elements.syncDisputeFoxProfile.textContent = 'Sync page';
         syncFeatureVisibility();
     }
 });
@@ -1923,14 +1667,14 @@ elements.goCapture?.addEventListener('click', async () => {
         }
 
         if (!settings.selected_client_cuid) {
-            throw new Error('Choose a client before capturing the current page.');
+            throw new Error('Choose a client before pressing Go.');
         }
 
-        setStatus('Reading current page for the selected client...');
+        setStatus('Reading current page...');
         const capture = await captureActiveTab();
         const payload = buildPayload(capture, settings);
 
-        setStatus('Sending current page capture to CreditSoft...');
+        setStatus('Sending page to CreditSoft...');
         const result = await postCapture(payload, settings);
         const clientName = result?.data?.client?.display_name ?? 'the client';
 

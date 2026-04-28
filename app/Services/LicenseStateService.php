@@ -17,7 +17,7 @@ class LicenseStateService
      */
     public function current(): array
     {
-        $state = $this->ensureFeatureTrialStarts($this->installerState->read());
+        $state = $this->installerState->read();
         $license = array_replace([
             'valid' => false,
             'status' => 'pending',
@@ -48,15 +48,6 @@ class LicenseStateService
         $planKey = $this->normalizePlanKey((string) ($license['plan_key'] ?? $license['plan'] ?? ''));
         $planLabel = $this->planLabel($planKey, (string) ($license['plan'] ?? ''));
         $features = $this->resolveFeatures($license['features'] ?? [], $planKey);
-        $licensedFeatures = $features;
-        $featureTrials = $this->featureTrialStates((array) data_get($state, 'feature_trials', []), $licensedFeatures);
-
-        foreach ($featureTrials as $feature => $trial) {
-            if ((bool) ($trial['active'] ?? false)) {
-                $features[$feature] = true;
-            }
-        }
-
         $requestedMode = (string) ($license['requested_mode'] ?? $license['mode'] ?? config('creditsoft.installer.license_mode', 'auto'));
         $remoteUnreachable = (bool) ($license['remote_unreachable'] ?? false);
         $lastVerifiedAt = $this->parseDate((string) ($license['last_verified_at'] ?? ''));
@@ -112,8 +103,6 @@ class LicenseStateService
             'plan_key' => $planKey,
             'plan_label' => $planLabel,
             'features' => $features,
-            'licensed_features' => $licensedFeatures,
-            'feature_trials' => $featureTrials,
             'requested_mode' => $requestedMode,
             'remote_unreachable' => $remoteUnreachable,
             'last_verified_at' => $lastVerifiedAt?->toIso8601String(),
@@ -167,22 +156,6 @@ class LicenseStateService
             "{$feature}.label",
             Str::of($feature)->replace('_', ' ')->title()->value(),
         );
-        $trial = data_get($state, "feature_trials.{$feature}");
-
-        if (is_array($trial) && (bool) ($trial['expired'] ?? false)) {
-            $upgradeMessage = trim((string) ($trial['upgrade_message'] ?? ''));
-
-            if ($upgradeMessage !== '') {
-                return $upgradeMessage;
-            }
-
-            $endedLabel = trim((string) ($trial['ends_label'] ?? ''));
-
-            return $endedLabel !== ''
-                ? "{$label} trial ended {$endedLabel}. Upgrade to keep using it."
-                : "{$label} trial ended. Upgrade to keep using it.";
-        }
-
         $recommendedPlan = $this->recommendedPlanLabel($feature);
 
         return $recommendedPlan !== null
@@ -201,14 +174,14 @@ class LicenseStateService
         }
 
         $now = now();
-        $days = max(0, (int) floor($now->diffInDays($graceEndsAt, false)));
-        $hours = max(0, ((int) floor($now->diffInHours($graceEndsAt, false))) % 24);
+        $days = max(0, $now->diffInDays($graceEndsAt, false));
+        $hours = max(0, $now->diffInHours($graceEndsAt, false) % 24);
 
         if ($days > 0) {
             return $days.'d '.$hours.'h left';
         }
 
-        $minutes = max(0, ((int) floor($now->diffInMinutes($graceEndsAt, false))) % 60);
+        $minutes = max(0, $now->diffInMinutes($graceEndsAt, false) % 60);
 
         return $hours.'h '.$minutes.'m left';
     }
@@ -220,147 +193,6 @@ class LicenseStateService
             'locked' => 'License needs renewal to unlock.',
             default => null,
         };
-    }
-
-    /**
-     * @param  array<string, mixed>  $state
-     * @return array<string, mixed>
-     */
-    protected function ensureFeatureTrialStarts(array $state): array
-    {
-        $configuredTrials = (array) config('creditsoft.licensing.feature_trials', []);
-
-        if ($configuredTrials === []) {
-            return $state;
-        }
-
-        $now = now()->toIso8601String();
-        $updates = [];
-
-        if (blank((string) data_get($state, 'installed_at'))) {
-            data_set($updates, 'installed_at', $now);
-        }
-
-        foreach ($configuredTrials as $feature => $trialConfig) {
-            $normalizedFeature = $this->normalizeFeatureKey(is_string($feature) ? $feature : '');
-            $days = max((int) data_get($trialConfig, 'days', 0), 0);
-
-            if ($normalizedFeature === null || $days <= 0) {
-                continue;
-            }
-
-            $startedAt = trim((string) data_get($state, "feature_trials.{$normalizedFeature}.started_at", ''));
-
-            if ($startedAt === '') {
-                data_set($updates, "feature_trials.{$normalizedFeature}.started_at", $now);
-            }
-        }
-
-        return $updates === [] ? $state : $this->installerState->merge($updates);
-    }
-
-    /**
-     * @param  array<string, mixed>  $rawTrials
-     * @param  array<string, bool>  $licensedFeatures
-     * @return array<string, array<string, mixed>>
-     */
-    protected function featureTrialStates(array $rawTrials, array $licensedFeatures): array
-    {
-        $states = [];
-
-        foreach ((array) config('creditsoft.licensing.feature_trials', []) as $feature => $trialConfig) {
-            $normalizedFeature = $this->normalizeFeatureKey(is_string($feature) ? $feature : '');
-
-            if ($normalizedFeature === null) {
-                continue;
-            }
-
-            $days = max((int) data_get($trialConfig, 'days', 0), 0);
-
-            if ($days <= 0) {
-                continue;
-            }
-
-            $startedAt = $this->parseDate((string) data_get($rawTrials, "{$normalizedFeature}.started_at", ''));
-            $endsAt = $startedAt?->copy()->addDays($days);
-            $now = now();
-            $active = $startedAt instanceof CarbonInterface
-                && $endsAt instanceof CarbonInterface
-                && $now->lt($endsAt);
-            $expired = $startedAt instanceof CarbonInterface
-                && $endsAt instanceof CarbonInterface
-                && ! $active;
-            $featureLabel = (string) data_get(
-                config('creditsoft.licensing.features', []),
-                "{$normalizedFeature}.label",
-                Str::of($normalizedFeature)->replace('_', ' ')->title()->value(),
-            );
-            $trialLabel = trim((string) data_get($trialConfig, 'label', ''));
-            $countdownLabel = $active && $endsAt instanceof CarbonInterface
-                ? $this->remainingLabel($endsAt)
-                : null;
-            $endsLabel = $endsAt?->toFormattedDateString();
-
-            $states[$normalizedFeature] = [
-                'feature' => $normalizedFeature,
-                'label' => $trialLabel !== '' ? $trialLabel : "{$featureLabel} trial",
-                'feature_label' => $featureLabel,
-                'days' => $days,
-                'licensed' => (bool) ($licensedFeatures[$normalizedFeature] ?? false),
-                'active' => $active,
-                'expired' => $expired,
-                'status' => $active ? 'active' : ($expired ? 'expired' : 'pending'),
-                'started_at' => $startedAt?->toIso8601String(),
-                'started_label' => $startedAt?->toFormattedDateString(),
-                'ends_at' => $endsAt?->toIso8601String(),
-                'ends_label' => $endsLabel,
-                'seconds_remaining' => $active && $endsAt instanceof CarbonInterface
-                    ? max(0, $now->diffInSeconds($endsAt, false))
-                    : 0,
-                'countdown_label' => $countdownLabel,
-                'message' => $this->featureTrialMessage($featureLabel, $active, $expired, $countdownLabel, $endsLabel),
-                'upgrade_message' => trim((string) data_get($trialConfig, 'upgrade_message', '')),
-            ];
-        }
-
-        return $states;
-    }
-
-    protected function featureTrialMessage(
-        string $featureLabel,
-        bool $active,
-        bool $expired,
-        ?string $countdownLabel,
-        ?string $endsLabel,
-    ): string {
-        if ($active) {
-            return $countdownLabel
-                ? "{$featureLabel} trial is active with {$countdownLabel}."
-                : "{$featureLabel} trial is active.";
-        }
-
-        if ($expired) {
-            return $endsLabel
-                ? "{$featureLabel} trial ended {$endsLabel}."
-                : "{$featureLabel} trial ended.";
-        }
-
-        return "{$featureLabel} trial is ready.";
-    }
-
-    protected function remainingLabel(CarbonInterface $endsAt): string
-    {
-        $now = now();
-        $days = max(0, (int) floor($now->diffInDays($endsAt, false)));
-        $hours = max(0, ((int) floor($now->diffInHours($endsAt, false))) % 24);
-
-        if ($days > 0) {
-            return $days.'d '.$hours.'h left';
-        }
-
-        $minutes = max(0, ((int) floor($now->diffInMinutes($endsAt, false))) % 60);
-
-        return $hours.'h '.$minutes.'m left';
     }
 
     protected function parseDate(string $value): ?CarbonInterface

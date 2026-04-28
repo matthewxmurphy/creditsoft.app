@@ -1,15 +1,15 @@
 ---
-import Layout from '../layouts/Layout.astro';
+import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<Layout title="Not Found | CreditSoft" description="The page you were looking for is not here.">
-	<section class="page-hero">
-		<div class="eyebrow">404</div>
-		<h1>That page is not here.</h1>
-		<p class="lede lede--narrow">
-			The route may have moved while the new sales site is being rebuilt. Use the main navigation or head back
-			to the homepage.
-		</p>
-		<a class="button button--primary" href="/">Back to CreditSoft</a>
-	</section>
-</Layout>
+<BaseLayout title="CreditSoft Updates | Not found">
+  <main class="page-wrap section">
+    <span class="eyebrow">404</span>
+    <h1 class="display">This update lane is missing.</h1>
+    <p class="lede">Head back to the homepage to find downloads, renewals, and release notes.</p>
+    <div class="button-row">
+      <a class="button primary" href="/">Back home</a>
+      <a class="button secondary" href="/downloads">Open downloads</a>
+    </div>
+  </main>
+</BaseLayout>

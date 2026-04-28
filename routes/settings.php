@@ -6,15 +6,15 @@ use App\Http\Controllers\Settings\ApiDocsController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\BackupFilesystemController;
 use App\Http\Controllers\Settings\ConnectivityController;
-use App\Http\Controllers\Settings\EmailController;
 use App\Http\Controllers\Settings\GrowthController;
 use App\Http\Controllers\Settings\LicenseController;
 use App\Http\Controllers\Settings\SocialController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Controllers\Settings\UserManagerController;
+use App\Http\Middleware\AuthenticateOrAllowLocalBypass;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware([AuthenticateOrAllowLocalBypass::class])->group(function () {
     Route::redirect('settings', '/settings/profile');
 
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -34,14 +34,9 @@ Route::middleware(['auth'])->group(function () {
         ->name('social.section');
     Route::get('settings/users', [UserManagerController::class, 'index'])->name('users.index');
     Route::get('settings/connectivity', [ConnectivityController::class, 'edit'])->name('connectivity.edit');
-    Route::get('settings/email', [EmailController::class, 'edit'])->name('email.edit');
-    Route::get('settings/email/{section}', [EmailController::class, 'edit'])
-        ->whereIn('section', ['smtp', 'google-workspace', 'amazon-ses', 'sendgrid', 'mailgun'])
-        ->name('email.section');
     Route::redirect('settings/cto', '/cto')->name('cto.edit');
     Route::get('settings/growth', [GrowthController::class, 'edit'])->name('growth.edit');
     Route::put('settings/connectivity', [ConnectivityController::class, 'update'])->name('connectivity.update');
-    Route::put('settings/email', [EmailController::class, 'update'])->name('email.update');
     Route::put('settings/filesystem', [BackupFilesystemController::class, 'update'])->name('backup-filesystem.update');
     Route::put('settings/social', [SocialController::class, 'update'])->name('social.update');
     Route::post('settings/social/import-website-tracking', [SocialController::class, 'importWebsiteTracking'])->name('social.import-website-tracking');
@@ -67,7 +62,7 @@ Route::middleware(['auth'])->group(function () {
     ])->name('api.docs.frame');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware([AuthenticateOrAllowLocalBypass::class, 'verified'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('settings/security', [SecurityController::class, 'edit'])->name('security.edit');

@@ -1,217 +1,181 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { comparisonRows, emailProviders, planCards, proofPoints } from '../content/site';
-import { loadInstallAds, loadPlans, loadReviews } from '../lib/site-data';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import { loadReviews, loadThemePage } from "../lib/preview-content";
 
-const planResult = await loadPlans(Astro.cookies);
-const reviewResult = await loadReviews(Astro.cookies);
-const adResult = await loadInstallAds(Astro.cookies);
+const theme = await loadThemePage();
+const reviews = (await loadReviews()).slice(0, 3);
 
-const livePlans = planResult.data.length > 0 ? planResult.data : [];
-const homePlans = livePlans.length > 0
-	? livePlans.slice(0, 2).map((plan) => ({
-			name: plan.name,
-			price: `$${(plan.saleMonthlyPrice ?? plan.monthlyPrice).toFixed(2)} / mo`,
-			listPrice: `$${plan.monthlyPrice.toFixed(2)} / mo`,
-			badge: plan.badge ?? (plan.annualDiscountPercent ? `${plan.annualDiscountPercent}% annual savings` : 'Ready to launch'),
-			copy: plan.description ?? 'CreditSoft plan',
-			highlighted: plan.highlighted,
-		}))
-	: planCards;
-
-const reviews = reviewResult.data.slice(0, 2);
-const featuredAd = adResult.data[0] ?? null;
+const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)));
 ---
 
-<Layout
-	title="CreditSoft | Local-First Credit Operations"
-	description="CreditSoft gives credit offices a local-first sales site, client portal, branded website, and operations workspace without the usual software sprawl."
+<BaseLayout
+  title="CreditSoft | Metro2-first credit repair platform"
+  description={theme.hero.summary}
 >
-	<section class="hero hero--home">
-		<div class="hero__grid">
-			<div class="hero__copy">
-				<div class="eyebrow">CreditSoft App</div>
-				<h1>Run the office, sell the service, and keep client operations off somebody else’s cloud.</h1>
-				<p class="lede">
-					Local-first credit operations with branded intake, portal, update, and website lanes that look
-					like a real product instead of a stitched-together stack.
-				</p>
-				<div class="hero__actions">
-					<a class="button button--primary" href="/subscribe">Start Office Fit Check</a>
-					<a class="button button--secondary" href="/pricing">See Plans</a>
-				</div>
-			</div>
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
 
-			<div class="hero__visual">
-				<div class="poster">
-					<div class="poster__eyebrow">What makes it different</div>
-					<ul class="poster__list">
-						<li>Local-first intranet operations</li>
-						<li>Branded client website and portal lanes</li>
-						<li>Migration, updates, and downloads under your brand</li>
-						<li>Browser companion and admin rails without generic SaaS fluff</li>
-					</ul>
-					<div class="poster__meta">
-						<span>Metro2-first</span>
-						<span>PWA-ready</span>
-						<span>Intranet based</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</section>
+  <main>
+    <section class="section hero-poster">
+      <div class="page-wrap hero-grid">
+        <div class="hero-copy stagger">
+          <span class="eyebrow">{theme.hero.eyebrow}</span>
+          <h1 class="display">{theme.hero.title}</h1>
+          <p class="lede">{theme.hero.summary}</p>
+          <div class="button-row">
+            <a class="button primary" href={theme.hero.primaryCta.href}>{theme.hero.primaryCta.label}</a>
+            <a class="button secondary" href={theme.hero.secondaryCta.href}>{theme.hero.secondaryCta.label}</a>
+          </div>
+          <div class="metric-strip">
+            {theme.hero.stats.map((stat) => (
+              <span>{stat}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
 
-	<section class="section">
-		<div class="section__intro">
-			<div class="eyebrow">Why offices switch</div>
-			<h2>Built like an operations product, not a pile of disconnected tools.</h2>
-		</div>
-		<div class="proof-grid">
-			{proofPoints.map((item) => (
-				<article class="proof-block">
-					<h3>{item.title}</h3>
-					<p>{item.copy}</p>
-				</article>
-			))}
-		</div>
-	</section>
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Why CreditSoft"
+          title="The site should look like the product behind it."
+          text="The public site now carries the same product map as the office system: Metro2 review, CRM, portal, API bridge, and compliance lanes."
+        />
 
-	<section class="section section--contrast">
-		<div class="section__intro">
-			<div class="eyebrow">Us vs the usual stack</div>
-			<h2>More of the work is already decided before your team has to touch it.</h2>
-		</div>
-		<div class="comparison-table">
-			<div class="comparison-table__head">
-				<span>Feature</span>
-				<span>CreditSoft</span>
-				<span>Typical stack</span>
-			</div>
-			{comparisonRows.map((row) => (
-				<div class="comparison-table__row">
-					<strong>{row.label}</strong>
-					<span>{row.creditsoft}</span>
-					<span>{row.typical}</span>
-				</div>
-			))}
-		</div>
-	</section>
+        <div class="simple-grid two stagger">
+          {theme.features.map((feature) => (
+            <article class="info-card panel-soft">
+              <h3>{feature.title}</h3>
+              <p>{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
 
-	<section class="section">
-		<div class="section__split">
-			<div>
-				<div class="eyebrow">Email delivery</div>
-				<h2>Client notices can leave from the office system, not a maze of extra software.</h2>
-				<p class="lede lede--narrow">
-					CreditSoft supports SMTP-based sending lanes for Microsoft 365, Google Workspace, Amazon SES,
-					SendGrid, Mailgun, Zoho Mail, Postmark, Brevo, SMTP.com, and custom office mail servers. Provider-login failures can be flagged for CRM review
-					so staff can contact the customer before another report pull is attempted.
-				</p>
-			</div>
-			<div class="provider-strip">
-				{emailProviders.map((provider) => (
-					<div class="provider-strip__item">
-						<img src={provider.logo} alt={provider.label} loading="lazy" />
-						<span>{provider.label}</span>
-					</div>
-				))}
-			</div>
-		</div>
-	</section>
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Proof"
+          title="Real reviews can plug into the same visual system."
+          text="Reviews, intake, product pages, and office proof belong in one Astro public site instead of being split between unrelated headers."
+        />
 
-	<section class="section">
-		<div class="section__split">
-			<div>
-				<div class="eyebrow">Site lanes</div>
-				<h2>The sales site now gets its own structure.</h2>
-				<p class="lede lede--narrow">
-					Features, pricing, migration, outsourcing, videos, login, and updates all deserve their own
-					pages. That makes CreditSoft feel like software with a real surface area, not one crammed
-					homepage.
-				</p>
-			</div>
-			<div class="route-grid">
-				<a href="/features">Features</a>
-				<a href="/migration">Migration</a>
-				<a href="/outsourcing">Outsourcing</a>
-				<a href="/videos">Videos</a>
-				<a href="/updates">Updates</a>
-				<a href="/login">Login</a>
-			</div>
-		</div>
-	</section>
+        <div class="simple-grid three stagger">
+          {reviews.map((review) => (
+            <article class="info-card panel-soft">
+              <span class="review-stars">{stars(review.rating)}</span>
+              <h3>{review.fullName}</h3>
+              <p>{review.quote}</p>
+              <small>{review.company ?? "CreditSoft customer"}</small>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
 
-	<section class="section section--pricing-preview">
-		<div class="section__intro">
-			<div class="eyebrow">Plans</div>
-			<h2>Early adopter pricing should read clearly at a glance.</h2>
-		</div>
-		<div class="plan-grid">
-			{homePlans.map((plan) => (
-				<article class={`plan-card ${plan.highlighted ? 'plan-card--highlighted' : ''}`}>
-					<div class="plan-card__curl">
-						<span>Sale</span>
-						<em>{plan.listPrice}</em>
-					</div>
-					<div class="plan-card__pill">{plan.badge}</div>
-					<h3>{plan.name}</h3>
-					<p class="plan-card__price">{plan.price}</p>
-					<p class="plan-card__copy">{plan.copy}</p>
-				</article>
-			))}
-		</div>
-	</section>
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Answers before the office ever has to ask."
+          text="This keeps the common objections and setup questions in the site instead of buried in support replies."
+        />
 
-	<section class="section">
-		<div class="section__split">
-			<div>
-				<div class="eyebrow">Proof</div>
-				<h2>Use the website to show traction, not just product language.</h2>
-				<div class="proof-grid">
-					{reviews.map((review) => (
-						<article class="proof-block">
-							<h3>{review.reviewerName}</h3>
-							<p>{review.quote}</p>
-						</article>
-					))}
-				</div>
-			</div>
-			{featuredAd ? (
-				<aside class="qualify-preview">
-					{featuredAd.imageUrl ? (
-						<img class="promo-image" src={featuredAd.imageUrl} alt={featuredAd.title} loading="lazy" />
-					) : null}
-					<div class="eyebrow">{featuredAd.eyebrow}</div>
-					<h3>{featuredAd.title}</h3>
-					<p class="lede">{featuredAd.copy}</p>
-					<a class="button button--secondary" href={featuredAd.linkUrl} target="_blank" rel="noreferrer">
-						{featuredAd.ctaLabel}
-					</a>
-				</aside>
-			) : null}
-		</div>
-	</section>
+        <div class="simple-grid two">
+          {theme.faqs.map((faq) => (
+            <details class="faq-card panel-soft" open>
+              <summary>{faq.question}</summary>
+              <p>{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
 
-	<section class="final-cta">
-		<div>
-			<div class="eyebrow">Office fit</div>
-			<h2>Start with the quick contact step, then move into the real office questionnaire.</h2>
-		</div>
-		<form class="starter-form" action="/subscribe" method="get">
-			<input type="hidden" name="step" value="qualify" />
-			<label>
-				<span>Name</span>
-				<input type="text" name="name" placeholder="Your name" required />
-			</label>
-			<label>
-				<span>Email</span>
-				<input type="email" name="email" placeholder="you@company.com" required />
-			</label>
-			<label>
-				<span>Company</span>
-				<input type="text" name="company" placeholder="CreditSoft App" />
-			</label>
-			<button class="button button--primary" type="submit">Go to Step Two</button>
-		</form>
-	</section>
-</Layout>
+    <section class="section">
+      <div class="page-wrap">
+        <div class="cta-band panel">
+          <span class="eyebrow">{theme.cta.eyebrow}</span>
+          <h2>{theme.cta.title}</h2>
+          <p>{theme.cta.text}</p>
+          <div class="button-row">
+            <a class="button primary" href={theme.cta.primaryCta.href}>{theme.cta.primaryCta.label}</a>
+            <a class="button secondary" href={theme.cta.secondaryCta.href}>{theme.cta.secondaryCta.label}</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+</BaseLayout>
+
+<style>
+  .hero-poster {
+    padding-top: 112px;
+    padding-bottom: 78px;
+  }
+
+  .hero-poster .hero-grid {
+    min-height: clamp(540px, 64vh, 820px);
+    align-items: center;
+  }
+
+  .hero-poster .hero-copy {
+    max-width: min(1180px, 100%);
+  }
+
+  .hero-poster .display {
+    max-width: 1120px;
+    font-size: clamp(4.2rem, 6.2vw, 7.4rem);
+  }
+
+  .hero-poster .lede {
+    max-width: 940px;
+    font-size: clamp(1.08rem, 1.25vw, 1.28rem);
+  }
+
+  .hero-poster .metric-strip {
+    max-width: 1040px;
+  }
+
+  .review-stars,
+  .info-card small {
+    color: var(--muted);
+  }
+
+  .faq-card {
+    padding: 24px 28px;
+  }
+
+  .faq-card summary {
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .faq-card p {
+    margin: 14px 0 0;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  @media (max-width: 900px) {
+    .hero-poster {
+      padding-top: 84px;
+      padding-bottom: 48px;
+    }
+
+    .hero-poster .hero-grid {
+      min-height: auto;
+    }
+
+    .hero-poster .display {
+      font-size: clamp(3.2rem, 13vw, 5.1rem);
+    }
+  }
+</style>

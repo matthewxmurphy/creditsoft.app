@@ -59,15 +59,15 @@ http://127.0.0.1:8001
 
 The compose stack keeps these as Docker volumes:
 
+- `creditsoft_database`: SQLite database at `/var/www/html/database/database.sqlite`.
 - `creditsoft_storage`: uploads, browser captures, backups, installer state, and private app files.
 - `creditsoft_cache`: Laravel bootstrap cache.
-- `office_pg_data`: PostgreSQL data for the CreditSoft intranet and CRM sidecar databases.
 
 Do not delete those volumes unless you intend to reset the office node.
 
 ## PostgreSQL Mode
 
-PostgreSQL is the supported intranet database mode. Run CreditSoft with the `postgres` profile and keep the DB values in `.env.docker` pointed at `office-db`:
+SQLite stays the default because it keeps the smallest office installs simple. If an office wants the intranet database engine to match the CRM stack, run CreditSoft with the `postgres` profile and switch the DB values in `.env.docker`:
 
 ```dotenv
 DB_CONNECTION=pgsql

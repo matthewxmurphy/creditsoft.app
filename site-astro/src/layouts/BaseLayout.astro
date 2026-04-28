@@ -1,0 +1,108 @@
+---
+import "../styles/global.css";
+import ImageLightbox from "../components/ImageLightbox.astro";
+import ConsentAndChat from "../components/ConsentAndChat.astro";
+
+const {
+  title = "CreditSoft",
+  description = "CreditSoft is a Metro2-first credit repair platform with AI-assisted review, local-first CRM nodes, client portals, and compliance workflows.",
+  path = Astro.url.pathname,
+  image = "/og-image.png",
+  robots = "index, follow",
+} = Astro.props;
+
+const siteUrl = "https://www.creditsoft.app";
+const canonicalUrl = new URL(path, siteUrl).toString();
+const socialImageUrl = new URL(image, siteUrl).toString();
+const googleMeasurementId = import.meta.env.PUBLIC_GOOGLE_MEASUREMENT_ID || "G-9QJTYCN2FZ";
+const metaPixelId = import.meta.env.PUBLIC_META_PIXEL_ID || "1407768341366840";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="robots" content={robots} />
+    <meta name="theme-color" content="#0b0b0d" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:site_name" content="CreditSoft" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:width" content="1536" />
+    <meta property="og:image:height" content="1024" />
+    <meta property="og:image:alt" content="CreditSoft Metro2-first credit repair software preview." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@creditsoftapp" />
+    <meta name="twitter:creator" content="@creditsoftapp" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={socialImageUrl} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    />
+    {googleMeasurementId && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${googleMeasurementId}`}></script>
+        <script is:inline define:vars={{ googleMeasurementId }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('consent', 'default', {
+            ad_storage: 'denied',
+            analytics_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied'
+          });
+          gtag('js', new Date());
+          gtag('config', googleMeasurementId);
+        </script>
+      </>
+    )}
+    {metaPixelId && (
+      <>
+        <script is:inline define:vars={{ metaPixelId }}>
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', metaPixelId);
+          fbq('track', 'PageView');
+        </script>
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style="display:none"
+            src={`https://www.facebook.com/tr?id=${metaPixelId}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
+      </>
+    )}
+    <slot name="head" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="site-shell">
+      <slot />
+    </div>
+    <ConsentAndChat />
+    <ImageLightbox />
+  </body>
+</html>
