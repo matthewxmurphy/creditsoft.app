@@ -73,6 +73,16 @@ class CreditsoftSelfUpdateService
             throw new RuntimeException('The update package is missing a valid version.');
         }
 
+        $currentVersion = trim((string) config('creditsoft.updates.current_version', ''));
+
+        if ($this->isSameOrOlderDateRelease($version, $currentVersion)) {
+            throw new RuntimeException(sprintf(
+                'CreditSoft refused to apply package %s because this office is already on %s or newer.',
+                $version,
+                $currentVersion,
+            ));
+        }
+
         $this->syncPackage($packageRoot);
         $this->environmentEditor->setMany([
             'CREDITSOFT_APP_VERSION' => $version,
@@ -255,6 +265,40 @@ class CreditsoftSelfUpdateService
             || $path === 'public/hot'
             || str_starts_with($path.'/', 'bootstrap/cache/')
             || str_starts_with($path.'/', 'storage/');
+    }
+
+    protected function isSameOrOlderDateRelease(string $candidateVersion, string $currentVersion): bool
+    {
+        if (! $this->isDateReleaseVersion($candidateVersion) || ! $this->isDateReleaseVersion($currentVersion)) {
+            return false;
+        }
+
+        return $this->compareDateReleaseVersions($candidateVersion, $currentVersion) <= 0;
+    }
+
+    protected function isDateReleaseVersion(string $version): bool
+    {
+        return preg_match('/^20\d{2}\.\d{1,2}\.\d{1,2}\.\d+$/', $version) === 1;
+    }
+
+    protected function compareDateReleaseVersions(string $left, string $right): int
+    {
+        $leftParts = array_map('intval', explode('.', $left));
+        $rightParts = array_map('intval', explode('.', $right));
+        $length = max(count($leftParts), count($rightParts));
+
+        for ($index = 0; $index < $length; $index++) {
+            $leftPart = $leftParts[$index] ?? 0;
+            $rightPart = $rightParts[$index] ?? 0;
+
+            if ($leftPart === $rightPart) {
+                continue;
+            }
+
+            return $leftPart <=> $rightPart;
+        }
+
+        return 0;
     }
 
     protected function runPostApplyCommands(): void

@@ -70,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $packagedVersion = $this->packagedDateReleaseVersion();
         $configuredVersion = trim((string) config('creditsoft.updates.current_version', ''));
+        $configuredBuild = trim((string) config('creditsoft.updates.current_build', $configuredVersion));
 
         if ($packagedVersion !== '' && ($configuredVersion === '' || $this->shouldPreferPackagedRelease($configuredVersion, $packagedVersion))) {
             config([
@@ -94,11 +95,19 @@ class AppServiceProvider extends ServiceProvider
         $version = trim((string) ($updates['current_version'] ?? ''));
         $build = trim((string) ($updates['current_build'] ?? ''));
 
-        if ($version !== '' && ! $this->shouldPreferPackagedRelease($version, $packagedVersion)) {
+        if (
+            $version !== ''
+            && ! $this->shouldPreferPackagedRelease($version, $packagedVersion)
+            && $this->shouldPreferStoredRelease($configuredVersion, $version)
+        ) {
             config(['creditsoft.updates.current_version' => $version]);
         }
 
-        if ($build !== '' && ! $this->shouldPreferPackagedRelease($build, $packagedVersion)) {
+        if (
+            $build !== ''
+            && ! $this->shouldPreferPackagedRelease($build, $packagedVersion)
+            && $this->shouldPreferStoredRelease($configuredBuild !== '' ? $configuredBuild : $configuredVersion, $build)
+        ) {
             config(['creditsoft.updates.current_build' => $build]);
         }
     }
@@ -145,6 +154,23 @@ class AppServiceProvider extends ServiceProvider
         }
 
         return $this->compareDateReleaseVersions($storedVersion, $packagedVersion) < 0;
+    }
+
+    protected function shouldPreferStoredRelease(string $configuredVersion, string $storedVersion): bool
+    {
+        if ($configuredVersion === '') {
+            return true;
+        }
+
+        if ($this->isLegacyReleaseVersion($configuredVersion) || ! $this->isDateReleaseVersion($configuredVersion)) {
+            return true;
+        }
+
+        if (! $this->isDateReleaseVersion($storedVersion)) {
+            return false;
+        }
+
+        return $this->compareDateReleaseVersions($storedVersion, $configuredVersion) >= 0;
     }
 
     protected function compareDateReleaseVersions(string $left, string $right): int
