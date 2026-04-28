@@ -1,5 +1,9 @@
 <?php
 
+$creditsoftOwnerEmail = env('CREDITSOFT_OWNER_EMAIL', env('CREDITSOFT_ADMIN_EMAIL', 'owner@creditsoft.local'));
+$creditsoftOwnerName = env('CREDITSOFT_OWNER_NAME', env('CREDITSOFT_ADMIN_NAME', 'Office Owner'));
+$creditsoftOwnerPassword = env('CREDITSOFT_OWNER_PASSWORD', env('CREDITSOFT_ADMIN_PASSWORD', ''));
+
 return [
     'config_path' => base_path('creditsoft'),
     'portal_url' => env('CREDITSOFT_PORTAL_URL', 'https://www.creditsoft.app'),
@@ -103,11 +107,16 @@ return [
     'access' => [
         'local_auth_bypass' => [
             'enabled' => (bool) env('CREDITSOFT_LOCAL_AUTH_BYPASS', false),
-            'email' => env('CREDITSOFT_LOCAL_AUTH_BYPASS_EMAIL', 'mmurphy@creditsoft.app'),
+            'email' => env('CREDITSOFT_LOCAL_AUTH_BYPASS_EMAIL', $creditsoftOwnerEmail),
             'allowed_hosts' => array_values(array_filter(array_map(
                 'trim',
                 explode(',', env('CREDITSOFT_LOCAL_AUTH_BYPASS_HOSTS', '127.0.0.1,localhost,::1')),
             ))),
+        ],
+        'owner' => [
+            'name' => $creditsoftOwnerName,
+            'email' => $creditsoftOwnerEmail,
+            'password' => $creditsoftOwnerPassword,
         ],
         'roles' => [
             'owner_admin' => [
@@ -187,9 +196,9 @@ return [
             [
                 'role' => 'owner_admin',
                 'label' => 'Owner admin',
-                'name' => 'Matthew Murphy',
-                'email' => 'mmurphy@creditsoft.app',
-                'password' => 'password',
+                'name' => $creditsoftOwnerName,
+                'email' => $creditsoftOwnerEmail,
+                'password' => $creditsoftOwnerPassword,
                 'readonly' => false,
                 'description' => 'Full system control, ops panel, and config authority.',
             ],
@@ -533,8 +542,8 @@ return [
         'verification_window_days' => (int) env('CREDITSOFT_LICENSE_VERIFICATION_WINDOW_DAYS', 7),
     ],
     'updates' => [
-        'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.28.9'),
-        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.28.9')),
+        'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.28.10'),
+        'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.28.10')),
         'channel' => env('CREDITSOFT_UPDATE_CHANNEL', 'stable'),
         'release_timezone' => env('CREDITSOFT_RELEASE_TIMEZONE', 'America/Los_Angeles'),
         'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://updates.creditsoft.app/api/update-feed'),

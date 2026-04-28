@@ -145,5 +145,6 @@ fi
 
 php artisan config:clear --no-interaction || true
 php artisan migrate --force --no-interaction
+php artisan creditsoft:owner:ensure --no-interaction || true
 
 exec "$@"

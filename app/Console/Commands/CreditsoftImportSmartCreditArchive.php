@@ -21,7 +21,10 @@ class CreditsoftImportSmartCreditArchive extends Command
         $userEmail = $this->option('user');
         $actor = is_string($userEmail) && $userEmail !== ''
             ? User::query()->where('email', $userEmail)->first()
-            : User::query()->where('email', 'mmurphy@creditsoft.app')->first();
+            : User::query()
+                ->where('email', (string) config('creditsoft.access.owner.email', ''))
+                ->orWhereHas('roles', fn ($query) => $query->where('name', 'owner_admin'))
+                ->first();
 
         if (! is_dir($directory)) {
             $this->error("Directory not found: {$directory}");

@@ -241,7 +241,7 @@ class IntranetNodeInstallerBundle
                 'contains_ai_keys' => false,
                 'contains_cluster_ssh_public_key' => false,
                 'contains_cluster_ssh_private_key' => false,
-                'note' => 'This zip intentionally ships without owner API, AI, tunnel, backup, CRM, or reusable SSH keys. The first-run installer generates local office credentials or asks the operator to paste provider tokens.',
+                'note' => 'This zip carries the installer owner email and office configuration, but intentionally ships without owner API, AI, tunnel, backup, CRM, or reusable SSH keys. The first-run installer generates local office credentials or asks the operator to paste provider tokens.',
             ],
             'cluster_ssh' => [
                 'enabled' => $clusterSshEnabled,
@@ -316,6 +316,13 @@ class IntranetNodeInstallerBundle
         $package = $this->packageState();
         $officePgSuperpassword = Str::password(32, symbols: false);
         $creditsoftPgPassword = Str::password(32, symbols: false);
+        $ownerEmail = strtolower(trim((string) (data_get($state, 'admin_email') ?: config('creditsoft.access.owner.email', 'owner@creditsoft.local'))));
+        $ownerName = trim((string) data_get($state, 'owner_name', ''));
+
+        if ($ownerName === '') {
+            $companyName = trim((string) data_get($state, 'company_name', ''));
+            $ownerName = $companyName !== '' ? "{$companyName} Owner" : (string) config('creditsoft.access.owner.name', 'Office Owner');
+        }
 
         $values = [
             'APP_NAME' => 'CreditSoft',
@@ -337,6 +344,10 @@ class IntranetNodeInstallerBundle
             'CREDITSOFT_ROUTER_SELECTION_STRATEGY' => 'resource-aware',
             'CREDITSOFT_ROUTER_PREFERRED_LABEL' => '',
             'CREDITSOFT_ROUTER_PREFERRED_BASE_URL' => '',
+            'CREDITSOFT_OWNER_NAME' => $ownerName,
+            'CREDITSOFT_OWNER_EMAIL' => $ownerEmail !== '' ? $ownerEmail : 'owner@creditsoft.local',
+            'CREDITSOFT_OWNER_PASSWORD' => (string) data_get($state, 'owner_password', ''),
+            'CREDITSOFT_LOCAL_AUTH_BYPASS_EMAIL' => $ownerEmail !== '' ? $ownerEmail : 'owner@creditsoft.local',
             'CREDITSOFT_BROWSER_COMPANION_TRIAL_DAYS' => '7',
             'CREDITSOFT_BROWSER_COMPANION_DOWNLOAD_URL' => (string) config('creditsoft.updates.browser_companion_download_url', 'https://updates.creditsoft.app/downloads/creditsoft-browser-companion-v2026.4.27.1.zip'),
             'LOG_CHANNEL' => 'stack',
@@ -469,7 +480,7 @@ class IntranetNodeInstallerBundle
             'bash install.sh --postgres',
             'bash install.sh --with-router',
             'bash install.sh --office --app-port 80',
-            'bash install.sh --postgres --with-router --with-crm',
+            'bash install.sh --postgres --with-router --with-crm --crm-port 3020',
             '```',
             '',
             'Windows PowerShell:',
@@ -481,7 +492,7 @@ class IntranetNodeInstallerBundle
             '.\\install.ps1 -Postgres',
             '.\\install.ps1 -WithRouter',
             '.\\install.ps1 -Office -AppPort 80',
-            '.\\install.ps1 -Postgres -WithRouter -WithCrm',
+            '.\\install.ps1 -Postgres -WithRouter -WithCrm -CrmPort 3020',
             '```',
             '',
             '## What it does',
@@ -490,6 +501,7 @@ class IntranetNodeInstallerBundle
             '- Allows an explicit override with `CREDITSOFT_INSTALL_DIR` / `-InstallDir` when an office has a special storage layout.',
             '- Uses the bundled office package when present, otherwise downloads the package from the update feed.',
             '- Writes the generated `creditsoft-node.env` into `.env.docker`.',
+            '- Carries the installer owner email into `CREDITSOFT_OWNER_EMAIL` so the first owner account belongs to the office customer, not a developer account.',
             '- Generates a stable Laravel `APP_KEY` when the env file does not already have one.',
             '- Generates a node-unique `creditsoft_cluster_ed25519` SSH identity under the install directory for the private cluster lane.',
             '- Probes host ports and prefers publishing the office app on port 80 when the server is free to use it.',
@@ -498,6 +510,7 @@ class IntranetNodeInstallerBundle
             '- Can switch the intranet database from SQLite to PostgreSQL with `--postgres` / `-Postgres`.',
             '- Starts `intranet`, `queue`, and `scheduler` through Docker Compose.',
             '- Optionally starts the local router and white-label CRM sidecar.',
+            '- When CRM is enabled, points the intranet bridge at that node\'s local CRM sidecar URL.',
             '',
             '## Sensitive',
             '',
@@ -537,6 +550,7 @@ WITH_POSTGRES="false"
 WITH_OFFICE="false"
 REQUESTED_APP_PORT="${CREDITSOFT_DOCKER_PORT:-}"
 REQUESTED_ROUTER_PORT="${CREDITSOFT_ROUTER_PORT:-}"
+REQUESTED_CRM_PORT="${CREDITSOFT_CRM_PORT:-${CRM_PORT:-}}"
 REQUESTED_DOCKER_BIND="${CREDITSOFT_DOCKER_BIND:-}"
 REQUESTED_ROUTER_BIND="${CREDITSOFT_ROUTER_BIND:-}"
 
@@ -564,6 +578,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --router-port)
       REQUESTED_ROUTER_PORT="${2:-}"
+      shift 2
+      ;;
+    --crm-port)
+      REQUESTED_CRM_PORT="${2:-}"
       shift 2
       ;;
     --bind)
@@ -772,9 +790,12 @@ PY
 
 if [ -n "$BRANDING_FILE" ] && [ -f "$SCRIPT_DIR/$BRANDING_FILE" ]; then
   BRANDING_NAME="$(basename "$BRANDING_FILE")"
-  mkdir -p "$INSTALL_DIR/public/installer/branding" "$INSTALL_DIR/storage/app/private/install"
+  mkdir -p "$INSTALL_DIR/public/installer/branding"
   cp "$SCRIPT_DIR/$BRANDING_FILE" "$INSTALL_DIR/public/installer/branding/$BRANDING_NAME"
-  python3 - <<'PY' "$SCRIPT_DIR/manifest.json" "$INSTALL_DIR/storage/app/private/install/state.json"
+fi
+
+mkdir -p "$INSTALL_DIR/storage/app/private/install"
+python3 - <<'PY' "$SCRIPT_DIR/manifest.json" "$INSTALL_DIR/storage/app/private/install/state.json"
 import json, os, sys
 
 manifest_path, state_path = sys.argv[1], sys.argv[2]
@@ -807,7 +828,6 @@ with open(state_path, "w", encoding="utf-8") as handle:
     json.dump(state, handle, indent=2)
     handle.write("\n")
 PY
-fi
 
 CLUSTER_SSH_SETTINGS="$(python3 - <<'PY' "$SCRIPT_DIR/manifest.json"
 import json, sys
@@ -921,6 +941,18 @@ set_env "APP_URL" "$APP_URL_VALUE"
 echo "CreditSoft office app host port selected: $APP_PORT"
 echo "CreditSoft local router host port selected: $ROUTER_PORT"
 
+if [ "$WITH_CRM" = "true" ]; then
+  CRM_HOST_PORT="$(choose_host_port "CRM sidecar" "$REQUESTED_CRM_PORT" 3000 3020 3021 3022 3030 3031 3032)"
+  CRM_URL_VALUE="$(local_url_for "$CRM_HOST_PORT")"
+
+  set_env "CREDITSOFT_CRM_ENABLED" "true"
+  set_env "CREDITSOFT_CRM_BASE_URL" "$CRM_URL_VALUE"
+  set_env "CRM_PORT" "$CRM_HOST_PORT"
+  set_env "CRM_SERVER_URL" "$CRM_URL_VALUE"
+
+  echo "CreditSoft CRM sidecar host port selected: $CRM_HOST_PORT"
+fi
+
 if [ "$WITH_POSTGRES" = "true" ]; then
   CREDITSOFT_PG_DATABASE="$(grep '^CREDITSOFT_PG_DATABASE=' "$INSTALL_DIR/.env.docker" | tail -n 1 | cut -d= -f2-)"
   CREDITSOFT_PG_USER="$(grep '^CREDITSOFT_PG_USER=' "$INSTALL_DIR/.env.docker" | tail -n 1 | cut -d= -f2-)"
@@ -980,6 +1012,7 @@ param(
     [int]$AppPort = 0,
     [string]$RouterBind = "",
     [int]$RouterPort = 0,
+    [int]$CrmPort = 0,
     [switch]$Office,
     [switch]$Postgres,
     [switch]$WithRouter,
@@ -1148,25 +1181,25 @@ try {
             $BrandingTargetDir = Join-Path $InstallDir "public\installer\branding"
             New-Item -ItemType Directory -Force -Path $BrandingTargetDir | Out-Null
             Copy-Item -Path $BrandingSource -Destination (Join-Path $BrandingTargetDir (Split-Path -Leaf $BrandingSource)) -Force
-
-            $StateDir = Join-Path $InstallDir "storage\app\private\install"
-            $StatePath = Join-Path $StateDir "state.json"
-            New-Item -ItemType Directory -Force -Path $StateDir | Out-Null
-
-            $State = [ordered]@{
-                company_name = $Manifest.office.name
-                admin_email = $Manifest.office.admin_email
-                tailscale_hostname = $Manifest.office.tailscale_hostname
-                branding = [ordered]@{
-                    logo_name = $Manifest.branding.logo_name
-                    logo_url = $Manifest.branding.logo_url
-                    uploaded_at = $Manifest.branding.uploaded_at
-                }
-            }
-
-            $State | ConvertTo-Json -Depth 8 | Set-Content -Path $StatePath
         }
     }
+
+    $StateDir = Join-Path $InstallDir "storage\app\private\install"
+    $StatePath = Join-Path $StateDir "state.json"
+    New-Item -ItemType Directory -Force -Path $StateDir | Out-Null
+
+    $State = [ordered]@{
+        company_name = $Manifest.office.name
+        admin_email = $Manifest.office.admin_email
+        tailscale_hostname = $Manifest.office.tailscale_hostname
+        branding = [ordered]@{
+            logo_name = $Manifest.branding.logo_name
+            logo_url = $Manifest.branding.logo_url
+            uploaded_at = $Manifest.branding.uploaded_at
+        }
+    }
+
+    $State | ConvertTo-Json -Depth 8 | Set-Content -Path $StatePath
 
     if ($Manifest.cluster_ssh -and $Manifest.cluster_ssh.enabled) {
         if (-not (Get-Command ssh-keygen -ErrorAction SilentlyContinue)) {
@@ -1268,6 +1301,18 @@ try {
 
     Write-Host "CreditSoft office app host port selected: $SelectedAppPort"
     Write-Host "CreditSoft local router host port selected: $SelectedRouterPort"
+
+    if ($WithCrm) {
+        $SelectedCrmPort = Select-CreditSoftHostPort -Label "CRM sidecar" -Requested $CrmPort -Candidates @(3000,3020,3021,3022,3030,3031,3032)
+        $LocalCrmUrl = Get-CreditSoftLocalUrl -Port $SelectedCrmPort
+
+        Set-CreditSoftEnvValue -Path $EnvPath -Key "CREDITSOFT_CRM_ENABLED" -Value "true"
+        Set-CreditSoftEnvValue -Path $EnvPath -Key "CREDITSOFT_CRM_BASE_URL" -Value $LocalCrmUrl
+        Set-CreditSoftEnvValue -Path $EnvPath -Key "CRM_PORT" -Value ([string]$SelectedCrmPort)
+        Set-CreditSoftEnvValue -Path $EnvPath -Key "CRM_SERVER_URL" -Value $LocalCrmUrl
+
+        Write-Host "CreditSoft CRM sidecar host port selected: $SelectedCrmPort"
+    }
 
     if ($Postgres) {
         $EnvValues = @{}

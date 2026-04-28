@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Services\SmartCreditCaptureParser;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Role;
 
@@ -48,11 +49,20 @@ class DatabaseSeeder extends Seeder
                     $user = new User();
                 }
 
-                $user->forceFill([
+                $attributes = [
                     'name' => $account['name'],
                     'email' => $account['email'],
-                    'password' => $account['password'],
-                ])->save();
+                ];
+
+                $password = trim((string) ($account['password'] ?? ''));
+
+                if ($password !== '') {
+                    $attributes['password'] = $password;
+                } elseif (! $user->exists) {
+                    $attributes['password'] = Str::password(24);
+                }
+
+                $user->forceFill($attributes)->save();
 
                 $user->syncRoles([$account['role']]);
 

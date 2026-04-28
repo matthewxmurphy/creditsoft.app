@@ -9,7 +9,7 @@ class CreditsoftIssueClusterApiKey extends Command
 {
     protected $signature = 'creditsoft:api-key:issue-cluster
         {name : Human label for the key, such as "Credit Essence Website Bridge"}
-        {--user=mmurphy@creditsoft.app : Owner email that must exist on every server node}
+        {--user= : Owner email that must exist on every server node. Defaults to CREDITSOFT_OWNER_EMAIL}
         {--ability=* : Ability to grant. Repeat for multiple abilities. Defaults to partner_api}
         {--keep-existing : Do not revoke older active keys with the same name for this owner}
         {--show-token : Print the raw token once for installing into an external website bridge}';
@@ -19,12 +19,18 @@ class CreditsoftIssueClusterApiKey extends Command
     public function handle(CreditsoftClusterApiKeyService $clusterApiKeyService): int
     {
         $name = trim((string) $this->argument('name'));
-        $userEmail = strtolower(trim((string) $this->option('user')));
+        $userEmail = strtolower(trim((string) ($this->option('user') ?: config('creditsoft.access.owner.email', ''))));
         $abilities = collect((array) $this->option('ability'))
             ->map(fn (mixed $ability): string => trim((string) $ability))
             ->filter()
             ->values()
             ->all();
+
+        if ($userEmail === '') {
+            $this->error('No owner email is configured. Set CREDITSOFT_OWNER_EMAIL or pass --user.');
+
+            return self::FAILURE;
+        }
 
         if ($abilities === []) {
             $abilities = ['partner_api'];
