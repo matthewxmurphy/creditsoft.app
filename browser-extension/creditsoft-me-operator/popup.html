@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CreditSoft OPS</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2efe8;
+      --panel: rgba(255, 255, 255, 0.92);
+      --border: rgba(32, 24, 20, 0.12);
+      --ink: #1f1a17;
+      --muted: rgba(31, 26, 23, 0.62);
+      --accent: #f5b223;
+      --success: #2f9f5b;
+      --warning: #d97706;
+      --danger: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+    html {
+      border-radius: 30px;
+      overflow: hidden;
+      background: transparent;
+    }
+    body {
+      margin: 0;
+      width: 448px;
+      background: transparent;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .shell {
+      margin: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      border-radius: 28px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top left, rgba(245, 178, 35, 0.18), transparent 28%),
+        radial-gradient(circle at right top, rgba(31, 26, 23, 0.08), transparent 26%),
+        var(--bg);
+      box-shadow: 0 16px 40px rgba(31, 26, 23, 0.16);
+    }
+    .panel {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 48px rgba(31, 26, 23, 0.08);
+    }
+    .header {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .header img { display: block; width: 168px; height: auto; max-width: 100%; }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(31, 26, 23, 0.18);
+      box-shadow: 0 0 0 3px rgba(31, 26, 23, 0.08);
+    }
+    .dot.ready { background: var(--success); box-shadow: 0 0 0 3px rgba(47, 159, 91, 0.16); }
+    .dot.saved { background: var(--warning); box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.16); }
+    .dot.error { background: var(--danger); box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.16); }
+    .icon-button {
+      border: 1px solid rgba(31, 26, 23, 0.1);
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .body {
+      padding: 0 14px 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .status-card, .capture-card, .actions-card, .note-card {
+      border-radius: 18px;
+      border: 1px solid rgba(31, 26, 23, 0.08);
+      background: rgba(255, 255, 255, 0.82);
+      padding: 12px 14px;
+    }
+    .eyebrow {
+      margin: 0 0 2px;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .title {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+    .subtle {
+      margin: 4px 0 0;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+    .input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+    input, textarea {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 26, 23, 0.14);
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--ink);
+      font: inherit;
+      padding: 11px 12px;
+      outline: none;
+      transition: border-color 140ms ease, box-shadow 140ms ease;
+    }
+    input:focus, textarea:focus {
+      border-color: rgba(245, 178, 35, 0.82);
+      box-shadow: 0 0 0 4px rgba(245, 178, 35, 0.16);
+    }
+    textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+    select {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 26, 23, 0.14);
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--ink);
+      font: inherit;
+      padding: 11px 12px;
+      outline: none;
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    .primary {
+      background: var(--ink);
+      color: white;
+      padding: 12px 16px;
+      box-shadow: 0 10px 24px rgba(31, 26, 23, 0.18);
+    }
+    .secondary {
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      border: 1px solid rgba(31, 26, 23, 0.12);
+      padding: 11px 14px;
+    }
+    .ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(31, 26, 23, 0.1);
+      padding: 11px 14px;
+    }
+    .stack { display: grid; gap: 8px; }
+    .fields {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+    }
+    .meta {
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--muted);
+      word-break: break-word;
+    }
+    .summary {
+      max-height: 126px;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .section-title {
+      margin: 0 0 6px;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(245, 178, 35, 0.16);
+      color: #2a1904;
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .legend-list {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--ink);
+    }
+    .legend-list span { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="panel header">
+      <img src="creditsoft-wordmark.png" alt="CreditSoft">
+      <div class="header-actions">
+        <span id="pairedDot" class="dot"></span>
+        <button id="openSettings" class="icon-button" type="button" aria-label="Open settings">⚙</button>
+      </div>
+    </section>
+
+    <section class="status-card panel">
+      <p class="eyebrow">Internal-only ops pairing</p>
+      <p class="title" id="connectionState">Save an OPS key in local settings first.</p>
+      <p class="subtle" id="tokenHint">No OPS key saved yet</p>
+    </section>
+
+    <section class="capture-card panel">
+      <div class="stack">
+        <div>
+          <p class="section-title">Current page</p>
+          <div class="meta" id="pageMeta">No page captured yet.</div>
+        </div>
+        <div>
+          <p class="section-title">Field candidates</p>
+          <div class="summary" id="fieldSummary">Capture a page to inspect detected fields.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="note-card panel">
+      <p class="section-title">Operator note</p>
+      <textarea id="operatorNote" placeholder="Add a short note before staging or importing..."></textarea>
+    </section>
+
+    <section class="note-card panel">
+      <p class="section-title">Source system</p>
+      <input id="sourceSystem" type="text" list="sourceSystemOptions" placeholder="DisputeFox">
+      <datalist id="sourceSystemOptions">
+        <option value="DisputeFox">
+        <option value="Credit Repair Cloud">
+        <option value="Client Dispute Manager">
+        <option value="IdentityIQ">
+        <option value="SmartCredit">
+        <option value="MyScoreIQ">
+      </datalist>
+    </section>
+
+    <section class="actions-card panel">
+      <div class="button-row">
+        <button id="stagePage" class="primary" type="button">Stage current page</button>
+        <button id="syncClient" class="secondary" type="button">Sync client data</button>
+        <button id="importLetter" class="secondary" type="button">Import letter template</button>
+        <button id="refreshState" class="ghost" type="button">Refresh</button>
+      </div>
+    </section>
+
+    <section class="note-card panel">
+      <p class="section-title">Legend</p>
+      <div class="legend-list">
+        <div><strong>Stage current page</strong> <span>captures the live page HTML, URL, title, and detected fields.</span></div>
+        <div><strong>Sync client data</strong> <span>writes detected account/profile fields into CreditSoft client records.</span></div>
+        <div><strong>Import letter template</strong> <span>stages the current page as a letter-library capture for later review.</span></div>
+        <div><strong>Owner-only</strong> <span>this bundle is for your private migration API, not customer use.</span></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const target = "/contact-us";
+---
+
+<BaseLayout title="Start Intake | CreditSoft" description="Start a CreditSoft office intake conversation.">
+  <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />
+  <main class="redirect-page">
+    <a href={target}>Continue to CreditSoft intake</a>
+  </main>
+</BaseLayout>
+

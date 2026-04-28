@@ -1,0 +1,70 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+
+const story = [
+  "Most credit repair software looks like generic SaaS with a credit niche pasted on top.",
+  "CreditSoft is trying to feel like the office, the website, the portal, the updates lane, and the migration story were all planned together.",
+  "That means design matters, but so does the workflow underneath it: local-first operations, migration-aware setup, a branded website, and reporting the office can actually brag about.",
+];
+---
+
+<BaseLayout title="About CreditSoft" description="About the CreditSoft Metro2-first platform, CRM, portal, and office-node approach.">
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main>
+    <section class="section page-hero">
+      <div class="page-wrap section-shell">
+        <span class="eyebrow">About us</span>
+        <h1 class="display">Built for offices that want a stronger public face and a stronger operating core.</h1>
+        <p class="lede">
+          This page is where the theme clone turns into the CreditSoft story: not just
+          modern design, but a more intentional product for credit repair operations.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Why it exists"
+          title="The product direction is bigger than a pretty homepage"
+          text="The site should make the office philosophy clear in plain language."
+        />
+
+        <div class="simple-grid two stagger">
+          {story.map((paragraph, index) => (
+            <article class="info-card panel-soft">
+              <h3>0{index + 1}</h3>
+              <p>{paragraph}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap">
+        <div class="cta-band panel">
+          <span class="eyebrow">Company fit</span>
+          <h2>The strongest replacement candidate keeps the brand story and the product story aligned.</h2>
+          <p>
+            CreditSoft should look premium on the surface and still point people toward
+            the real strengths underneath: workflow, migration, proof, and control.
+          </p>
+          <div class="button-row">
+            <a class="button primary" href="/features">Explore features</a>
+            <a class="button secondary" href="/contact-us">Talk to us</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+</BaseLayout>

@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const target = "/pricing-plan";
+---
+
+<BaseLayout title="Pricing | CreditSoft" description="CreditSoft pricing has moved to the current Astro pricing page.">
+  <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />
+  <main class="redirect-page">
+    <a href={target}>Continue to CreditSoft pricing</a>
+  </main>
+</BaseLayout>
+

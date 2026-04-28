@@ -1,0 +1,52 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+const title = "Cookie Policy | CreditSoft";
+const description = "CreditSoft Cookie Policy for essential cookies, analytics, marketing pixels, and consent controls.";
+---
+
+<BaseLayout title={title} description={description} path="/cookies">
+  <SiteHeader />
+  <main class="legal-page">
+    <section class="legal-hero page-wrap">
+      <p class="eyebrow">Legal</p>
+      <h1>Cookie Policy</h1>
+      <p>How CreditSoft uses essential cookies, analytics cookies, marketing pixels, and consent controls.</p>
+    </section>
+
+    <section class="legal-content page-wrap">
+      <p class="last-updated">Last Updated: February 2026</p>
+
+      <h2>What Are Cookies</h2>
+      <p>Cookies are small text files stored on your device to support site functionality, preferences, analytics, and marketing measurement.</p>
+
+      <h2>Types We Use</h2>
+      <ul>
+        <li><strong>Essential:</strong> Required for site functionality, security, account access, and checkout behavior.</li>
+        <li><strong>Analytics:</strong> Help us understand site usage and improve pages.</li>
+        <li><strong>Marketing:</strong> Used for relevant ads and conversion measurement when you consent.</li>
+      </ul>
+
+      <h2>Managing Cookies</h2>
+      <p>You can accept or decline optional cookies through the banner. You can also control or delete cookies through browser settings. Blocking essential cookies may affect functionality.</p>
+
+      <h2>Compliance</h2>
+      <p>CreditSoft's public site consent flow is intended to support GDPR, CCPA/CPRA, DMA, LGPD, POPIA, and Google Consent Mode v2.</p>
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .legal-page { background: linear-gradient(180deg, rgba(8, 8, 10, 0.98), rgba(15, 23, 42, 0.98)); }
+  .legal-hero { padding-top: 86px; padding-bottom: 34px; }
+  .legal-hero h1 { margin: 0; font-size: clamp(3rem, 8vw, 6rem); letter-spacing: -0.07em; line-height: 0.95; }
+  .legal-hero p:not(.eyebrow) { max-width: 720px; color: var(--muted); font-size: 1.12rem; line-height: 1.7; }
+  .legal-content { max-width: 850px; padding-bottom: 82px; }
+  .last-updated { color: var(--muted); margin-bottom: 32px; }
+  .legal-content h2 { margin: 30px 0 10px; font-size: 1.45rem; }
+  .legal-content p, .legal-content li { color: var(--muted); line-height: 1.75; }
+  .legal-content a { color: #5bd695; font-weight: 800; }
+</style>

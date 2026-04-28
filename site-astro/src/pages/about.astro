@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const target = "/about-us";
+---
+
+<BaseLayout title="About CreditSoft" description="About CreditSoft has moved to the current Astro about page.">
+  <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />
+  <main class="redirect-page">
+    <a href={target}>Continue to About CreditSoft</a>
+  </main>
+</BaseLayout>
+

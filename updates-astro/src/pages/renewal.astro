@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+---
+
+<BaseLayout
+  title="CreditSoft Renewal"
+  description="Renew CreditSoft with clear pricing, annual discounts, and the correct update lane."
+>
+  <SiteHeader />
+
+  <main class="page-wrap section page-body">
+    <SectionHeading
+      eyebrow="Renewal"
+      title="Renewals should feel like a normal update, not a support ticket."
+      text="Show the current plan, the sale price, the annual discount, and the next step in one view."
+    />
+    <div class="renewal-grid">
+      <article class="renewal-card panel">
+        <span class="eyebrow">Current plan</span>
+        <h3>Office Plus</h3>
+        <p>Plan status, pricing, and term details for active offices.</p>
+        <div class="numbers">
+          <div><strong>$199</strong><span>monthly</span></div>
+          <div><strong>$1995</strong><span>annual</span></div>
+          <div><strong>25%</strong><span>sale/discount</span></div>
+        </div>
+      </article>
+      <article class="renewal-card panel-soft">
+        <span class="eyebrow">What renewal unlocks</span>
+        <ul>
+          <li>Continued office updates and companion downloads</li>
+          <li>Release note access and install notes</li>
+          <li>Plan changes, extensions, and billing history</li>
+        </ul>
+      </article>
+    </div>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-body {
+    padding-top: 60px;
+  }
+
+  .renewal-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 18px;
+  }
+
+  .renewal-card {
+    padding: 26px;
+  }
+
+  .renewal-card h3 {
+    margin: 16px 0 10px;
+    font-size: 1.8rem;
+  }
+
+  .numbers {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+  }
+
+  .numbers div {
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .numbers strong {
+    display: block;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+  }
+
+  .numbers span,
+  .renewal-card li {
+    color: var(--muted);
+  }
+
+  .renewal-card ul {
+    margin: 18px 0 0;
+    padding-left: 18px;
+    line-height: 1.9;
+  }
+
+  @media (max-width: 900px) {
+    .renewal-grid,
+    .numbers {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

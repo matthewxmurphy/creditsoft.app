@@ -1,0 +1,25 @@
+agents:
+  operator:
+    role: credit_case_operator
+    approval_required: true
+  reviewer:
+    role: compliance_reviewer
+    approval_required: true
+  cfo:
+    role: finance_analyst
+    approval_required: false
+
+deploy_handoff:
+  publicSite: https://creditsoft.app
+  publicPricingPage: https://creditsoft.app/pricing.php
+  wwwPricingPage: https://www.creditsoft.app/pricing.php
+  localWebsiteSource: /Users/mmurphy/Desktop/CreditSoft/web
+  remotePublicHtml: /var/www/0abb0757-d06a-4da8-b26e-ff885980834e/public_html
+  sshUser: mmurphy
+  sshHost: 100.126.221.83
+  sshHostLabel: assets101.aietherpanel.com
+  sshKeyPath: /Users/Shared/aiether/keys/m1_server_ed25519
+  preferredDeployCommand: cd /opt/aiether/aietherpanel && scripts/deploy-public-website.sh --via mmurphy@100.80.51.78 --target mmurphy@100.126.221.83 --source /Users/mmurphy/Desktop/CreditSoft/web --domain creditsoft.app
+  verifiedSshCheckCommand: ssh -oBatchMode=yes -oStrictHostKeyChecking=accept-new -i /Users/Shared/aiether/keys/m1_server_ed25519 mmurphy@100.126.221.83 'hostname && test -w /var/www/0abb0757-d06a-4da8-b26e-ff885980834e/public_html && echo public_html_writable'
+  verifiedScpCommand: scp -oBatchMode=yes -oStrictHostKeyChecking=accept-new -i /Users/Shared/aiether/keys/m1_server_ed25519 /tmp/<file> mmurphy@100.126.221.83:/var/www/0abb0757-d06a-4da8-b26e-ff885980834e/public_html/
+  warning: Do not target /var/www/0abb0757-d06a-4da8-b26e-ff885980834e/tmp for direct SCP; use public_html.

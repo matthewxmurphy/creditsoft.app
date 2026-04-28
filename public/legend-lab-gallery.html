@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CreditSoft Legend Lab Gallery</title>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        referrerpolicy="no-referrer"
+    />
+    <style>
+        :root {
+            --bg: #f6f1e8;
+            --panel: rgba(255, 252, 246, 0.92);
+            --panel-strong: #fffdf8;
+            --line: #d8cec2;
+            --ink: #201913;
+            --muted: #70675f;
+            --gold: #efbb2c;
+            --amber: #8d6300;
+            --rose: #9d4537;
+            --sky: #4a6786;
+            --moss: #4e6841;
+            --ash: #5f5751;
+            --shadow: 0 22px 58px rgba(31, 26, 23, 0.08);
+            --radius-xl: 30px;
+            --radius-lg: 24px;
+            --radius-md: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background:
+                radial-gradient(circle at top left, rgba(239, 187, 44, 0.11), transparent 26%),
+                linear-gradient(180deg, #fcf8f0 0%, var(--bg) 100%);
+            color: var(--ink);
+            font-family: "Space Grotesk", "Inter", system-ui, sans-serif;
+        }
+
+        body {
+            padding: 28px;
+        }
+
+        .shell {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--line);
+            border-radius: var(--radius-xl);
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .hero-copy {
+            padding: 24px 26px;
+        }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 2.9vw, 2.9rem);
+            line-height: 0.96;
+        }
+
+        .lede {
+            margin: 16px 0 0;
+            max-width: 60ch;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.66;
+        }
+
+        .hero-list {
+            display: grid;
+            gap: 10px;
+            margin: 20px 0 0;
+        }
+
+        .hero-list div {
+            display: flex;
+            gap: 10px;
+            align-items: start;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .hero-list i {
+            width: 16px;
+            margin-top: 2px;
+            color: var(--gold);
+            text-align: center;
+        }
+
+        .recommend {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 18px;
+            padding: 8px 12px;
+            border: 1px solid rgba(239, 187, 44, 0.45);
+            background: rgba(239, 187, 44, 0.14);
+            color: #6d4c00;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .legend-stack {
+            display: grid;
+            gap: 14px;
+        }
+
+        .legend {
+            position: relative;
+            padding: 16px 18px 18px;
+        }
+
+        .legend-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .legend-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+
+        .legend h2 {
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .legend p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .dismiss {
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.18s ease, background 0.18s ease;
+        }
+
+        .dismiss:hover {
+            color: var(--ink);
+            background: rgba(31, 26, 23, 0.05);
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .legend-token {
+            display: grid;
+            grid-template-columns: 28px minmax(0, 1fr);
+            gap: 10px;
+            align-items: start;
+            padding: 10px 11px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.88);
+        }
+
+        .legend-token i {
+            display: inline-flex;
+            width: 28px;
+            height: 28px;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        .legend-token strong {
+            display: block;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .legend-token span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+            margin: 30px 0 16px;
+        }
+
+        .section-title h3 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .section-title p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .option {
+            display: grid;
+            gap: 14px;
+            padding: 16px;
+        }
+
+        .option-head {
+            display: grid;
+            grid-template-columns: 30px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .number {
+            display: inline-flex;
+            width: 30px;
+            height: 30px;
+            align-items: center;
+            justify-content: center;
+            background: var(--ink);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .number.recommended {
+            background: linear-gradient(135deg, #171210 0%, #5d420d 100%);
+            box-shadow: inset 0 0 0 1px rgba(239, 187, 44, 0.48);
+        }
+
+        .option-title h4 {
+            margin: 1px 0 0;
+            font-size: 16px;
+            line-height: 1.1;
+        }
+
+        .option-title p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .rec-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #6d4c00;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .sample {
+            display: grid;
+            gap: 10px;
+            min-height: 132px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            background: var(--panel-strong);
+        }
+
+        .sample small {
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .sample strong {
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .meta-notes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .meta-notes span {
+            color: var(--muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .flag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .flag {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: default;
+        }
+
+        .flag::after {
+            content: attr(data-tip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 10px);
+            transform: translateX(-50%);
+            width: max-content;
+            max-width: 220px;
+            padding: 8px 11px;
+            background: rgba(22, 18, 15, 0.94);
+            color: #fff;
+            font-size: 12px;
+            line-height: 1.4;
+            white-space: normal;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.16s ease;
+            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.18);
+            z-index: 20;
+        }
+
+        .flag:hover::after {
+            opacity: 1;
+        }
+
+        .flag i {
+            font-size: 12px;
+        }
+
+        .tone-negative { color: var(--rose); }
+        .tone-missing { color: var(--amber); }
+        .tone-single { color: var(--sky); }
+        .tone-mismatch { color: #73560a; }
+        .tone-util { color: var(--moss); }
+        .tone-review { color: var(--ash); }
+
+        .label-tag {
+            padding: 7px 10px 7px 12px;
+            border-left: 4px solid currentColor;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: inset 0 0 0 1px rgba(31, 26, 23, 0.08);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .label-stamp {
+            padding: 6px 9px;
+            border: 1px solid currentColor;
+            background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(255,255,255,0.72));
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .label-tab {
+            padding: 7px 10px 6px;
+            background: rgba(255,255,255,0.94);
+            box-shadow: inset 0 0 0 1px rgba(31, 26, 23, 0.08), inset 0 -2px 0 rgba(0,0,0,0.04);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .label-ticket {
+            padding: 7px 10px;
+            background: rgba(255,255,255,0.94);
+            border: 1px dashed currentColor;
+            clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 0 100%);
+            padding-right: 16px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-strip {
+            padding: 6px 9px;
+            background: repeating-linear-gradient(-45deg, rgba(255,255,255,0.94), rgba(255,255,255,0.94) 10px, rgba(31,26,23,0.04) 10px, rgba(31,26,23,0.04) 18px);
+            border-top: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-corner {
+            position: relative;
+            padding: 6px 10px;
+            background: rgba(255,255,255,0.96);
+            box-shadow: inset 0 0 0 1px rgba(31, 26, 23, 0.08);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-corner::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-left: 9px solid transparent;
+            border-bottom: 9px solid transparent;
+            border-top: 9px solid currentColor;
+        }
+
+        .label-rail {
+            display: inline-grid;
+            grid-template-columns: 16px auto;
+            gap: 8px;
+            align-items: center;
+            padding: 6px 9px;
+            background: rgba(255,255,255,0.95);
+            box-shadow: inset 0 0 0 1px rgba(31,26,23,0.08);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-rail .bar {
+            width: 3px;
+            height: 16px;
+            background: currentColor;
+        }
+
+        .label-bracket {
+            padding: 6px 10px;
+            border-left: 2px solid currentColor;
+            border-right: 2px solid currentColor;
+            background: rgba(255,255,255,0.8);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .label-min {
+            padding: 0 0 3px;
+            border-bottom: 2px solid currentColor;
+            background: transparent;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .label-code {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 34px;
+            padding: 6px 8px;
+            border: 1px solid rgba(31, 26, 23, 0.12);
+            background: rgba(255,255,255,0.95);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .legend-bottom {
+            margin-top: 22px;
+        }
+
+        @media (max-width: 1180px) {
+            .hero,
+            .gallery {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .legend-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 880px) {
+            body {
+                padding: 18px;
+            }
+
+            .hero,
+            .gallery {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <section class="hero">
+            <div class="panel hero-copy">
+                <p class="eyebrow">Legend Lab Gallery</p>
+                <h1>One page to pick the row marker system.</h1>
+                <p class="lede">
+                    This combines the strongest parts of both labs into one smaller gallery. The samples lean icon-first,
+                    avoid oversized capsules, and keep the legend available without forcing it into every row.
+                </p>
+
+                <div class="hero-list">
+                    <div><i class="fa-solid fa-icons"></i><span>Each option is numbered so feedback can stay short.</span></div>
+                    <div><i class="fa-solid fa-minimize"></i><span>Samples are scaled down about twenty percent from the older labs.</span></div>
+                    <div><i class="fa-solid fa-layer-group"></i><span>The legend is clearer, but each label should still stand on its own.</span></div>
+                </div>
+
+                <div class="recommend">
+                    <i class="fa-solid fa-star"></i>
+                    Strong starting picks: 2, 4, 7, 10
+                </div>
+            </div>
+
+            <div class="legend-stack">
+                <aside class="panel legend" id="legend-top">
+                    <div class="legend-head">
+                        <div>
+                            <span class="legend-kicker"><i class="fa-solid fa-book-open"></i> Optional legend</span>
+                            <h2>Signal meanings for the gallery</h2>
+                            <p>Use this only as a key. The labels below are written clearly enough that the legend can stay out of the way.</p>
+                        </div>
+                        <button class="dismiss" type="button" data-dismiss="legend-top" aria-label="Hide top legend">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="legend-grid">
+                        <div class="legend-token tone-negative">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div>
+                                <strong>Negative Reporting</strong>
+                                <span>Chargeoff, collection, bankruptcy, or another derogatory signal is present.</span>
+                            </div>
+                        </div>
+                        <div class="legend-token tone-missing">
+                            <i class="fa-solid fa-link-slash"></i>
+                            <div>
+                                <strong>Missing Bureau</strong>
+                                <span>The tradeline should exist, but at least one bureau is not carrying it.</span>
+                            </div>
+                        </div>
+                        <div class="legend-token tone-single">
+                            <i class="fa-solid fa-circle-half-stroke"></i>
+                            <div>
+                                <strong>Single Bureau</strong>
+                                <span>Only one bureau is reporting this version of the record.</span>
+                            </div>
+                        </div>
+                        <div class="legend-token tone-mismatch">
+                            <i class="fa-solid fa-code-compare"></i>
+                            <div>
+                                <strong>Mismatch</strong>
+                                <span>Values differ across bureaus and need Metro 2 review.</span>
+                            </div>
+                        </div>
+                        <div class="legend-token tone-util">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <div>
+                                <strong>High Utilization</strong>
+                                <span>Utilization is over the coaching or review threshold.</span>
+                            </div>
+                        </div>
+                        <div class="legend-token tone-review">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <div>
+                                <strong>Manual Review</strong>
+                                <span>An operator should check the record before acting on it.</span>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <div class="section-title">
+            <div>
+                <h3>Numbered Options</h3>
+                <p>Icon-led first, lighter chrome, fewer pill shapes, and tighter row samples.</p>
+            </div>
+        </div>
+
+        <section class="gallery">
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">1</span>
+                    <div class="option-title">
+                        <h4>Rail Tags</h4>
+                        <p>Short label with a left color rail. Clear and low-noise.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Capital One Bank · Charged off</small>
+                    <strong>Balance $5,400 · Utilization 45%</strong>
+                    <div class="flag-row">
+                        <span class="flag label-rail tone-negative" data-tip="Negative reporting is present."><span class="bar"></span><span><i class="fa-solid fa-triangle-exclamation"></i> Negative</span></span>
+                        <span class="flag label-rail tone-missing" data-tip="A bureau is missing the tradeline."><span class="bar"></span><span><i class="fa-solid fa-link-slash"></i> Missing</span></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">2</span>
+                    <div class="option-title">
+                        <h4>Stamped Labels</h4>
+                        <p>Fast to scan. Reads like evidence labels, not app chips.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>Synchrony Bank · Open</small>
+                    <strong>Balance $2,200 · Limit $3,000</strong>
+                    <div class="flag-row">
+                        <span class="flag label-stamp tone-mismatch" data-tip="Data differs across bureaus."><i class="fa-solid fa-code-compare"></i> Mismatch</span>
+                        <span class="flag label-stamp tone-util" data-tip="Utilization is over target."><i class="fa-solid fa-chart-pie"></i> Util &gt; 30%</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">3</span>
+                    <div class="option-title">
+                        <h4>Bracket Labels</h4>
+                        <p>Minimal edges. Stronger than plain text, calmer than chips.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Capital One Auto · Closed</small>
+                    <strong>Past due $888 · Status Derogatory</strong>
+                    <div class="flag-row">
+                        <span class="flag label-bracket tone-negative" data-tip="Derogatory activity is present."><i class="fa-solid fa-triangle-exclamation"></i> Derogatory</span>
+                        <span class="flag label-bracket tone-review" data-tip="Operator review is still needed."><i class="fa-solid fa-magnifying-glass"></i> Review</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">4</span>
+                    <div class="option-title">
+                        <h4>Corner Labels</h4>
+                        <p>Feels attached to the row itself. Good for discrepancy-heavy records.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>BK OF AMER · Open</small>
+                    <strong>Balance $20,031 · Limit $45,000</strong>
+                    <div class="flag-row">
+                        <span class="flag label-corner tone-mismatch" data-tip="Field values differ across bureaus."><i class="fa-solid fa-code-compare"></i> 2-match</span>
+                        <span class="flag label-corner tone-util" data-tip="Utilization is over the target threshold."><i class="fa-solid fa-chart-pie"></i> 45% util</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">5</span>
+                    <div class="option-title">
+                        <h4>Ticket Labels</h4>
+                        <p>More directional. Good when you want each marker to feel actionable.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>JPMCB Card · Open</small>
+                    <strong>Balance $0 · Limit $4,000</strong>
+                    <div class="flag-row">
+                        <span class="flag label-ticket tone-single" data-tip="Only one bureau is carrying this version."><i class="fa-solid fa-circle-half-stroke"></i> Experian only</span>
+                        <span class="flag label-ticket tone-review" data-tip="Manual review is still required."><i class="fa-solid fa-magnifying-glass"></i> Review</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">6</span>
+                    <div class="option-title">
+                        <h4>Strip Marks</h4>
+                        <p>High visibility without falling back to rounded capsules.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>EDFINANCIAL · Open</small>
+                    <strong>Balance $3,615 · Last posted 2/28/2026</strong>
+                    <div class="flag-row">
+                        <span class="flag label-strip tone-mismatch" data-tip="This field differs across bureaus."><i class="fa-solid fa-code-compare"></i> 2-match</span>
+                        <span class="flag label-strip tone-review" data-tip="Keep this in the review queue."><i class="fa-solid fa-magnifying-glass"></i> Manual review</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">7</span>
+                    <div class="option-title">
+                        <h4>Tag Labels</h4>
+                        <p>The most balanced option when you still want readable text on every marker.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>Mid Amer CU · Collection</small>
+                    <strong>Past due $888 · 30 days late 5</strong>
+                    <div class="flag-row">
+                        <span class="flag label-tag tone-negative" data-tip="Negative reporting is present."><i class="fa-solid fa-triangle-exclamation"></i> Negative reporting</span>
+                        <span class="flag label-tag tone-mismatch" data-tip="The account does not align across bureaus."><i class="fa-solid fa-code-compare"></i> Bureau mismatch</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">8</span>
+                    <div class="option-title">
+                        <h4>Minimal Underlines</h4>
+                        <p>Very light visual weight. Works if the rest of the interface is already dense.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Personal Information</small>
+                    <strong>Name Marilyn Perry · Birth Date 1983</strong>
+                    <div class="flag-row">
+                        <span class="flag label-min tone-single" data-tip="Only one bureau reports this item."><i class="fa-solid fa-circle-half-stroke"></i> TransUnion only</span>
+                        <span class="flag label-min tone-review" data-tip="A person should verify this before action."><i class="fa-solid fa-magnifying-glass"></i> Review</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">9</span>
+                    <div class="option-title">
+                        <h4>Code Blocks</h4>
+                        <p>Most compact. Better for tables than for narrative sections.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Summary row</small>
+                    <strong>Total accounts 23 · Open accounts 17</strong>
+                    <div class="flag-row">
+                        <span class="flag label-code tone-mismatch" data-tip="This value is not aligned across all bureaus."><i class="fa-solid fa-code-compare"></i> N/M</span>
+                        <span class="flag label-code tone-single" data-tip="Only one bureau carries this state."><i class="fa-solid fa-circle-half-stroke"></i> 1B</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number recommended">10</span>
+                    <div class="option-title">
+                        <h4>Mixed Icon Rails</h4>
+                        <p>Icon-first with a clearer left edge. Probably the best default for the live app.</p>
+                    </div>
+                    <span class="rec-chip"><i class="fa-solid fa-star"></i> Recommended</span>
+                </div>
+                <div class="sample">
+                    <small>Mazuma CU · Chargeoff</small>
+                    <strong>Past due $242 · Closed 2/1/2020</strong>
+                    <div class="flag-row">
+                        <span class="flag label-rail tone-negative" data-tip="Derogatory or negative reporting is present."><span class="bar"></span><span><i class="fa-solid fa-triangle-exclamation"></i> Negative reporting</span></span>
+                        <span class="flag label-rail tone-review" data-tip="Still needs manual review."><span class="bar"></span><span><i class="fa-solid fa-magnifying-glass"></i> Review</span></span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">11</span>
+                    <div class="option-title">
+                        <h4>Tab Labels</h4>
+                        <p>A little more product-y, but still lighter than the old pill set.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Open accounts</small>
+                    <strong>Credit utilization 45% · Payment $549</strong>
+                    <div class="flag-row">
+                        <span class="flag label-tab tone-util" data-tip="Utilization is over the review target."><i class="fa-solid fa-chart-pie"></i> Over 30%</span>
+                        <span class="flag label-tab tone-mismatch" data-tip="The reporting is not fully aligned."><i class="fa-solid fa-code-compare"></i> 2-match</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="panel option">
+                <div class="option-head">
+                    <span class="number">12</span>
+                    <div class="option-title">
+                        <h4>Hybrid Set</h4>
+                        <p>Uses stronger markers only for serious issues and quieter marks for routine review.</p>
+                    </div>
+                </div>
+                <div class="sample">
+                    <small>Operational mix</small>
+                    <strong>Use louder tags for risk, quieter marks for operator workflow.</strong>
+                    <div class="flag-row">
+                        <span class="flag label-tag tone-negative" data-tip="A serious derogatory signal is present."><i class="fa-solid fa-triangle-exclamation"></i> Negative reporting</span>
+                        <span class="flag label-min tone-review" data-tip="Keep in queue for a person to verify."><i class="fa-solid fa-magnifying-glass"></i> Review</span>
+                        <span class="flag label-code tone-single" data-tip="Only one bureau is carrying this item."><i class="fa-solid fa-circle-half-stroke"></i> 1B</span>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <aside class="panel legend legend-bottom" id="legend-bottom">
+            <div class="legend-head">
+                <div>
+                    <span class="legend-kicker"><i class="fa-solid fa-circle-info"></i> Optional legend</span>
+                    <h2>Quick decision guide</h2>
+                    <p>If you do not want to compare all twelve, use this summary and dismiss it after picking.</p>
+                </div>
+                <button class="dismiss" type="button" data-dismiss="legend-bottom" aria-label="Hide bottom legend">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="legend-grid">
+                <div class="legend-token tone-review">
+                    <i class="fa-solid fa-hand-pointer"></i>
+                    <div>
+                        <strong>Calmest default</strong>
+                        <span>Try 2 or 7 if you want readable labels without reverting to pills.</span>
+                    </div>
+                </div>
+                <div class="legend-token tone-mismatch">
+                    <i class="fa-solid fa-maximize"></i>
+                    <div>
+                        <strong>Best for dense tables</strong>
+                        <span>Try 9 or 10 if the compare grid is going to carry many rows.</span>
+                    </div>
+                </div>
+                <div class="legend-token tone-single">
+                    <i class="fa-solid fa-compass-drafting"></i>
+                    <div>
+                        <strong>Most label-like</strong>
+                        <span>Try 1, 4, or 10 if the markers should feel attached to the record.</span>
+                    </div>
+                </div>
+                <div class="legend-token tone-util">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <div>
+                        <strong>Safest live-app choice</strong>
+                        <span>Option 10 is the cleanest bridge from the current legend experiments into production UI.</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        document.querySelectorAll('[data-dismiss]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.getAttribute('data-dismiss'));
+
+                if (target) {
+                    target.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

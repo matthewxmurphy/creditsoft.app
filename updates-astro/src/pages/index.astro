@@ -1,0 +1,240 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import { loadPlans, loadReviews, loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+const plans = (await loadPlans()).slice(0, 3);
+const reviews = (await loadReviews()).slice(0, 3);
+
+const money = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
+
+const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)));
+---
+
+<BaseLayout
+  title="CreditSoft | Metro2-first credit repair platform"
+  description={theme.hero.summary}
+>
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main>
+    <section class="section hero-poster">
+      <div class="page-wrap hero-grid">
+        <div class="hero-copy stagger">
+          <span class="eyebrow">{theme.hero.eyebrow}</span>
+          <h1 class="display">{theme.hero.title}</h1>
+          <p class="lede">{theme.hero.summary}</p>
+          <div class="button-row">
+            <a class="button primary" href={theme.hero.primaryCta.href}>{theme.hero.primaryCta.label}</a>
+            <a class="button secondary" href={theme.hero.secondaryCta.href}>{theme.hero.secondaryCta.label}</a>
+          </div>
+          <div class="metric-strip">
+            {theme.hero.stats.map((stat) => (
+              <span>{stat}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow={theme.plansIntro.eyebrow}
+          title={theme.plansIntro.title}
+          text={theme.plansIntro.text}
+        />
+
+        <div class="simple-grid three stagger">
+          {plans.map((plan) => (
+            <article class:list={["info-card panel", plan.highlighted && "is-highlighted"]}>
+              <span class="plan-badge">{plan.badge ?? "Plan"}</span>
+              <h3>{plan.name}</h3>
+              <p>{plan.description}</p>
+              <div class="price-stack">
+                <strong>
+                  {money.format(plan.saleMonthlyPrice ?? plan.monthlyPrice)}
+                  <small>{plan.billingLabel ?? "/mo"}</small>
+                </strong>
+                <span>{plan.secondaryPriceLabel ?? `${money.format(plan.annualPrice)} annual`}</span>
+                {plan.annualDiscountPercent ? (
+                  <em>Save {plan.annualDiscountPercent}% annually</em>
+                ) : null}
+              </div>
+              <ul>
+                {plan.featureList.slice(0, 5).map((feature) => (
+                  <li>{feature}</li>
+                ))}
+              </ul>
+              <a class:list={["button", plan.highlighted ? "primary" : "ghost"]} href="/pricing-plan">
+                View plan
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Why CreditSoft"
+          title="The site should look like the product behind it."
+          text="The public site now carries the same product map as the office system: Metro2 review, CRM, portal, API bridge, and compliance lanes."
+        />
+
+        <div class="simple-grid two stagger">
+          {theme.features.map((feature) => (
+            <article class="info-card panel-soft">
+              <h3>{feature.title}</h3>
+              <p>{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Compare our pricing"
+          title="One product story from the public site to the office lane"
+          text="This comparison keeps the value framing direct instead of turning the site into a giant checklist."
+        />
+
+        <div class="compare-table panel">
+          <div class="compare-row compare-head">
+            <div>Feature</div>
+            <div>Monthly</div>
+            <div>Lease</div>
+            <div>10-year</div>
+          </div>
+          {theme.compareRows.map((row) => (
+            <div class="compare-row">
+              <div>{row.feature}</div>
+              <div>{row.starter}</div>
+              <div>{row.plus}</div>
+              <div>{row.pro}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Proof"
+          title="Real reviews can plug into the same visual system."
+          text="Reviews, intake, pricing, and product pages belong in one Astro public site instead of being split between unrelated headers."
+        />
+
+        <div class="simple-grid three stagger">
+          {reviews.map((review) => (
+            <article class="info-card panel-soft">
+              <span class="review-stars">{stars(review.rating)}</span>
+              <h3>{review.fullName}</h3>
+              <p>{review.quote}</p>
+              <small>{review.company ?? "CreditSoft customer"}</small>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Answers before the office ever has to ask."
+          text="This keeps the common objections and setup questions in the site instead of buried in support replies."
+        />
+
+        <div class="simple-grid two">
+          {theme.faqs.map((faq) => (
+            <details class="faq-card panel-soft" open>
+              <summary>{faq.question}</summary>
+              <p>{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap">
+        <div class="cta-band panel">
+          <span class="eyebrow">{theme.cta.eyebrow}</span>
+          <h2>{theme.cta.title}</h2>
+          <p>{theme.cta.text}</p>
+          <div class="button-row">
+            <a class="button primary" href={theme.cta.primaryCta.href}>{theme.cta.primaryCta.label}</a>
+            <a class="button secondary" href={theme.cta.secondaryCta.href}>{theme.cta.secondaryCta.label}</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+</BaseLayout>
+
+<style>
+  .plan-badge {
+    display: inline-flex;
+    margin-bottom: 18px;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .price-stack {
+    display: grid;
+    gap: 4px;
+    margin: 22px 0;
+  }
+
+  .price-stack strong {
+    font-size: 2.5rem;
+    letter-spacing: -0.05em;
+  }
+
+  .price-stack strong small {
+    margin-left: 8px;
+    font-size: 1rem;
+    color: var(--muted);
+  }
+
+  .price-stack span,
+  .price-stack em,
+  .review-stars,
+  .info-card small {
+    color: var(--muted);
+  }
+
+  .faq-card {
+    padding: 24px 28px;
+  }
+
+  .faq-card summary {
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .faq-card p {
+    margin: 14px 0 0;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+</style>

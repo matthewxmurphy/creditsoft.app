@@ -1,0 +1,80 @@
+{
+  "active_tracks": [
+    {
+      "title": "Portal and API surface",
+      "status": "in_progress",
+      "focus": [
+        "customer-safe profile updates and status history",
+        "tasks, browser captures, and case document uploads",
+        "OpenAPI-backed partner portal integration"
+      ]
+    },
+    {
+      "title": "Browser ingestion",
+      "status": "in_progress",
+      "focus": [
+        "bundled CreditSoft companion extension flow",
+        "Safari webarchive parsing",
+        "DOM cleanup into the shared snapshot pipeline"
+      ]
+    },
+    {
+      "title": "Credit workflow depth",
+      "status": "in_progress",
+      "focus": [
+        "deeper Metro 2 rule coverage",
+        "structured evidence linking and dispute prioritization",
+        "versioned letter templates with AI lineage"
+      ]
+    }
+  ],
+  "next_up": [
+    {
+      "title": "Customer portal shell",
+      "window": "next 1-2 weeks",
+      "status": "planned"
+    },
+    {
+      "title": "Score history visuals and document workspace",
+      "window": "next 1-2 weeks",
+      "status": "planned"
+    },
+    {
+      "title": "Deeper Metro 2 evidence mapping and dispute packs",
+      "window": "next 2-3 weeks",
+      "status": "planned"
+    },
+    {
+      "title": "Supervisor-managed ngrok, installer completion, and backup restore drills",
+      "window": "next 2-4 weeks",
+      "status": "planned"
+    }
+  ],
+  "milestones": [
+    {
+      "title": "Bundled browser companion and creditsmart automation",
+      "window": "+2 months",
+      "status": "planned"
+    },
+    {
+      "title": "PaymentCloud-driven subscription MRR import",
+      "window": "+3 months",
+      "status": "planned"
+    },
+    {
+      "title": "Additional backup providers",
+      "window": "rolling every 2-3 months",
+      "status": "planned"
+    },
+    {
+      "title": "Expanded forecasting horizons",
+      "window": "post phase 5",
+      "status": "planned"
+    },
+    {
+      "title": "Multi-tenant scaling and central trend benchmarks",
+      "window": "post phase 5",
+      "status": "planned"
+    }
+  ]
+}

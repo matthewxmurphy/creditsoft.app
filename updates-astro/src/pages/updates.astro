@@ -1,0 +1,13 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const target = "/downloads";
+---
+
+<BaseLayout title="CreditSoft Updates" description="CreditSoft update information has moved to the downloads and release pages.">
+  <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />
+  <main class="redirect-page">
+    <a href={target}>Continue to CreditSoft downloads</a>
+  </main>
+</BaseLayout>
+

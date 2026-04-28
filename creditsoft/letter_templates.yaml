@@ -1,0 +1,29 @@
+templates:
+  - key: metro2_dispute_round_1
+    version: "2026.04.1"
+    label: Metro 2 dispute round 1
+    letter_type: dispute
+    legal_basis:
+      - FCRA § 611
+      - Metro 2 completeness
+      - Accuracy, completeness, and verifiability
+    ai_focus: Lead with the strongest factual mismatches, missing key fields, and duplicate or stale reporting. Keep the draft concise, specific, and operator-ready.
+    operator_notes: Use for first-pass disputes after a three-bureau review confirms inconsistent status, balances, dates, or missing bureau entries.
+  - key: bureau_follow_up_reinvestigation
+    version: "2026.04.1"
+    label: Bureau follow-up reinvestigation
+    letter_type: follow_up
+    legal_basis:
+      - FCRA § 611
+      - Reinvestigation follow-up
+    ai_focus: Reference the prior dispute, note what was not corrected, and tighten the ask around unresolved evidence.
+    operator_notes: Use when a bureau response leaves the same item unresolved or only partially corrected.
+  - key: escalation_regulator_package
+    version: "2026.04.1"
+    label: Escalation and regulator package
+    letter_type: escalation
+    legal_basis:
+      - FCRA § 623
+      - Formal escalation
+    ai_focus: Frame the draft as an escalation package with a clean chronology, unresolved inaccuracies, and the strongest supporting evidence.
+    operator_notes: Use when the file is ready for escalation after repeat failures or unresolved reporting conflicts.

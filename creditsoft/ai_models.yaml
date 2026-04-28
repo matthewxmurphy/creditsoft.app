@@ -1,0 +1,52 @@
+default_provider: opencode_zen
+providers:
+  opencode_zen:
+    label: OpenCode Zen
+    transport: openai_compatible
+    scope: remote
+    purpose: Recommended for heavy drafting when you want Big Pickle.
+  openrouter_creditsoft:
+    label: OpenRouter
+    transport: laravel_ai
+    scope: remote
+    purpose: Strong remote fallback for long-form reasoning and supervised operator work.
+  ollama_cloud:
+    label: Ollama Cloud
+    transport: laravel_ai
+    scope: remote
+    purpose: Remote Nemotron lane when the office wants cloud power through Ollama.
+models:
+  drafting:
+    label: Letter drafting
+    provider: opencode_zen
+    model: big-pickle
+    fallbacks:
+      - provider: openrouter_creditsoft
+        model: arcee-ai/trinity-large-thinking
+      - provider: ollama_cloud
+        model: nemotron-3-super:cloud
+  summaries:
+    label: Shareable brief drafting
+    provider: openrouter_creditsoft
+    model: arcee-ai/trinity-large-thinking
+    fallbacks:
+      - provider: opencode_zen
+        model: big-pickle
+      - provider: ollama_cloud
+        model: nemotron-3-super:cloud
+  oversight:
+    label: Oversight review
+    provider: ollama_cloud
+    model: nemotron-3-super:cloud
+    fallbacks:
+      - provider: openrouter_creditsoft
+        model: arcee-ai/trinity-large-thinking
+  browser_intake:
+    label: Browser capture summarization
+    provider: ollama_cloud
+    model: nemotron-3-super:cloud
+    fallbacks:
+      - provider: openrouter_creditsoft
+        model: arcee-ai/trinity-large-thinking
+      - provider: opencode_zen
+        model: big-pickle

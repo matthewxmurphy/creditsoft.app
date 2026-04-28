@@ -1,0 +1,78 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+
+const docs = [
+  ["GET /api/update-feed", "Machine-readable update metadata for installers and office nodes."],
+  ["GET https://api.creditsoft.app/api/verify?key=...", "License validation runs with update checks so packages are only offered to active or grace-period offices."],
+  ["GET /api/install-ads", "Installer creative and sponsored install cards."],
+  ["GET /api/site-data", "Combined site data for leads, reviews, and plans."],
+  ["GET /api/leads", "Public lead intake and qualification submissions."],
+];
+---
+
+<BaseLayout
+  title="CreditSoft API Docs"
+  description="CreditSoft installer feeds, download endpoints, and update metadata."
+>
+  <SiteHeader />
+
+  <main class="page-wrap section page-body">
+    <SectionHeading
+      eyebrow="API docs"
+      title="Updates are for installers. People go to the public site."
+      text="The update lane exists for automatic update metadata, installer packages, and daily license heartbeats. Human visitors should be sent back to www.creditsoft.app."
+    />
+    <div class="docs-layout panel">
+      {docs.map(([route, note]) => (
+        <article class="doc-row">
+          <code>{route}</code>
+          <p>{note}</p>
+        </article>
+      ))}
+    </div>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-body {
+    padding-top: 60px;
+  }
+
+  .docs-layout {
+    padding: 10px 0;
+  }
+
+  .doc-row {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
+    padding: 18px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .doc-row:first-child {
+    border-top: 0;
+  }
+
+  code {
+    color: #9fe2ff;
+    font-size: 0.96rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 720px) {
+    .doc-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

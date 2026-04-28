@@ -1,0 +1,31 @@
+{
+  "title": "CreditSoft growth feed",
+  "subtitle": "This right rail is JSON-backed so the installer can cross-sell hosting, front-end website work, and CreditSoft offers now, then swap to a live portal campaign stream later.",
+  "updated_at": "2026-04-08",
+  "items": [
+    {
+      "id": "hosting",
+      "eyebrow": "Hosting",
+      "title": "Net30Hosting for private deployments and ongoing support",
+      "copy": "Use the installer rail to promote hosting, maintenance, and environment support so offices can launch faster without turning the local CreditSoft install into a public web app.",
+      "cta_label": "Open Net30Hosting",
+      "cta_url": "https://www.net30hosting.com"
+    },
+    {
+      "id": "frontend",
+      "eyebrow": "Lead generation",
+      "title": "Credit repair websites and funnels that bring in customers",
+      "copy": "Promote a public-facing front end for lead capture, consult booking, and offer positioning while keeping sensitive Metro2 casework inside the private installation.",
+      "cta_label": "View website work",
+      "cta_url": "https://www.matthewxmurphy.com"
+    },
+    {
+      "id": "platform",
+      "eyebrow": "Product",
+      "title": "Use CreditSoft for Metro2-first local operations",
+      "copy": "Run intake, comparison, violation review, briefs, and letters locally while only approved sanitized signals leave the installation for benchmarking and trends.",
+      "cta_label": "Open CreditSoft",
+      "cta_url": "https://www.creditsoft.app"
+    }
+  ]
+}

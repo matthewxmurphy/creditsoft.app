@@ -1,0 +1,17 @@
+{
+    "name": "@creditsoft/intranet-client",
+    "version": "2026.4.28.6",
+    "private": true,
+    "description": "CreditSoft cross-platform intranet client bootstrapper for local, tailnet, and public API lanes.",
+    "type": "module",
+    "bin": {
+        "creditsoft-intranet-client": "bin/creditsoft-intranet-client.mjs"
+    },
+    "scripts": {
+        "start": "node bin/creditsoft-intranet-client.mjs",
+        "check": "node bin/creditsoft-intranet-client.mjs --no-open --json"
+    },
+    "engines": {
+        "node": ">=20"
+    }
+}

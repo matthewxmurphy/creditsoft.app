@@ -1,0 +1,9 @@
+tools:
+  report_intake:
+    type: csv_or_manual
+  comparison:
+    type: bureau_alignment
+  letters:
+    type: human_approved_generation
+  signals:
+    type: sanitized_outbox

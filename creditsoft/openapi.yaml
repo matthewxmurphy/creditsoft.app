@@ -1,0 +1,647 @@
+openapi: 3.1.0
+info:
+  title: CreditSoft Local Partner API
+  version: 1.0.0
+  description: |
+    Local-first API for trusted lead-management systems and the CreditSoft website portal.
+    Authenticate every write and read request with a bearer token generated inside the intranet settings.
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: CreditSoftToken
+  schemas:
+    ClientCreate:
+      type: object
+      required:
+        - first_name
+        - last_name
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        current_score:
+          type: integer
+          minimum: 300
+          maximum: 850
+        status:
+          type: string
+          example: lead
+        goals:
+          type: string
+        external_reference:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    ClientStatus:
+      type: object
+      properties:
+        client:
+          type: object
+          properties:
+            cuid:
+              type: string
+            display_name:
+              type: string
+            status:
+              type: string
+            current_score:
+              type:
+                - integer
+                - "null"
+            assigned_user:
+              type:
+                - string
+                - "null"
+            goals:
+              type:
+                - string
+                - "null"
+        latest_reporting_cycle:
+          type:
+            - object
+            - "null"
+        counts:
+          type: object
+          properties:
+            letters_total:
+              type: integer
+            approved_letters:
+              type: integer
+            shareable_briefs:
+              type: integer
+            open_violations:
+              type: integer
+    ClientNoteCreate:
+      type: object
+      required:
+        - visibility
+        - note
+      properties:
+        reporting_cycle_id:
+          type:
+            - integer
+            - "null"
+        visibility:
+          type: string
+          enum:
+            - private_note
+            - working_note
+            - shareable_case_brief
+        note:
+          type: string
+        ai_summary:
+          type:
+            - string
+            - "null"
+    ClientTaskCreate:
+      type: object
+      required:
+        - title
+        - priority
+      properties:
+        reporting_cycle_id:
+          type:
+            - integer
+            - "null"
+        title:
+          type: string
+        details:
+          type:
+            - string
+            - "null"
+        priority:
+          type: string
+          enum:
+            - low
+            - normal
+            - high
+        due_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+    ClientDocumentCreate:
+      type: object
+      required:
+        - title
+      properties:
+        reporting_cycle_id:
+          type:
+            - integer
+            - "null"
+        title:
+          type: string
+        category:
+          type:
+            - string
+            - "null"
+        notes:
+          type:
+            - string
+            - "null"
+        portal_visible:
+          type:
+            - boolean
+            - "null"
+        document_file:
+          type: string
+          format: binary
+    BrowserCaptureCreate:
+      type: object
+      required:
+        - reporting_cycle_id
+      properties:
+        reporting_cycle_id:
+          type: integer
+        source_type:
+          type:
+            - string
+            - "null"
+          enum:
+            - dom_capture
+            - browser_capture
+            - extension_capture
+            - safari_webarchive
+        browser_name:
+          type:
+            - string
+            - "null"
+        page_title:
+          type:
+            - string
+            - "null"
+        page_url:
+          type:
+            - string
+            - "null"
+        html:
+          type:
+            - string
+            - "null"
+    BrowserCompanionCapture:
+      type: object
+      properties:
+        client_cuid:
+          type:
+            - string
+            - "null"
+        client_lookup:
+          type:
+            - object
+            - "null"
+          additionalProperties: true
+        client_email:
+          type:
+            - string
+            - "null"
+          format: email
+        client_name:
+          type:
+            - string
+            - "null"
+        client_first_name:
+          type:
+            - string
+            - "null"
+        client_last_name:
+          type:
+            - string
+            - "null"
+        create_client_if_missing:
+          type:
+            - boolean
+            - "null"
+        provider_key:
+          type:
+            - string
+            - "null"
+        reporting_cycle_id:
+          type:
+            - integer
+            - "null"
+        reporting_cycle_label:
+          type:
+            - string
+            - "null"
+        cycle_label:
+          type:
+            - string
+            - "null"
+        source_type:
+          type:
+            - string
+            - "null"
+          enum:
+            - dom_capture
+            - browser_capture
+            - companion_capture
+            - safari_webarchive
+        browser_name:
+          type:
+            - string
+            - "null"
+        page_title:
+          type:
+            - string
+            - "null"
+        page_url:
+          type:
+            - string
+            - "null"
+        html:
+          type:
+            - string
+            - "null"
+        dom_html:
+          type:
+            - string
+            - "null"
+        operator_note:
+          type:
+            - string
+            - "null"
+        selection_text:
+          type:
+            - string
+            - "null"
+        package_name:
+          type:
+            - string
+            - "null"
+        user_agent:
+          type:
+            - string
+            - "null"
+        captured_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        capture_file:
+          type: string
+          format: binary
+paths:
+  /:
+    get:
+      summary: Read the public API overview and discover the current host-specific base URLs
+      responses:
+        "200":
+          description: API overview
+  /client/handshake:
+    get:
+      summary: Return the staff intranet client handshake
+      description: Returns user roles, API key abilities, license state, PWA URLs, integration hints, and the local/tailnet/public API lanes the desktop client should try.
+      responses:
+        "200":
+          description: Intranet client handshake
+        "403":
+          description: Personal intranet client API key required
+  /clients:
+    post:
+      summary: Create a local lead/client record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+      responses:
+        "201":
+          description: Client created
+  /clients/picker:
+    get:
+      summary: Return a compact recent-client list for the browser companion, with assigned clients prioritized for the current token owner
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+      responses:
+        "200":
+          description: Recent client list
+  /clients/search:
+    get:
+      summary: Search local clients by email or name
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: email
+          schema:
+            type: string
+            format: email
+        - in: query
+          name: client_name
+          schema:
+            type: string
+        - in: query
+          name: first_name
+          schema:
+            type: string
+        - in: query
+          name: last_name
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+      responses:
+        "200":
+          description: Search results
+  /browser-companion/next-account:
+    get:
+      summary: Return the next provider-ready client account for the browser companion queue
+      parameters:
+        - in: query
+          name: provider_key
+          schema:
+            type: string
+            example: smartcredit
+      responses:
+        "200":
+          description: Next provider-ready account
+  /clients/{clientCuid}:
+    get:
+      summary: Read the local client profile for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Client profile
+    patch:
+      summary: Update local client contact fields and case basics with audit logging
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientCreate'
+      responses:
+        "200":
+          description: Client updated
+  /clients/{clientCuid}/status:
+    patch:
+      summary: Update the client case status or score with audit logging
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                current_score:
+                  type:
+                    - integer
+                    - "null"
+      responses:
+        "200":
+          description: Status updated
+    get:
+      summary: Get the local case status snapshot for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Status snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientStatus'
+  /clients/{clientCuid}/cycles:
+    get:
+      summary: List reporting cycles for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reporting cycles
+  /clients/{clientCuid}/score-history:
+    get:
+      summary: Read score and status changes from the audit-visible client history
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Score history
+  /clients/{clientCuid}/notes:
+    get:
+      summary: List client notes
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notes list
+    post:
+      summary: Add a client note with audit logging
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientNoteCreate'
+      responses:
+        "201":
+          description: Note created
+  /clients/{clientCuid}/violations:
+    get:
+      summary: List violation candidates for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Violations list
+  /clients/{clientCuid}/letters:
+    get:
+      summary: List dispute letters for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Letters list
+  /clients/{clientCuid}/briefs:
+    get:
+      summary: List shareable case briefs for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Briefs list
+  /clients/{clientCuid}/tasks:
+    get:
+      summary: List client tasks
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tasks list
+    post:
+      summary: Create a client task with audit logging
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientTaskCreate'
+      responses:
+        "201":
+          description: Task created
+  /clients/{clientCuid}/documents:
+    get:
+      summary: List portal-safe documents uploaded for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Client documents list
+    post:
+      summary: Upload a client document with audit logging
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ClientDocumentCreate'
+      responses:
+        "201":
+          description: Client document created
+  /clients/{clientCuid}/browser-captures:
+    get:
+      summary: List browser captures uploaded for a client
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Browser captures list
+    post:
+      summary: Upload browser evidence or a Safari webarchive with audit logging
+      parameters:
+        - in: path
+          name: clientCuid
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BrowserCaptureCreate'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrowserCaptureCreate'
+      responses:
+        "201":
+          description: Browser capture created
+  /browser-companion/intake:
+    post:
+      summary: Resolve a client by lookup or provider-ready queue and ingest a browser companion capture into the right cycle
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BrowserCompanionCapture'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrowserCompanionCapture'
+      responses:
+        "201":
+          description: Browser companion capture created

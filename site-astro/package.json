@@ -1,0 +1,19 @@
+{
+  "name": "creditsoft-updates-astro",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "crawl:ping": "node scripts/ping-crawlers.mjs",
+    "social:debug-urls": "node scripts/meta-preview-urls.mjs",
+    "social:rescrape": "node scripts/meta-rescrape.mjs"
+  },
+  "dependencies": {
+    "astro": "^6.1.5"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2"
+  }
+}

@@ -1,0 +1,292 @@
+---
+const {
+  topbarText = "Metro2-first credit repair software with AI-assisted review, local-first office nodes, client portals, and compliance workflows.",
+  topbarEmail = "hello@creditsoft.app",
+} = Astro.props;
+
+const links = [
+  {
+    href: "/features",
+    label: "Features",
+    children: [
+      { href: "/features", label: "Feature overview", text: "The full CreditSoft product map." },
+      { href: "/local-first-crm", label: "Local-first CRM", text: "Leads, clients, billing signals, and office workflow." },
+      { href: "/metro2", label: "Metro2 review", text: "AI-assisted issue detection from report data." },
+      { href: "/client-portal", label: "Client portal", text: "Client-safe uploads, updates, letters, and status." },
+      { href: "/api-bridge", label: "API bridge", text: "Website, portal, and callback lanes into the intranet." },
+      { href: "/multi-office-nodes", label: "Multi-office nodes", text: "Replica roles, weak-node limits, and backup lanes." },
+      { href: "/compliance", label: "FCRA / FDCPA", text: "Federal compliance workflow and claim indicators." },
+      { href: "/email-providers", label: "Email providers", text: "Microsoft 365, Google, SES, SMTP, and delivery lanes." },
+    ],
+  },
+  {
+    href: "https://admin.creditsoft.app",
+    label: "Office",
+    children: [
+      { href: "https://admin.creditsoft.app", label: "CRM / intranet login", text: "The protected office system on admin.creditsoft.app." },
+      { href: "/backup-redundancy", label: "Backup redundancy", text: "Office nodes protect each other instead of one box." },
+      { href: "/tech-stack", label: "Tech stack", text: "PostgreSQL, callbacks, PWA, and handled installs." },
+      { href: "/social-media", label: "Social / Meta manager", text: "Graph API, content calendar, creator goals, and lead handoff." },
+    ],
+  },
+  { href: "/migration", label: "Migration" },
+  { href: "/outsourcing", label: "Outsourcing" },
+  { href: "/pricing-plan", label: "Pricing" },
+];
+---
+
+<header class="site-header">
+  <div class="utility-bar">
+    <div class="page-wrap utility-inner">
+      <span>{topbarText}</span>
+      <a href={`mailto:${topbarEmail}`}>{topbarEmail}</a>
+    </div>
+  </div>
+
+  <div class="nav-bar">
+    <div class="page-wrap nav-inner">
+      <a class="brand" href="/" aria-label="CreditSoft home">
+        <span class="brand-mark">C</span>
+        <span class="brand-copy">
+          <strong>CreditSoft</strong>
+          <small>Metro2-first</small>
+        </span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        {links.map((link) => (
+          link.children ? (
+            <div class="nav-item">
+              <a class="nav-trigger" href={link.href} aria-haspopup="true">
+                {link.label}
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M5.2 7.3a1 1 0 0 1 1.4 0L10 10.7l3.4-3.4a1 1 0 0 1 1.4 1.4l-4.1 4.1a1 1 0 0 1-1.4 0L5.2 8.7a1 1 0 0 1 0-1.4Z" />
+                </svg>
+              </a>
+              <div class="nav-menu" role="menu">
+                {link.children.map((item) => (
+                  <a href={item.href} role="menuitem">
+                    <strong>{item.label}</strong>
+                    <span>{item.text}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <a href={link.href}>{link.label}</a>
+          )
+        ))}
+      </nav>
+
+      <div class="nav-actions">
+        <a class="login-link" href="https://admin.creditsoft.app">CRM login</a>
+        <a class="button primary nav-cta" href="/contact-us">Start intake</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    backdrop-filter: blur(16px);
+    background: linear-gradient(180deg, rgba(8, 8, 10, 0.92), rgba(8, 8, 10, 0.74));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .utility-bar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--muted);
+    font-size: 0.88rem;
+  }
+
+  .utility-inner,
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .utility-inner {
+    min-height: 40px;
+  }
+
+  .utility-inner a {
+    color: var(--text-soft);
+  }
+
+  .nav-inner {
+    min-height: 82px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 190px;
+  }
+
+  .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f1c27a, #a86a2d);
+    color: #0c0d10;
+    font-weight: 900;
+    font-size: 1.3rem;
+    box-shadow: 0 16px 30px rgba(241, 194, 122, 0.2);
+  }
+
+  .brand-copy {
+    display: grid;
+    gap: 2px;
+  }
+
+  .brand-copy strong {
+    font-size: 1.22rem;
+    letter-spacing: -0.03em;
+  }
+
+  .brand-copy small {
+    color: var(--muted);
+    font-size: 0.77rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--text-soft);
+  }
+
+  .nav-item {
+    position: relative;
+  }
+
+  .nav-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-trigger svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+
+  .nav-links a {
+    transition: color 180ms ease;
+  }
+
+  .nav-links a:hover,
+  .login-link:hover {
+    color: var(--text);
+  }
+
+  .nav-menu {
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 18px);
+    display: grid;
+    width: min(640px, calc(100vw - 48px));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: rgba(15, 15, 20, 0.98);
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.38);
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -8px);
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+
+  .nav-item:hover .nav-menu,
+  .nav-item:focus-within .nav-menu {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+  }
+
+  .nav-menu a {
+    display: grid;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 12px;
+    color: var(--text-soft);
+  }
+
+  .nav-menu a:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .nav-menu strong {
+    color: var(--text);
+    font-size: 0.96rem;
+  }
+
+  .nav-menu span {
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .login-link {
+    color: var(--text-soft);
+    font-weight: 700;
+  }
+
+  .nav-cta {
+    min-height: 52px;
+    padding-inline: 22px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 980px) {
+    .utility-inner span:nth-child(1) {
+      display: none;
+    }
+
+    .nav-links {
+      display: none;
+    }
+
+    .utility-inner {
+      justify-content: flex-end;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .login-link {
+      display: none;
+    }
+
+    .brand-copy small {
+      display: none;
+    }
+
+    .nav-inner {
+      min-height: 74px;
+    }
+  }
+</style>

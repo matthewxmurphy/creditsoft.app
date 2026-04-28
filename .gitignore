@@ -1,37 +1,76 @@
-# CreditSoft - GitHub deployment ready
-
-# Dependencies (bundled in ZIP)
-# vendor/ - uncomment if you want to exclude vendor
-# vendor/
-
-# Writable directories (created at runtime)
-writable/cache/*
-writable/logs/*
-writable/session/*
-writable/uploads/*
-!writable/.gitkeep
-
-# Environment
+/.phpunit.cache
+/bootstrap/ssr
+/node_modules
+**/node_modules/
+/public/build
+/public/downloads/*.zip
+/public/hot
+/public/storage
+/site-astro/.astro/
+/site-astro/dist/
+/site-astro/.env.local
+/site-astro/.env.*.local
+/site-astro/public/downloads/*.zip
+/updates-astro/.astro/
+/updates-astro/dist/
+/updates-astro/.env.local
+/updates-astro/.env.*.local
+/updates-astro/public/downloads/*.zip
+/intranet-client/dist/
+/Library/
+/creditsoft-office-v*/
+/legacy/
+/plugins/
+/screenshots/
+/storage/*.key
+/storage/framework/cache/data
+/storage/framework/sessions
+/storage/framework/testing
+/storage/framework/views
+/storage/logs
+/storage/pail
+/resources/js/actions
+/resources/js/routes
+/resources/js/wayfinder
+/vendor
+/update.creditsoft.app/downloads/*.zip
+/update.creditsoft.app/downloads/creditsoft-office-v*/
+/update.creditsoft.app/downloads/creditsoft-intranet-client-installer-v*/
+/update.creditsoft.app/downloads/creditsoft-browser-companion-v*/
+/test-results/
+/API.toon
+/CREDITSOFT_RELEASE.toon
+/MEMORY.toon
+/README.txt
+/manifest.json
+.DS_Store
 .env
 .env.*
-*.local
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Build outputs
-*.zip
-*.tar.gz
-
-# Database (remote only)
-*.sql.gz
-
-# Credit config (contains credentials - outside web root)
-# credit_config.php - created by installer
+!.env.example
+!.env.docker.example
+.env.backup
+.env.production
+.env.local
+.env.*.local
+.phpactor.json
+.phpunit.result.cache
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.pem
+*.key
+*.p12
+*.webarchive
+*.heic
+Screenshot*.png
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed

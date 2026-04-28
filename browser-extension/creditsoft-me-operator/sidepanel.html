@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CreditSoft OPS</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2efe8;
+      --panel: rgba(255, 255, 255, 0.92);
+      --border: rgba(32, 24, 20, 0.12);
+      --ink: #1f1a17;
+      --muted: rgba(31, 26, 23, 0.62);
+      --accent: #f5b223;
+      --success: #2f9f5b;
+      --warning: #d97706;
+      --danger: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(245, 178, 35, 0.18), transparent 28%),
+        radial-gradient(circle at right top, rgba(31, 26, 23, 0.08), transparent 26%),
+        var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .shell {
+      min-height: 100vh;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .panel {
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 48px rgba(31, 26, 23, 0.08);
+    }
+
+    .header {
+      padding: 4px 2px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .header img {
+      display: block;
+      width: 260px;
+      height: auto;
+      max-width: 100%;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      background: rgba(31, 26, 23, 0.18);
+      box-shadow: 0 0 0 4px rgba(31, 26, 23, 0.08);
+    }
+
+    .dot.ready { background: var(--success); box-shadow: 0 0 0 3px rgba(47, 159, 91, 0.16); }
+    .dot.saved { background: var(--success); box-shadow: 0 0 0 4px rgba(47, 159, 91, 0.16); }
+    .dot.error { background: var(--danger); box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.16); }
+
+    .header-copy {
+      display: grid;
+      gap: 4px;
+    }
+
+    .header-copy p {
+      margin: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      width: 100%;
+      align-items: center;
+    }
+
+    .body {
+      padding: 0 18px 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-card, .capture-card, .actions-card, .note-card {
+      border-radius: 22px;
+      border: 1px solid rgba(31, 26, 23, 0.08);
+      background: rgba(255, 255, 255, 0.82);
+      padding: 14px 16px;
+    }
+
+    .eyebrow {
+      margin: 0 0 2px;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .title[data-tone="success"] { color: var(--success); }
+    .title[data-tone="warning"] { color: var(--warning); }
+    .title[data-tone="error"] { color: var(--danger); }
+
+    .subtle {
+      margin: 4px 0 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    input, textarea, select {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(31, 26, 23, 0.14);
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--ink);
+      font: inherit;
+      padding: 13px 14px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 74px;
+      resize: vertical;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled {
+      opacity: 0.62;
+      cursor: wait;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .primary {
+      background: var(--ink);
+      color: white;
+      padding: 15px 20px;
+      font-size: 14px;
+      box-shadow: 0 10px 24px rgba(31, 26, 23, 0.18);
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      border: 1px solid rgba(31, 26, 23, 0.12);
+      padding: 14px 18px;
+      font-size: 14px;
+    }
+
+    .ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(31, 26, 23, 0.1);
+      padding: 12px 16px;
+    }
+
+    .stack { display: grid; gap: 8px; }
+
+    .fields {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .meta {
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--muted);
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .summary {
+      max-height: 160px;
+      overflow: auto;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      margin: 0 0 6px;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(245, 178, 35, 0.16);
+      color: #2a1904;
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .legend-list {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .legend-list span { color: var(--muted); }
+
+    .activity-status {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+
+    .activity-log {
+      max-height: 220px;
+      overflow: auto;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(31, 26, 23, 0.08);
+      background: rgba(248, 245, 239, 0.82);
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="header">
+      <img src="creditsoft-wordmark.png" alt="CreditSoft">
+      <div class="header-copy">
+        <p class="eyebrow">Internal-only ops lane</p>
+        <p class="title">CreditSoft OPS</p>
+      </div>
+      <div class="header-actions">
+        <span id="pairedDot" class="dot" aria-hidden="true"></span>
+        <button id="openOpsPage" class="primary" type="button">Get API key</button>
+        <button id="openSettings" class="secondary" type="button">Local settings</button>
+      </div>
+    </section>
+
+    <section class="status-card panel">
+      <p class="eyebrow">Internal-only ops pairing</p>
+      <p class="title" id="connectionState">Save an OPS key in local settings first.</p>
+      <p class="subtle" id="tokenHint">No OPS key saved yet</p>
+    </section>
+
+    <section class="status-card panel">
+      <div class="stack">
+        <div>
+          <p class="section-title">Activity</p>
+          <p class="activity-status" id="activityState">No actions yet. Open a page, then choose an action.</p>
+        </div>
+        <div class="activity-log" id="activityLog">Waiting for your first click.</div>
+      </div>
+    </section>
+
+    <section class="capture-card panel">
+      <div class="stack">
+        <div>
+          <p class="section-title">Current page</p>
+          <div class="meta" id="pageMeta">No page captured yet.</div>
+        </div>
+        <div>
+          <p class="section-title">Detected fields</p>
+          <div class="summary" id="fieldSummary">Capture a page to inspect detected fields.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="note-card panel">
+      <div class="stack">
+        <div>
+          <p class="section-title">Operator note</p>
+          <textarea id="operatorNote" placeholder="Optional note about what this page is or why it matters."></textarea>
+        </div>
+        <div class="fields">
+          <div>
+            <p class="section-title">Source system</p>
+            <select id="sourceSystem">
+              <option value="DisputeFox">DisputeFox</option>
+              <option value="Credit Repair Cloud">Credit Repair Cloud</option>
+              <option value="Client Dispute Manager">Client Dispute Manager</option>
+              <option value="IdentityIQ">IdentityIQ</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <p class="section-title">Actions</p>
+            <div class="button-row">
+              <button id="refreshState" type="button" class="ghost">Refresh</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="actions-card panel">
+      <div class="stack">
+        <div>
+          <p class="section-title">Capture lane</p>
+          <div class="button-row">
+            <button id="stagePage" type="button" class="secondary">Stage current page</button>
+            <button id="syncClient" type="button" class="secondary">Sync client data</button>
+            <button id="importLetter" type="button" class="primary">Import letter or library</button>
+          </div>
+        </div>
+        <div>
+          <p class="section-title">Allowed use</p>
+          <div class="legend-list">
+            <div><strong>Stage current page</strong> <span>saves the live DOM, URL, and field clues into CreditSoft for later review.</span></div>
+            <div><strong>Sync client data</strong> <span>writes the current account/profile fields into CreditSoft clients.</span></div>
+            <div><strong>Import letter or library</strong> <span>imports the current letter page, or walks the whole DisputeFox library page one letter at a time.</span></div>
+            <div><strong>Private only</strong> <span>this works only with your private OPS key, not the customer office token.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

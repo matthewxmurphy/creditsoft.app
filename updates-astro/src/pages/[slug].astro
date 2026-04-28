@@ -1,0 +1,50 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { lanes } from "../lib/site-lanes";
+
+export function getStaticPaths() {
+  return lanes.map((lane) => ({
+    params: { slug: lane.slug },
+    props: { lane },
+  }));
+}
+
+const { lane } = Astro.props;
+---
+
+<BaseLayout title={`${lane.title} | CreditSoft`} description={lane.summary}>
+  <SiteHeader />
+  <main>
+    <section class="section page-hero">
+      <div class="page-wrap lane-shell">
+        <span class="eyebrow">{lane.eyebrow}</span>
+        <h1 class="display">{lane.title}</h1>
+        <p class="lede">{lane.summary}</p>
+        <div class="button-row">
+          <a class="button primary" href="/contact-us">Start intake</a>
+          <a class="button secondary" href="https://admin.creditsoft.app">Open CRM</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap simple-grid three">
+        {lane.bullets.map((bullet) => (
+          <article class="info-card panel-soft">
+            <h3>{bullet}</h3>
+            <p>Built into the CreditSoft product direction so the public site, portal, and office node stay connected.</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .lane-shell {
+    max-width: 900px;
+  }
+</style>

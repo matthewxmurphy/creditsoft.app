@@ -1,0 +1,12 @@
+application:
+  name: Creditsoft.app
+  mode: intranet-control-panel
+  cfo_headline: MRR
+privacy:
+  local_first: true
+  pii_leaves_device: false
+  shareable_note_visibility: shareable_case_brief
+deployment:
+  topology: tailscale-intranet
+  runtime: docker-compose
+  target_os: ubuntu-24.04

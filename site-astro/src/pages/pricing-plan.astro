@@ -1,0 +1,1032 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+
+const money = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const planViews = [
+  {
+    id: "monthly",
+    label: "Monthly",
+    note: "Monthly keeps the office flexible while the team moves into the CreditSoft workflow.",
+    cards: [
+      {
+        badge: "25% off early adopter",
+        name: "CreditSoft Enterprise",
+        description:
+          "The local-first office system for client records, Metro2 review, letters, client portal, and legal-intake screening.",
+        listPrice: 133.27,
+        price: 99.95,
+        suffix: "/mo",
+        cta: "Sign up monthly",
+        href: "/contact-us?plan=enterprise&billing=monthly",
+        features: [
+          "Unlimited users and clients",
+          "Local intranet and client portal",
+          "Metro2 review, letters, briefs, and audit trails",
+          "FCRA / FDCPA lawsuit intake included",
+        ],
+      },
+      {
+        badge: "Browser companion",
+        name: "CreditSoft Enterprise Pro",
+        description:
+          "The office plan for teams that want the browser companion, API connector, and stronger automation lane.",
+        listPrice: 226.6,
+        price: 169.95,
+        suffix: "/mo",
+        cta: "Sign up Pro monthly",
+        href: "/contact-us?plan=enterprise-pro&billing=monthly",
+        featured: true,
+        features: [
+          "Everything in Enterprise",
+          "Chrome browser companion",
+          "API connector and automation workflows",
+          "Priority rollout support",
+        ],
+      },
+    ],
+  },
+  {
+    id: "annual",
+    label: "Annually",
+    note: "Annual billing keeps the early adopter sale and stacks a real annual discount.",
+    cards: [
+      {
+        badge: "45% off list",
+        name: "CreditSoft Enterprise",
+        description:
+          "The same core office system with annual savings for offices ready to commit for the year.",
+        listPrice: 1599.24,
+        price: 959.52,
+        suffix: "/yr",
+        equivalent: "$79.96/mo equivalent",
+        cta: "Sign up annually",
+        href: "/contact-us?plan=enterprise&billing=annual",
+        features: [
+          "Annual Enterprise software term",
+          "Local-first office workflow",
+          "Client portal and document lanes",
+          "Legal-intake screening included",
+        ],
+      },
+      {
+        badge: "Best annual subscription",
+        name: "CreditSoft Enterprise Pro",
+        description:
+          "Annual Pro pricing for offices that want the companion and API lane without the 10-year purchase.",
+        listPrice: 2719.2,
+        price: 1631.52,
+        suffix: "/yr",
+        equivalent: "$135.96/mo equivalent",
+        cta: "Sign up Pro annually",
+        href: "/contact-us?plan=enterprise-pro&billing=annual",
+        featured: true,
+        features: [
+          "Annual Enterprise Pro software term",
+          "Browser companion included",
+          "API connector included",
+          "Priority rollout support",
+        ],
+      },
+    ],
+  },
+  {
+    id: "ten-year",
+    label: "10-year",
+    note: "The 10-year license is the flagship value anchor for serious operators.",
+    cards: [
+      {
+        badge: "Flagship value",
+        name: "Enterprise Pro 10-year license",
+        description:
+          "A fixed 10-year software license for companies that know CreditSoft is core office infrastructure.",
+        price: 9995.99,
+        suffix: "/10 years",
+        equivalent: "About $83.30/mo over 120 months",
+        cta: "Start 10-year license",
+        href: "/contact-us?plan=enterprise-pro&billing=ten-year",
+        featured: true,
+        features: [
+          "10-year Enterprise Pro license",
+          "Browser companion and API lanes included",
+          "Long-term update and license heartbeat",
+          "Priority license support",
+        ],
+      },
+      {
+        badge: "For bigger rollouts",
+        name: "Office group quote",
+        description:
+          "For operators adding several offices, nodes, migration help, or a managed website package to the same 10-year conversation.",
+        cta: "Scope a group quote",
+        href: "/contact-us?plan=group-rollout&billing=ten-year",
+        features: [
+          "Multi-office node planning",
+          "Migration and import scope",
+          "Managed website add-on",
+          "Lease terms can be quoted when needed",
+        ],
+      },
+    ],
+  },
+];
+
+const supportCards = [
+  {
+    eyebrow: "Software",
+    title: "Core office software",
+    text: "Local-first CRM and intranet workflows for Metro2 review, letters, briefs, audit trails, client portals, and office operations.",
+  },
+  {
+    eyebrow: "Automation",
+    title: "Browser companion",
+    text: "Office-paired browser automation for supported provider imports, direct API capture routing, and less manual intake work.",
+  },
+  {
+    eyebrow: "Included",
+    title: "Legal intake included",
+    text: "FCRA / FDCPA lawsuit intake belongs in the core system so every office can screen stronger issue signals without buying a separate add-on.",
+  },
+];
+
+const leaseTerms = [
+  {
+    term: "12 months",
+    label: "Pilot term",
+    detail: "For offices that want a short financed rollout before choosing annual or 10-year.",
+  },
+  {
+    term: "24 months",
+    label: "Growth term",
+    detail: "A balanced term for teams adding companion automation, migration help, or a second office lane.",
+  },
+  {
+    term: "36 months",
+    label: "Rollout term",
+    detail: "The cleaner sales path for offices that want lower monthly payments and a serious implementation window.",
+  },
+  {
+    term: "48 or 60 months",
+    label: "Extended term",
+    detail: "Available for larger operators that need more time, more installs, or managed rollout support.",
+  },
+];
+
+const faqs = [
+  {
+    question: "Is the website offer included in the software subscription?",
+    answer:
+      "No. Managed Websites is a separate branded build that starts at $495+ and ties the public site back into CreditSoft CRM, portal, and intake workflows.",
+  },
+  {
+    question: "Can I change plans later?",
+    answer:
+      "Yes. Start on the software lane the office needs today and move up when you want the browser companion or deeper automation.",
+  },
+  {
+    question: "What if I have more than one office?",
+    answer:
+      "Add a multi-office node for each additional local install. CreditSoft is designed for offices that should not all depend on one machine.",
+  },
+  {
+    question: "Is CreditSoft already reporting trade lines?",
+    answer:
+      "No. The spread-the-word program is about building demand and partnerships so CreditSoft can pursue a business-credit reporting lane with providers such as Creditsafe and Equifax.",
+  },
+];
+---
+
+<BaseLayout title="CreditSoft Pricing" description="CreditSoft pricing for monthly, annual, 10-year license, and lease terms.">
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main class="pricing-page">
+    <section class="section pricing-hero-section">
+      <div class="page-wrap pricing-shell">
+        <article class="pricing-hero">
+          <div>
+            <span class="pricing-eyebrow">Pricing</span>
+            <h1>Simple pricing for the CreditSoft office system.</h1>
+            <p>
+              Start with Enterprise. Upgrade to Enterprise Pro for the browser companion,
+              choose annual for the subscription discount, or use the 10-year license when
+              CreditSoft is the office infrastructure.
+            </p>
+          </div>
+          <ul class="pricing-hero-points">
+            <li>Software pricing covers the local intranet, client workspaces, Metro2 review, letters, briefs, and office operations.</li>
+            <li>FCRA / FDCPA lawsuit intake is built into every plan, not sold as a separate add-on.</li>
+            <li>The browser companion is the clean upgrade reason for Enterprise Pro.</li>
+            <li>Annual and 10-year pricing keep the value math visible instead of hiding the real commitment.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section pricing-stage-section" aria-label="Software pricing">
+      <div class="page-wrap pricing-shell">
+        <div class="billing-shell" aria-label="Billing view">
+          <div class="billing-toggle" role="tablist" aria-label="Billing cadence">
+            {planViews.map((view, index) => (
+              <button
+                class:list={["billing-btn", index === 0 && "is-active"]}
+                type="button"
+                role="tab"
+                aria-selected={index === 0 ? "true" : "false"}
+                aria-controls={`pricing-${view.id}`}
+                data-pricing-view-button={view.id}
+              >
+                {view.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div class="pricing-view-stage">
+          {planViews.map((view, index) => (
+            <section
+              id={`pricing-${view.id}`}
+              class:list={["plan-view", index !== 0 && "is-hidden"]}
+              data-pricing-view={view.id}
+              aria-label={`${view.label} pricing`}
+              hidden={index !== 0}
+            >
+              <p class="pricing-note">{view.note}</p>
+              <div class="pricing-grid">
+                {view.cards.map((plan) => (
+                  <article class:list={["plan-card", plan.featured && "featured"]}>
+                    <div class="plan-top">
+                      <span class:list={["kicker", plan.featured && "alt"]}>{plan.badge}</span>
+                      <h2>{plan.name}</h2>
+                      <p>{plan.description}</p>
+                    </div>
+
+                    {"price" in plan && plan.price ? (
+                      <div class="price-band">
+                        <strong>{view.label} billing</strong>
+                        <div class="price-line">
+                          {"listPrice" in plan && plan.listPrice ? (
+                            <span class="list">{money.format(plan.listPrice)}{plan.suffix}</span>
+                          ) : null}
+                          <span class="sale">{money.format(plan.price)}<small>{plan.suffix}</small></span>
+                        </div>
+                        {"equivalent" in plan && plan.equivalent ? <div class="price-equivalent">{plan.equivalent}</div> : null}
+                      </div>
+                    ) : (
+                      <div class="price-contact-box">
+                        <strong>Custom scope</strong>
+                        <div>Quote the rollout</div>
+                        <p>Use this path when the buying decision includes multiple offices, migration, or managed launch work.</p>
+                      </div>
+                    )}
+
+                    <ul class="feature-list">
+                      {plan.features.map((feature) => <li>{feature}</li>)}
+                    </ul>
+
+                    <a class:list={["btn-row-link", plan.featured ? "primary" : "secondary"]} href={plan.href}>
+                      {plan.cta}
+                    </a>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap pricing-shell">
+        <div class="pricing-support-grid" aria-label="What the software plans cover">
+          {supportCards.map((card) => (
+            <article class="support-card">
+              <strong>{card.eyebrow}</strong>
+              <h3>{card.title}</h3>
+              <p>{card.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section addons" aria-label="Add-ons">
+      <div class="page-wrap pricing-shell">
+        <SectionHeading
+          eyebrow="Multi-office add-on"
+          title="Add another office node when the company actually needs one."
+          text="Legal intake is included in the software plans. The extra checkout add-on is for another local install: a second office, a branch, a front desk machine, or a separate node that should stay tied to the same CreditSoft setup."
+        />
+
+        <div class="addon-grid">
+          <article class="addon-card">
+            <span class="addon-kicker">Multi-office</span>
+            <h3>Additional office node</h3>
+            <div class="addon-price-stack">
+              <span class="addon-price-list">$29.95/mo</span>
+              <div class="addon-price">$19.95<small>/mo</small></div>
+              <p>Per additional office install. Requires an active Enterprise or Enterprise Pro license first.</p>
+            </div>
+            <ul>
+              <li>Second office, branch, front desk machine, or dedicated local node</li>
+              <li>Separate local install tied to the same CreditSoft setup</li>
+              <li>Built for companies that run more than one physical office lane</li>
+            </ul>
+            <a class="btn-row-link primary" href="/contact-us?plan=office-node">Add an office node</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section lease-section" aria-label="Lease terms">
+      <div class="page-wrap pricing-shell">
+        <SectionHeading
+          eyebrow="Lease terms"
+          title="Need terms? Pick the edition and lease window."
+          text="Leasing is the sales path for offices that want the software, implementation, and cashflow conversation in one quote."
+        />
+
+        <div class="lease-layout">
+          <form class="lease-form" action="/contact-us" method="get">
+            <input type="hidden" name="interest" value="lease" />
+            <label>
+              <span>Edition</span>
+              <select name="edition" aria-label="Select CreditSoft edition">
+                <option value="enterprise">Enterprise</option>
+                <option value="enterprise-pro">Enterprise Pro</option>
+                <option value="ten-year">10-year license</option>
+              </select>
+            </label>
+            <label>
+              <span>Lease term</span>
+              <select name="term" aria-label="Select lease term">
+                {leaseTerms.map((term) => <option value={term.term}>{term.term}</option>)}
+              </select>
+            </label>
+            <button class="btn-row-link primary" type="submit">Request lease quote</button>
+            <p>
+              Final lease pricing depends on edition, office count, migration scope, and any
+              rollout support added to the quote.
+            </p>
+          </form>
+
+          <div class="term-grid">
+            {leaseTerms.map((term) => (
+              <article class="term-card">
+                <span>{term.label}</span>
+                <h3>{term.term}</h3>
+                <p>{term.detail}</p>
+              </article>
+            ))}
+          </div>
+
+          <article class="spread-card">
+            <strong>Spread the word</strong>
+            <h3>Help CreditSoft build the business-credit reporting lane.</h3>
+            <p>
+              The goal is to grow enough adoption and payment history to pursue reporting
+              with providers such as Creditsafe and Equifax, similar to the business-credit
+              model used by <a href="https://www.net30hosting.com" target="_blank" rel="noopener">Net30 Hosting</a>.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section website-bottom-section" aria-label="Managed website package">
+      <div class="page-wrap">
+        <div class="website-bottom">
+          <div class="website-bottom-copy">
+            <strong>Managed websites</strong>
+            <h2>Need the public website too? Start here after the software plan.</h2>
+            <p>
+              A branded CreditSoft-connected website is a separate build because it includes
+              public pages, intake, portal entry points, launch copy, and deployment work.
+            </p>
+            <div class="website-bottom-price">
+              <span class="list">$695+</span>
+              <div class="sale">$495<span>+</span></div>
+            </div>
+          </div>
+          <div class="website-bottom-details">
+            <ul>
+              <li>Branded public website and landing pages</li>
+              <li>Lead forms routed into CreditSoft CRM and intake</li>
+              <li>Portal and status calls-to-action wired into the site</li>
+              <li>SEO basics, share image setup, and launch handoff</li>
+            </ul>
+            <a href="/websites" class="btn-row-link secondary">View managed websites</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section faq-section" aria-label="Pricing FAQ">
+      <div class="page-wrap pricing-shell">
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Simple answers before someone reaches out."
+          text="The goal is to keep the buying path clear before someone has to ask support what each term means."
+        />
+        <div class="faq-list">
+          {faqs.map((faq) => (
+            <article class="faq-item">
+              <h3>{faq.question}</h3>
+              <p>{faq.answer}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+
+  <script>
+    (() => {
+      const buttons = Array.from(document.querySelectorAll("[data-pricing-view-button]"));
+      const views = Array.from(document.querySelectorAll("[data-pricing-view]"));
+
+      const activate = (id) => {
+        buttons.forEach((button) => {
+          const selected = button.getAttribute("data-pricing-view-button") === id;
+          button.classList.toggle("is-active", selected);
+          button.setAttribute("aria-selected", selected ? "true" : "false");
+        });
+
+        views.forEach((view) => {
+          const selected = view.getAttribute("data-pricing-view") === id;
+          view.classList.toggle("is-hidden", !selected);
+          view.toggleAttribute("hidden", !selected);
+        });
+      };
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          activate(button.getAttribute("data-pricing-view-button") || "monthly");
+        });
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .pricing-page {
+    --pricing-bg: #f8fafc;
+    --pricing-card: rgba(255, 255, 255, 0.96);
+    --pricing-line: #dbe4ef;
+    --pricing-text: #0f172a;
+    --pricing-muted: #526174;
+    --pricing-blue: #2563eb;
+    --pricing-green: #15803d;
+  }
+
+  .pricing-hero-section {
+    padding-bottom: 34px;
+  }
+
+  .pricing-stage-section,
+  .addons,
+  .lease-section,
+  .website-bottom-section,
+  .faq-section {
+    padding-top: 42px;
+  }
+
+  .pricing-shell {
+    display: grid;
+    gap: 28px;
+  }
+
+  .pricing-hero,
+  .support-card,
+  .plan-card,
+  .addon-card,
+  .lease-form,
+  .term-card,
+  .spread-card,
+  .faq-item {
+    color: var(--pricing-text);
+    background: var(--pricing-card);
+    border: 1px solid var(--pricing-line);
+    border-radius: 24px;
+    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.1);
+  }
+
+  .pricing-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(360px, 0.8fr);
+    gap: 28px;
+    align-items: start;
+    padding: 34px 32px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(239, 246, 255, 0.96));
+  }
+
+  .pricing-eyebrow,
+  .billing-btn,
+  .kicker,
+  .addon-kicker,
+  .support-card strong,
+  .spread-card strong {
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pricing-eyebrow,
+  .kicker,
+  .addon-kicker {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 13px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .pricing-hero h1 {
+    margin: 18px 0 0;
+    max-width: 920px;
+    font-size: clamp(2.7rem, 5.2vw, 5.4rem);
+    line-height: 0.98;
+    letter-spacing: 0;
+  }
+
+  .pricing-hero p,
+  .plan-top p,
+  .support-card p,
+  .addon-card p,
+  .lease-form p,
+  .term-card p,
+  .spread-card p,
+  .website-bottom p,
+  .faq-item p {
+    margin: 0;
+    color: var(--pricing-muted);
+    line-height: 1.75;
+  }
+
+  .pricing-hero > div > p {
+    max-width: 820px;
+    margin-top: 18px;
+    font-size: 1.06rem;
+  }
+
+  .pricing-hero-points {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pricing-hero-points li {
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px solid var(--pricing-line);
+    color: #334155;
+    line-height: 1.62;
+  }
+
+  .billing-shell {
+    display: grid;
+    justify-items: center;
+  }
+
+  .billing-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+    flex-wrap: wrap;
+  }
+
+  .billing-btn {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: #475569;
+    border-radius: 999px;
+    padding: 12px 18px;
+    cursor: pointer;
+    transition:
+      background 180ms ease,
+      color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .billing-btn:hover {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  .billing-btn.is-active {
+    background: var(--pricing-blue);
+    color: white;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.24);
+  }
+
+  .pricing-view-stage {
+    min-height: 560px;
+  }
+
+  .plan-view {
+    display: grid;
+    gap: 18px;
+  }
+
+  .plan-view.is-hidden {
+    display: none;
+  }
+
+  .pricing-note {
+    margin: 0;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(320px, 1fr));
+    gap: 24px;
+    max-width: 1080px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .plan-card,
+  .addon-card,
+  .lease-form,
+  .term-card,
+  .spread-card,
+  .faq-item {
+    display: grid;
+    gap: 18px;
+    padding: 30px;
+  }
+
+  .plan-card.featured {
+    border-color: #93c5fd;
+    background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), #ffffff);
+  }
+
+  .plan-top {
+    display: grid;
+    gap: 10px;
+  }
+
+  .kicker.alt {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .plan-top h2,
+  .support-card h3,
+  .addon-card h3,
+  .spread-card h3,
+  .faq-item h3 {
+    margin: 0;
+    color: var(--pricing-text);
+    font-size: clamp(1.55rem, 2.4vw, 2rem);
+    line-height: 1.1;
+    letter-spacing: 0;
+  }
+
+  .price-band {
+    display: grid;
+    gap: 8px;
+    padding: 17px 18px;
+    border: 1px solid var(--pricing-line);
+    border-radius: 18px;
+    background: #f8fafc;
+  }
+
+  .price-band strong,
+  .price-contact-box strong {
+    color: #64748b;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .price-line {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .price-line .list,
+  .addon-price-list,
+  .website-bottom-price .list {
+    color: #64748b;
+    text-decoration: line-through;
+    font-weight: 800;
+  }
+
+  .price-line .sale,
+  .addon-price,
+  .website-bottom-price .sale {
+    color: var(--pricing-blue);
+    font-size: clamp(2.2rem, 4vw, 3.25rem);
+    font-weight: 900;
+    line-height: 0.96;
+    letter-spacing: 0;
+  }
+
+  .price-line small,
+  .addon-price small,
+  .website-bottom-price span {
+    margin-left: 4px;
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .price-equivalent {
+    color: var(--pricing-muted);
+    font-size: 0.9rem;
+  }
+
+  .price-contact-box {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid #bfdbfe;
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(239, 246, 255, 0.96), rgba(255, 255, 255, 0.94));
+  }
+
+  .price-contact-box div {
+    color: var(--pricing-text);
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .feature-list,
+  .addon-card ul,
+  .website-bottom-details ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .feature-list li,
+  .addon-card li {
+    display: flex;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--pricing-line);
+    color: #334155;
+    line-height: 1.58;
+  }
+
+  .feature-list li:last-child,
+  .addon-card li:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .feature-list li::before,
+  .addon-card li::before {
+    content: "✓";
+    color: var(--pricing-green);
+    font-weight: 900;
+  }
+
+  .btn-row-link {
+    display: inline-grid;
+    place-items: center;
+    min-height: 56px;
+    padding: 10px 18px;
+    border-radius: 14px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.15;
+    border: 1px solid transparent;
+  }
+
+  .btn-row-link.primary {
+    background: var(--pricing-blue);
+    color: white;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+  }
+
+  .btn-row-link.secondary {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+
+  .pricing-support-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .support-card {
+    display: grid;
+    gap: 9px;
+    padding: 24px;
+  }
+
+  .support-card strong,
+  .spread-card strong {
+    color: #64748b;
+  }
+
+  .addon-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 540px);
+  }
+
+  .addon-price-stack {
+    display: grid;
+    gap: 6px;
+  }
+
+  .addon-price-stack p {
+    font-size: 0.94rem;
+  }
+
+  .lease-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.72fr) minmax(0, 1.1fr);
+    gap: 18px;
+    align-items: start;
+  }
+
+  .lease-form label {
+    display: grid;
+    gap: 8px;
+  }
+
+  .lease-form label span,
+  .term-card span {
+    color: var(--pricing-text);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .lease-form select {
+    min-height: 46px;
+    border: 1px solid var(--pricing-line);
+    border-radius: 12px;
+    background: #f8fafc;
+    color: var(--pricing-text);
+    padding: 0 12px;
+  }
+
+  .term-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .term-card h3 {
+    margin: 0;
+    color: var(--pricing-text);
+    font-size: 1.55rem;
+    letter-spacing: 0;
+  }
+
+  .spread-card {
+    grid-column: 1 / -1;
+    border-color: rgba(21, 128, 61, 0.28);
+    background: linear-gradient(135deg, rgba(240, 253, 244, 0.98), rgba(255, 255, 255, 0.96));
+  }
+
+  .spread-card a {
+    color: #1d4ed8;
+    font-weight: 900;
+  }
+
+  .website-bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.85fr);
+    gap: 26px;
+    align-items: center;
+    padding: 34px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #07111f, #0f2f64);
+    color: white;
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.28);
+  }
+
+  .website-bottom-copy,
+  .website-bottom-details {
+    display: grid;
+    gap: 14px;
+  }
+
+  .website-bottom-copy strong {
+    width: fit-content;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #bfdbfe;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .website-bottom-copy h2 {
+    margin: 0;
+    max-width: 760px;
+    font-size: clamp(2rem, 4vw, 4rem);
+    line-height: 0.98;
+    letter-spacing: 0;
+  }
+
+  .website-bottom p {
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .website-bottom-price {
+    display: grid;
+    gap: 4px;
+  }
+
+  .website-bottom-price .sale {
+    color: white;
+  }
+
+  .website-bottom-details li {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .faq-list {
+    display: grid;
+    gap: 16px;
+    max-width: 920px;
+  }
+
+  .faq-item h3 {
+    font-size: 1.18rem;
+  }
+
+  @media (max-width: 1080px) {
+    .pricing-hero,
+    .pricing-support-grid,
+    .lease-layout,
+    .website-bottom {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .pricing-hero,
+    .plan-card,
+    .addon-card,
+    .lease-form,
+    .term-card,
+    .spread-card,
+    .faq-item,
+    .website-bottom {
+      padding: 22px;
+    }
+
+    .pricing-grid,
+    .term-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .billing-toggle {
+      width: 100%;
+      border-radius: 22px;
+    }
+
+    .billing-btn {
+      flex: 1 1 42%;
+    }
+  }
+</style>

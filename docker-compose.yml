@@ -1,0 +1,181 @@
+name: creditsoft-intranet
+
+services:
+  intranet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: creditsoft/intranet:local
+    restart: unless-stopped
+    ports:
+      - "${CREDITSOFT_DOCKER_PORT:-8001}:8001"
+    env_file:
+      - .env.docker
+    volumes:
+      - creditsoft_storage:/var/www/html/storage
+      - creditsoft_cache:/var/www/html/bootstrap/cache
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8001/api/v1') !== false ? 0 : 1);"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  queue:
+    image: creditsoft/intranet:local
+    restart: unless-stopped
+    depends_on:
+      intranet:
+        condition: service_healthy
+    env_file:
+      - .env.docker
+    volumes:
+      - creditsoft_storage:/var/www/html/storage
+      - creditsoft_cache:/var/www/html/bootstrap/cache
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=120"]
+
+  scheduler:
+    image: creditsoft/intranet:local
+    restart: unless-stopped
+    depends_on:
+      intranet:
+        condition: service_healthy
+    env_file:
+      - .env.docker
+    volumes:
+      - creditsoft_storage:/var/www/html/storage
+      - creditsoft_cache:/var/www/html/bootstrap/cache
+    command: ["php", "artisan", "schedule:work"]
+
+  local-router:
+    profiles:
+      - office
+      - router
+    image: node:22-bookworm-slim
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      intranet:
+        condition: service_healthy
+    volumes:
+      - ./intranet-client:/app/intranet-client:ro
+    ports:
+      - "${CREDITSOFT_ROUTER_PORT:-8877}:8877"
+    command:
+      - node
+      - /app/intranet-client/bin/creditsoft-intranet-client.mjs
+      - --serve
+      - --no-open
+      - --listen
+      - 0.0.0.0
+      - --listen-port
+      - "8877"
+      - --base
+      - http://intranet:8001/api/v1
+
+  office-db:
+    profiles:
+      - office
+      - postgres
+      - crm
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "${OFFICE_PG_PUBLIC_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: "${OFFICE_PG_SUPERUSER:-creditsoft_root}"
+      POSTGRES_PASSWORD: "${OFFICE_PG_SUPERPASSWORD:-creditsoft_root_password}"
+      CREDITSOFT_PG_DATABASE: "${CREDITSOFT_PG_DATABASE:-creditsoft}"
+      CREDITSOFT_PG_USER: "${CREDITSOFT_PG_USER:-creditsoft}"
+      CREDITSOFT_PG_PASSWORD: "${CREDITSOFT_PG_PASSWORD:-creditsoft}"
+      CRM_PG_DATABASE: "${CRM_PG_DATABASE:-crm}"
+      CRM_PG_USER: "${CRM_PG_USER:-crm}"
+      CRM_PG_PASSWORD: "${CRM_PG_PASSWORD:-crm}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${OFFICE_PG_SUPERUSER:-creditsoft_root} -h localhost -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - office_pg_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+
+  crm:
+    profiles:
+      - office
+      - crm
+    image: ${CRM_IMAGE:-creditsoft/crm-sidecar:local}
+    build:
+      context: .
+      dockerfile: docker/crm-sidecar/Dockerfile
+      args:
+        CRM_BASE_IMAGE: ${CRM_BASE_IMAGE:-update.creditsoft.app/creditsoft/crm-sidecar:latest}
+    restart: unless-stopped
+    ports:
+      - "${CRM_PORT:-3000}:3000"
+    environment:
+      NODE_PORT: 3000
+      PG_DATABASE_URL: "postgres://${CRM_PG_USER:-crm}:${CRM_PG_PASSWORD:-crm}@office-db:5432/${CRM_PG_DATABASE:-crm}"
+      SERVER_URL: "${CRM_SERVER_URL:-http://localhost:3000}"
+      REDIS_URL: "redis://crm-redis:6379"
+      DISABLE_DB_MIGRATIONS: "${CRM_DISABLE_DB_MIGRATIONS:-false}"
+      DISABLE_CRON_JOBS_REGISTRATION: "${CRM_DISABLE_CRON_JOBS_REGISTRATION:-false}"
+      STORAGE_TYPE: "${CRM_STORAGE_TYPE:-local}"
+      APP_SECRET: "${CRM_APP_SECRET:-replace_me_with_a_random_string}"
+    depends_on:
+      office-db:
+        condition: service_healthy
+      crm-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:3000/healthz || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - crm_server_data:/app/packages/twenty-server/.local-storage
+
+  crm-worker:
+    profiles:
+      - office
+      - crm
+    image: ${CRM_IMAGE:-creditsoft/crm-sidecar:local}
+    restart: unless-stopped
+    command: ["yarn", "worker:prod"]
+    environment:
+      PG_DATABASE_URL: "postgres://${CRM_PG_USER:-crm}:${CRM_PG_PASSWORD:-crm}@office-db:5432/${CRM_PG_DATABASE:-crm}"
+      SERVER_URL: "${CRM_SERVER_URL:-http://localhost:3000}"
+      REDIS_URL: "redis://crm-redis:6379"
+      DISABLE_DB_MIGRATIONS: "true"
+      DISABLE_CRON_JOBS_REGISTRATION: "true"
+      STORAGE_TYPE: "${CRM_STORAGE_TYPE:-local}"
+      APP_SECRET: "${CRM_APP_SECRET:-replace_me_with_a_random_string}"
+    depends_on:
+      crm:
+        condition: service_healthy
+      office-db:
+        condition: service_healthy
+      crm-redis:
+        condition: service_healthy
+    volumes:
+      - crm_server_data:/app/packages/twenty-server/.local-storage
+
+  crm-redis:
+    profiles:
+      - office
+      - crm
+    image: redis:7
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  creditsoft_storage:
+  creditsoft_cache:
+  office_pg_data:
+  crm_server_data:

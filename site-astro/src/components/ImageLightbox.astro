@@ -1,0 +1,151 @@
+<div class="image-lightbox" id="siteImageLightbox" aria-hidden="true">
+  <button class="image-lightbox__backdrop" type="button" data-lightbox-close aria-label="Close image preview"></button>
+  <div class="image-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Full-size screenshot preview">
+    <button class="image-lightbox__close" type="button" data-lightbox-close>Close</button>
+    <img src="" alt="" data-lightbox-target decoding="async" />
+    <div class="image-lightbox__caption" data-lightbox-caption hidden></div>
+  </div>
+</div>
+
+<style>
+  :global(img[data-lightbox]) {
+    cursor: zoom-in;
+  }
+
+  :global(body.image-lightbox-open) {
+    overflow: hidden;
+  }
+
+  .image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+
+  .image-lightbox.is-open {
+    display: flex;
+  }
+
+  .image-lightbox__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.78);
+    backdrop-filter: blur(16px);
+    cursor: zoom-out;
+  }
+
+  .image-lightbox__dialog {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 14px;
+    width: min(1500px, 100%);
+    max-height: min(88vh, 980px);
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    background: #08090d;
+    box-shadow: 0 34px 90px rgba(0, 0, 0, 0.55);
+  }
+
+  .image-lightbox__dialog img {
+    width: 100%;
+    max-height: calc(88vh - 102px);
+    border-radius: 12px;
+    object-fit: contain;
+    background: #050507;
+  }
+
+  .image-lightbox__close {
+    justify-self: end;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 850;
+    cursor: pointer;
+  }
+
+  .image-lightbox__caption {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 720px) {
+    .image-lightbox {
+      padding: 12px;
+    }
+
+    .image-lightbox__dialog {
+      padding: 12px;
+      border-radius: 14px;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const lightbox = document.getElementById("siteImageLightbox");
+    const target = lightbox?.querySelector("[data-lightbox-target]");
+    const caption = lightbox?.querySelector("[data-lightbox-caption]");
+    const closeButtons = Array.from(lightbox?.querySelectorAll("[data-lightbox-close]") ?? []);
+
+    if (!(lightbox instanceof HTMLElement) || !(target instanceof HTMLImageElement)) {
+      return;
+    }
+
+    const open = (image) => {
+      const src = image.dataset.lightboxSrc || image.currentSrc || image.src;
+      if (!src) {
+        return;
+      }
+
+      target.src = src;
+      target.alt = image.alt || "CreditSoft screenshot preview";
+
+      const captionText = image.dataset.lightboxTitle || image.alt || "";
+      if (caption instanceof HTMLElement) {
+        caption.textContent = captionText;
+        caption.hidden = !captionText;
+      }
+
+      lightbox.classList.add("is-open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.classList.add("image-lightbox-open");
+    };
+
+    const close = () => {
+      lightbox.classList.remove("is-open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("image-lightbox-open");
+      target.removeAttribute("src");
+    };
+
+    document.addEventListener("click", (event) => {
+      const image = event.target instanceof Element ? event.target.closest("img[data-lightbox]") : null;
+      if (!(image instanceof HTMLImageElement)) {
+        return;
+      }
+
+      event.preventDefault();
+      open(image);
+    });
+
+    closeButtons.forEach((button) => button.addEventListener("click", close));
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && lightbox.classList.contains("is-open")) {
+        close();
+      }
+    });
+  })();
+</script>

@@ -1,0 +1,7 @@
+workflows:
+  intake:
+    members: [operator, reviewer]
+  monthly_review:
+    members: [operator, reviewer]
+  cfo_review:
+    members: [cfo]

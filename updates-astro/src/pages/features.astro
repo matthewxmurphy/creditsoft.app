@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+
+const pillars = [
+  {
+    title: "Intranet-based office workflow",
+    text: "CreditSoft treats the website as the front door and the local-first office as the real work surface.",
+  },
+  {
+    title: "PWA-ready customer experience",
+    text: "The public site, client portal, and support touchpoints can feel app-like without trapping the office inside generic SaaS.",
+  },
+  {
+    title: "Migration-aware setup",
+    text: "Import, mapping, legacy letters, and branded rollout are part of the story instead of afterthoughts.",
+  },
+  {
+    title: "Brag-rights metrics",
+    text: "Debt removed, score lift, negative items removed, and client outcomes can all become website proof later.",
+  },
+];
+---
+
+<BaseLayout title="CreditSoft Features" description="CreditSoft features for Metro2 review, local-first CRM, client portals, API bridge, and compliance workflows.">
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main>
+    <section class="section page-hero">
+      <div class="page-wrap section-shell">
+        <span class="eyebrow">Features</span>
+        <h1 class="display">Feature pages should sell the workflow, not just list modules.</h1>
+        <p class="lede">
+          This Astro site keeps the polished structure while pushing CreditSoft’s actual
+          differentiators: local-first operations, branded web presence, migration help,
+          and automation that narrows the work instead of dumping everything on staff.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Core pillars"
+          title="What makes CreditSoft feel different"
+          text="The strongest site version should make the product shape obvious within the first few screens."
+        />
+
+        <div class="simple-grid two stagger">
+          {pillars.map((pillar) => (
+            <article class="info-card panel">
+              <h3>{pillar.title}</h3>
+              <p>{pillar.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap section-shell">
+        <SectionHeading
+          eyebrow="Product lanes"
+          title="The site can explain the whole system without looking cluttered"
+          text="Each lane below is part of the same product story instead of a scattered tool bundle."
+        />
+
+        <div class="simple-grid four stagger">
+          {theme.features.map((feature) => (
+            <article class="info-card panel-soft">
+              <h4>{feature.title}</h4>
+              <p>{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="page-wrap">
+        <div class="cta-band panel">
+          <span class="eyebrow">Next step</span>
+          <h2>Move from feature review into pricing or intake without changing tone.</h2>
+          <p>The point of the clone is to prove this can become the main site, not just a style exercise.</p>
+          <div class="button-row">
+            <a class="button primary" href="/pricing-plan">See pricing</a>
+            <a class="button secondary" href="/contact-us">Start intake</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+</BaseLayout>

@@ -1,0 +1,95 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+
+const lanes = [
+  {
+    title: "Office package",
+    version: "2026.4.27.1",
+    bullets: ["Current office build", "Installer notes", "Quiet hotfix lane"],
+    action: "Download package",
+  },
+  {
+    title: "Browser companion",
+    version: "2026.4.27.1",
+    bullets: ["Side panel download", "Import tools", "Capture workflow"],
+    action: "Download companion",
+  },
+  {
+    title: "Download archive",
+    version: "Bundle",
+    bullets: ["Past releases", "Version history", "Recovery lane"],
+    action: "Open archive",
+  },
+];
+---
+
+<BaseLayout
+  title="CreditSoft Downloads"
+  description="CreditSoft office package downloads, browser companion installs, and download archive."
+>
+  <SiteHeader />
+
+  <main class="page-wrap section page-body">
+    <SectionHeading
+      eyebrow="Downloads"
+      title="Everything staff should download, grouped by purpose."
+      text="No mixed signals, no hidden files, no guessing which package is current."
+    />
+    <div class="download-layout">
+      {lanes.map((lane) => (
+        <article class="lane panel">
+          <div class="lane-head">
+            <span>{lane.title}</span>
+            <strong>{lane.version}</strong>
+          </div>
+          <ul>
+            {lane.bullets.map((item) => <li>{item}</li>)}
+          </ul>
+          <a class="button primary" href="/">{lane.action}</a>
+        </article>
+      ))}
+    </div>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-body {
+    padding-top: 60px;
+  }
+
+  .download-layout {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .lane {
+    padding: 24px;
+  }
+
+  .lane-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    font-weight: 650;
+  }
+
+  .lane ul {
+    margin: 0 0 22px;
+    padding-left: 18px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  @media (max-width: 900px) {
+    .download-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

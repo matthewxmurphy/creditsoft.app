@@ -1,0 +1,370 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { lanes } from "../lib/site-lanes";
+
+export function getStaticPaths() {
+  return lanes.map((lane) => ({
+    params: { slug: lane.slug },
+    props: { lane },
+  }));
+}
+
+const { lane } = Astro.props;
+const hasGallery = Array.isArray(lane.gallery) && lane.gallery.length > 0;
+const hasDetailSections = Array.isArray(lane.detailSections) && lane.detailSections.length > 0;
+---
+
+<BaseLayout title={`${lane.title} | CreditSoft`} description={lane.summary}>
+  <SiteHeader />
+  <main>
+    <section class="section page-hero">
+      <div class="page-wrap lane-hero">
+        <div class="lane-copy">
+          <span class="eyebrow">{lane.eyebrow}</span>
+          <h1 class="display">{lane.title}</h1>
+          <p class="lede">{lane.summary}</p>
+          <div class="button-row">
+            <a class="button primary" href="/contact-us">Start intake</a>
+            <a class="button secondary" href="/login">Login</a>
+            {lane.videoHref && <a class="button secondary" href={lane.videoHref}>{lane.videoLabel ?? "Watch videos"}</a>}
+          </div>
+        </div>
+
+        <figure class="lane-proof panel-soft">
+          <img
+            src={lane.image}
+            alt={lane.alt}
+            loading="eager"
+            decoding="async"
+            data-lightbox
+            data-lightbox-title={`${lane.proofTitle}: ${lane.alt}`}
+          />
+          <figcaption>{lane.proofTitle}</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section lane-context-section">
+      <div class="page-wrap lane-context panel">
+        <div>
+          <span class="eyebrow">Product proof</span>
+          <h2>{lane.proofTitle} in the CreditSoft workspace</h2>
+          <p>
+            {hasGallery
+              ? lane.galleryIntro ?? "Open any screenshot to see the full-size shadow-box view. These are product proof shots, not filler."
+              : "Click the screenshot to open the full-size shadow-box view. This page should never feel like a text-only placeholder when the feature menu sends someone here."}
+          </p>
+        </div>
+        <div class="lane-context-actions">
+          {lane.videoHref && <a class="button secondary" href={lane.videoHref}>{lane.videoLabel ?? "Watch videos"}</a>}
+          <a class="button ghost" href="/features">Back to feature overview</a>
+        </div>
+      </div>
+    </section>
+
+    {hasDetailSections && (
+      <section class="section lane-detail-section">
+        <div class="page-wrap section-shell">
+          <div class="lane-detail-grid">
+            {lane.detailSections.map((section) => (
+              <article class="lane-detail-block panel-soft">
+                <span class="eyebrow">{section.eyebrow}</span>
+                <h2>{section.title}</h2>
+                <p>{section.text}</p>
+                <div class="lane-detail-items">
+                  {section.items.map((item) => (
+                    <div class="lane-detail-item">
+                      <h3>{item.title}</h3>
+                      <p>{item.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    {hasGallery && (
+      <section class="section lane-gallery-section">
+        <div class="page-wrap section-shell">
+          <div class="section-kicker">
+            <span class="eyebrow">Feature proof</span>
+            <h2>{lane.proofTitle} screenshots</h2>
+            <p>
+              Social planning, Meta workflow, publishing review, and follow-up live inside the CreditSoft workspace.
+            </p>
+          </div>
+          <div class="lane-gallery">
+            {lane.gallery.map((shot) => (
+              <figure class="gallery-proof panel-soft">
+                <img
+                  src={shot.src}
+                  alt={shot.alt}
+                  loading="lazy"
+                  decoding="async"
+                  data-lightbox
+                  data-lightbox-title={`${shot.title}: ${shot.alt}`}
+                />
+                <figcaption>{shot.title}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <section class="section lane-bullets-section">
+      <div class="page-wrap section-shell">
+        <div class="simple-grid three">
+          {lane.bullets.map((bullet, index) => (
+            <article class="info-card panel-soft">
+              <h3>{bullet}</h3>
+              <p>{lane.bulletDetails?.[index] ?? "Built into the CreditSoft product direction so the public site, portal, and office node stay connected."}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .lane-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.82fr) minmax(520px, 1.18fr);
+    gap: 42px;
+    align-items: center;
+  }
+
+  .lane-copy {
+    max-width: 860px;
+  }
+
+  .lane-proof {
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    padding: 12px;
+  }
+
+  .lane-proof img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 18px;
+    object-fit: cover;
+    object-position: top left;
+    background: #07080c;
+  }
+
+  .lane-proof figcaption {
+    position: static;
+    width: fit-content;
+    margin: 10px 0 0;
+    padding: 8px 11px;
+    border-radius: 999px;
+    background: rgba(8, 8, 10, 0.78);
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .lane-context-section {
+    padding-top: 28px;
+    padding-bottom: 28px;
+  }
+
+  .lane-context {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 30px;
+  }
+
+  .lane-context h2 {
+    margin: 14px 0 10px;
+    font-size: clamp(2rem, 3vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  .lane-context p {
+    margin: 0;
+    max-width: 820px;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .lane-context-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .lane-gallery-section {
+    padding-top: 42px;
+  }
+
+  .lane-detail-section {
+    padding-top: 42px;
+  }
+
+  .lane-detail-grid {
+    display: grid;
+    gap: 22px;
+  }
+
+  .lane-detail-block {
+    padding: 30px;
+  }
+
+  .lane-detail-block h2 {
+    margin: 14px 0 10px;
+    font-size: clamp(2rem, 3vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  .lane-detail-block > p {
+    margin: 0;
+    max-width: 960px;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .lane-detail-items {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+
+  .lane-detail-item {
+    min-height: 168px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.045);
+  }
+
+  .lane-detail-item h3 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+    letter-spacing: 0;
+  }
+
+  .lane-detail-item p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .section-kicker {
+    max-width: 860px;
+    margin-bottom: 24px;
+  }
+
+  .section-kicker h2 {
+    margin: 14px 0 10px;
+    font-size: clamp(2rem, 3vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: 0;
+  }
+
+  .section-kicker p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .lane-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .gallery-proof {
+    position: relative;
+    overflow: hidden;
+    margin: 0;
+    padding: 10px;
+  }
+
+  .gallery-proof img {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 14px;
+    object-fit: cover;
+    object-position: top left;
+    background: #07080c;
+  }
+
+  .gallery-proof figcaption {
+    position: absolute;
+    left: 22px;
+    bottom: 22px;
+    padding: 8px 11px;
+    border-radius: 999px;
+    background: rgba(8, 8, 10, 0.78);
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .lane-bullets-section {
+    padding-top: 42px;
+  }
+
+  @media (max-width: 1120px) {
+    .lane-hero {
+      grid-template-columns: 1fr;
+    }
+
+    .lane-context {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .lane-context-actions {
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 680px) {
+    .lane-proof {
+      padding: 8px;
+    }
+
+    .lane-proof img {
+      border-radius: 12px;
+    }
+
+    .lane-gallery {
+      grid-template-columns: 1fr;
+    }
+
+    .lane-detail-items {
+      grid-template-columns: 1fr;
+    }
+
+    .gallery-proof {
+      padding: 8px;
+    }
+
+    .gallery-proof img {
+      border-radius: 12px;
+    }
+
+    .gallery-proof figcaption {
+      position: static;
+      width: fit-content;
+      margin: 10px 0 0;
+    }
+  }
+</style>

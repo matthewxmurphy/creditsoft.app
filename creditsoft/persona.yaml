@@ -1,0 +1,4 @@
+persona:
+  tone: calm_precise_operator
+  ui_style: mission_control
+  reminder_style: checklist_first

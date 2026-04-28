@@ -1,0 +1,142 @@
+---
+const {
+  summary = "CreditSoft gives credit repair offices a Metro2-first public site, local-first CRM nodes, client portal, update lane, and compliance workflow without looking like generic software.",
+  contact = "hello@creditsoft.app",
+} = Astro.props;
+---
+
+<footer class="site-footer section">
+  <div class="page-wrap footer-shell">
+    <div class="footer-brand">
+      <div class="footer-mark">
+        <span class="brand-mark">C</span>
+        <div>
+          <strong>CreditSoft</strong>
+          <small>Metro2-first</small>
+        </div>
+      </div>
+      <h2>Built to feel like one product from the first visit to the office workflow.</h2>
+      <p>{summary}</p>
+    </div>
+
+    <div class="footer-columns">
+      <div class="footer-links">
+        <strong>Explore</strong>
+        <a href="/">Home</a>
+        <a href="/features">Features</a>
+        <a href="/metro2">Metro2 review</a>
+        <a href="/compliance">FCRA / FDCPA</a>
+        <a href="/pricing-plan">Pricing</a>
+      </div>
+      <div class="footer-links">
+        <strong>Office</strong>
+        <a href="https://admin.creditsoft.app">CRM / intranet</a>
+        <a href="/multi-office-nodes">Multi-office nodes</a>
+        <a href="/api-bridge">API bridge</a>
+        <a href="/migration">Migration</a>
+      </div>
+      <div class="footer-links">
+        <strong>Company</strong>
+        <a href="/contact-us">Contact</a>
+        <a href="/about-us">About</a>
+        <a href="/outsourcing">Outsourcing</a>
+        <a href={`mailto:${contact}`}>{contact}</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    padding-top: 40px;
+    padding-bottom: 66px;
+  }
+
+  .footer-shell {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 48px;
+    padding-top: 76px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .footer-brand {
+    max-width: 58ch;
+  }
+
+  .footer-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .footer-mark .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f1c27a, #a86a2d);
+    color: #0c0d10;
+    font-weight: 900;
+    font-size: 1.32rem;
+  }
+
+  .footer-mark strong {
+    display: block;
+    font-size: 1.1rem;
+  }
+
+  .footer-mark small {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.72rem;
+  }
+
+  .footer-brand h2 {
+    margin: 26px 0 14px;
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+  }
+
+  .footer-brand p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .footer-columns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 24px;
+  }
+
+  .footer-links {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  .footer-links strong {
+    font-size: 1rem;
+  }
+
+  .footer-links a,
+  .footer-links span {
+    color: var(--muted);
+  }
+
+  @media (max-width: 860px) {
+    .footer-shell {
+      grid-template-columns: 1fr;
+      gap: 34px;
+    }
+
+    .footer-columns {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

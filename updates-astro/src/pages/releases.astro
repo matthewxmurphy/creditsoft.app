@@ -1,0 +1,73 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+
+const notes = [
+  ["2026.4.27.1", "CTO diagnostics", "The local Docker self-view now collapses into the real host node so two-node offices do not look like three servers."],
+  ["2026.4.26.1", "Office update lane", "Cleaner release notes and a tighter install surface."],
+  ["2026.4.26.0", "Companion lane", "Browser companion package and side panel flow."],
+  ["2026.4.25.2", "Renewal lane", "Updated pricing, renewal, and docs navigation."],
+];
+---
+
+<BaseLayout
+  title="CreditSoft Release Notes"
+  description="CreditSoft release notes and version history."
+>
+  <SiteHeader />
+
+  <main class="page-wrap section page-body">
+    <SectionHeading
+      eyebrow="Release notes"
+      title="Short notes that tell staff what changed."
+      text="A release page should be readable in seconds and useful when someone just wants the latest version."
+    />
+    <div class="notes-layout">
+      {notes.map(([version, label, note]) => (
+        <article class="note panel-soft">
+          <span class="eyebrow">{label}</span>
+          <h3>{version}</h3>
+          <p>{note}</p>
+        </article>
+      ))}
+    </div>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page-body {
+    padding-top: 60px;
+  }
+
+  .notes-layout {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .note {
+    padding: 24px;
+  }
+
+  .note h3 {
+    margin: 16px 0 10px;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+  }
+
+  .note p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 900px) {
+    .notes-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
