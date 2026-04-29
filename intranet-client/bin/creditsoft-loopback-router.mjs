@@ -45,6 +45,10 @@ const args = [
     process.env.CREDITSOFT_ROUTER_PORT || '8877',
 ];
 
+if (process.env.CREDITSOFT_CRM_BASE_URL) {
+    args.push('--crm-base', process.env.CREDITSOFT_CRM_BASE_URL);
+}
+
 for (const base of [...new Set(bases)]) {
     args.push('--base', base);
 }

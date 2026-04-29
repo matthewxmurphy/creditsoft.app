@@ -10,6 +10,8 @@ const DEFAULT_LOCAL_API_BASE = 'http://127.0.0.1:8001/api/v1';
 const DEFAULT_DASHBOARD_PATH = '/dashboard?source=intranet-client';
 const DEFAULT_ROUTER_HOST = '127.0.0.1';
 const DEFAULT_ROUTER_PORT = '8877';
+const CRM_PROXY_PREFIX = '/__creditsoft/crm';
+const CRM_SPA_ROUTE_PREFIXES = ['/objects'];
 const CONFIG_DIR = path.join(os.homedir(), '.creditsoft');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'intranet-client.json');
 
@@ -27,6 +29,7 @@ Options:
   --serve            Run a local loopback router/proxy for Chrome/PWA.
   --listen <host>    Router listen host. Defaults to 127.0.0.1.
   --listen-port <n>  Router listen port. Defaults to 8877.
+  --crm-base <url>   CRM sidecar origin to proxy under ${CRM_PROXY_PREFIX}.
   --strategy <mode>  Node selection strategy: fastest or ordered. Defaults to fastest.
   --open             Open the detected CreditSoft dashboard. Default.
   --no-open          Do not open a browser/PWA window.
@@ -46,6 +49,7 @@ const parseArgs = (argv) => {
         serve: false,
         listen: DEFAULT_ROUTER_HOST,
         listenPort: DEFAULT_ROUTER_PORT,
+        crmBase: process.env.CREDITSOFT_CRM_BASE_URL || '',
         strategy: 'fastest',
         open: true,
         save: false,
@@ -74,6 +78,8 @@ const parseArgs = (argv) => {
             args.listen = argv[++index] ?? DEFAULT_ROUTER_HOST;
         } else if (arg === '--listen-port') {
             args.listenPort = argv[++index] ?? DEFAULT_ROUTER_PORT;
+        } else if (arg === '--crm-base') {
+            args.crmBase = argv[++index] ?? '';
         } else if (arg === '--strategy') {
             args.strategy = argv[++index] ?? 'fastest';
         } else if (arg === '--open') {
@@ -140,6 +146,26 @@ const normalizeApiBase = (value) => {
 const originFromApiBase = (apiBase) => {
     const parsed = new URL(apiBase);
     return `${parsed.protocol}//${parsed.host}`;
+};
+
+const normalizeOrigin = (value) => {
+    if (typeof value !== 'string' || value.trim() === '') {
+        return null;
+    }
+
+    let candidate = value.trim();
+
+    if (!candidate.startsWith('http://') && !candidate.startsWith('https://')) {
+        candidate = `http://${candidate}`;
+    }
+
+    try {
+        const parsed = new URL(candidate);
+
+        return `${parsed.protocol}//${parsed.host}`;
+    } catch {
+        return null;
+    }
 };
 
 const readConfig = () => {
@@ -495,6 +521,25 @@ const responseHeaders = (response, targetOrigin, routerOrigin) => {
     return headers;
 };
 
+const rewriteCrmHtml = (html) => {
+    const envScript = `<script id="creditsoft-crm-router-env">window._env_=Object.assign({},window._env_||{},{REACT_APP_SERVER_BASE_URL:"${CRM_PROXY_PREFIX}"});if(window.location.pathname.indexOf("${CRM_PROXY_PREFIX}/")===0){window.history.replaceState(null,document.title,"/"+window.location.search+window.location.hash);}</script>`;
+    let rewritten = html.includes('creditsoft-crm-router-env')
+        ? html
+        : html.replace('</head>', `${envScript}</head>`);
+
+    rewritten = rewritten
+        .replace(/(href|src)="\/(assets\/[^"]+)"/g, `$1="${CRM_PROXY_PREFIX}/$2"`)
+        .replace(/(href|src)="\/(favicon[^"]*)"/g, `$1="${CRM_PROXY_PREFIX}/$2"`)
+        .replace(/(href|src)="\/(manifest[^"]*)"/g, `$1="${CRM_PROXY_PREFIX}/$2"`)
+        .replace(/(href|src)="\/(apple-touch-icon[^"]*)"/g, `$1="${CRM_PROXY_PREFIX}/$2"`);
+
+    return rewritten;
+};
+
+const isCrmSpaRoute = (pathname) => CRM_SPA_ROUTE_PREFIXES.some((prefix) => (
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
+));
+
 const proxyRequest = async ({ request, response, targetOrigin, routerOrigin, token }) => {
     const targetUrl = new URL(request.url || '/', targetOrigin);
     const method = request.method || 'GET';
@@ -511,10 +556,61 @@ const proxyRequest = async ({ request, response, targetOrigin, routerOrigin, tok
     response.end(payload);
 };
 
-const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath }) => new Promise((resolve, reject) => {
+const proxyCrmRequest = async ({ request, response, crmOrigin, routerOrigin }) => {
+    const requestUrl = new URL(request.url || '/', `http://${request.headers.host || '127.0.0.1'}`);
+    const proxiedPath = requestUrl.pathname.startsWith(`${CRM_PROXY_PREFIX}/`) || requestUrl.pathname === CRM_PROXY_PREFIX
+        ? (requestUrl.pathname === CRM_PROXY_PREFIX
+        ? '/'
+        : requestUrl.pathname.slice(CRM_PROXY_PREFIX.length) || '/')
+        : requestUrl.pathname;
+    const targetUrl = new URL(`${proxiedPath}${requestUrl.search}`, crmOrigin);
+    const method = request.method || 'GET';
+    const body = ['GET', 'HEAD'].includes(method) ? undefined : await collectRequestBody(request);
+    const upstream = await fetch(targetUrl, {
+        method,
+        headers: requestHeaders(request, ''),
+        body,
+        redirect: 'manual',
+    });
+    const headers = responseHeaders(upstream, crmOrigin, `${routerOrigin}${CRM_PROXY_PREFIX}`);
+    const contentType = upstream.headers.get('content-type') || '';
+    let payload = Buffer.from(await upstream.arrayBuffer());
+
+    if (contentType.includes('text/html')) {
+        payload = Buffer.from(rewriteCrmHtml(payload.toString('utf8')));
+    }
+
+    response.writeHead(upstream.status, upstream.statusText, headers);
+    response.end(payload);
+};
+
+const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath, crmOrigin }) => new Promise((resolve, reject) => {
     const targetOrigin = originFromApiBase(selected.apiBase);
     const server = createServer((request, response) => {
         const requestUrl = new URL(request.url || '/', `http://${request.headers.host || `${listen}:${listenPort}`}`);
+        const isCrmProxyRequest = crmOrigin && (
+            requestUrl.pathname === CRM_PROXY_PREFIX
+            || requestUrl.pathname.startsWith(`${CRM_PROXY_PREFIX}/`)
+            || requestUrl.pathname.startsWith('/assets/')
+            || isCrmSpaRoute(requestUrl.pathname)
+        );
+
+        if (isCrmProxyRequest) {
+            proxyCrmRequest({
+                request,
+                response,
+                crmOrigin,
+                routerOrigin: `http://${listen}:${listenPort}`,
+            }).catch((error) => {
+                response.writeHead(502, { 'content-type': 'application/json; charset=utf-8' });
+                response.end(JSON.stringify({
+                    message: 'CreditSoft local router could not reach the CRM sidecar.',
+                    crmOrigin,
+                    error: error instanceof Error ? error.message : String(error),
+                }, null, 2));
+            });
+            return;
+        }
 
         if (requestUrl.pathname === '/__creditsoft/client/status') {
             response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
@@ -525,6 +621,8 @@ const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath }
                 latencyMs: selected.latencyMs ?? null,
                 authenticated: selected.authenticated,
                 tokenProvided: Boolean(token),
+                crmOrigin,
+                crmProxyPath: crmOrigin ? CRM_PROXY_PREFIX : null,
             }, null, 2));
             return;
         }
@@ -552,6 +650,7 @@ const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath }
             origin: `http://${listen}:${listenPort}`,
             dashboardUrl: `http://${listen}:${listenPort}${dashboardPath}`,
             targetOrigin,
+            crmOrigin,
         });
     });
 });
@@ -593,6 +692,7 @@ const main = async () => {
     }));
 
     const selected = selectProbe(probes, token, strategy);
+    const crmOrigin = normalizeOrigin(args.crmBase || pairing.crmBase || pairing.crm_base_url || config.crmBase || config.crmOrigin);
 
     const dashboardPath = pairing.dashboardPath || config.dashboardPath || DEFAULT_DASHBOARD_PATH;
     const dashboardUrl = selected ? `${originFromApiBase(selected.apiBase)}${dashboardPath}` : null;
@@ -603,6 +703,7 @@ const main = async () => {
             listen: args.listen,
             listenPort: args.listenPort,
             dashboardPath,
+            crmOrigin,
         })
         : null;
     const launchUrl = router?.dashboardUrl || dashboardUrl;
@@ -618,6 +719,7 @@ const main = async () => {
             officeName: pairing.officeName || config.officeName || 'CreditSoft Office',
             lastConnectedBaseUrl: selected.apiBase,
             candidateBaseUrls: unique([selected.apiBase, ...candidates]),
+            crmOrigin,
             dashboardPath,
             updatedAt: new Date().toISOString(),
         });
@@ -634,6 +736,8 @@ const main = async () => {
             dashboardUrl: router.dashboardUrl,
             statusUrl: `${router.origin}/__creditsoft/client/status`,
             targetOrigin: router.targetOrigin,
+            crmOrigin: router.crmOrigin,
+            crmProxyPath: router.crmOrigin ? CRM_PROXY_PREFIX : null,
         } : null,
         strategy,
         opened,
@@ -654,6 +758,9 @@ const main = async () => {
 
         if (router) {
             console.log(`Local router: ${router.origin} -> ${router.targetOrigin}`);
+            if (router.crmOrigin) {
+                console.log(`CRM proxy: ${router.origin}${CRM_PROXY_PREFIX} -> ${router.crmOrigin}`);
+            }
         }
 
         if (launchUrl) {

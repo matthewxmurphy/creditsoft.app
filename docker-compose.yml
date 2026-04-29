@@ -66,6 +66,8 @@ services:
     depends_on:
       intranet:
         condition: service_healthy
+    env_file:
+      - .env.docker
     volumes:
       - ./intranet-client:/app/intranet-client:ro
     ports:
@@ -79,6 +81,8 @@ services:
       - 0.0.0.0
       - --listen-port
       - "8877"
+      - --crm-base
+      - "${CREDITSOFT_CRM_BASE_URL:-}"
       - --base
       - http://intranet:8001/api/v1
 
