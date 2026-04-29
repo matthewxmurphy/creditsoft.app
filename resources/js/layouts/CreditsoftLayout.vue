@@ -238,6 +238,23 @@ const clientStageOptions: Array<{ label: string; value: ClientStage }> = [
     { label: 'Graduated', value: 'graduated' },
     { label: 'All', value: 'all' },
 ];
+type RailChildItem = {
+    label: string;
+    href: string;
+    icon?: unknown;
+    description?: string;
+    section?: string | null;
+};
+type RailItem = {
+    label: string;
+    href: string;
+    icon?: unknown;
+    badge?: number;
+    badgeDescription?: string;
+    children?: RailChildItem[];
+    external?: boolean;
+    socialBrand?: 'meta';
+};
 const coerceClientStage = (value?: string | null): ClientStage =>
     value === 'leads' ||
     value === 'terminated' ||
@@ -362,7 +379,7 @@ const railWidth = ref(214);
 const railMinWidth = 176;
 const railMaxWidth = 272;
 
-const leftRail = computed(() => [
+const leftRail = computed<RailItem[]>(() => [
     { label: 'Overview', href: '/dashboard', icon: faSliders, badge: 0 },
     {
         label: 'Clients & Intake',
@@ -516,6 +533,7 @@ const headerContext = computed(() => {
 const isSettingsPage = computed(() =>
     currentPath.value.startsWith('/settings'),
 );
+const isCrmPage = computed(() => currentPath.value === '/crm');
 const isClientWorkspace = computed(() => {
     if (!client.value?.id) {
         return false;
@@ -1134,15 +1152,7 @@ const isRailItemActive = (item: { href: string }) => {
     return railPathMatches(item.href);
 };
 
-const railChildSections = (
-    children: Array<{
-        label: string;
-        href: string;
-        icon?: unknown;
-        description?: string;
-        section?: string | null;
-    }>,
-) => {
+const railChildSections = (children: RailChildItem[]) => {
     const sectionOrder = [null, 'Lifecycle', 'Records', 'Tools'];
 
     return sectionOrder
@@ -2104,11 +2114,13 @@ const footerTooltipAlign = (index: number) => {
                 </div>
 
                 <main
-                    class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 md:px-6"
+                    class="min-h-0 flex-1 overscroll-contain"
                     :class="
-                        isSettingsPage
-                            ? 'pt-2 pb-5 md:pt-3 md:pb-6'
-                            : 'py-5 md:py-6'
+                        isCrmPage
+                            ? 'overflow-hidden p-0'
+                            : isSettingsPage
+                            ? 'overflow-y-auto px-4 pt-2 pb-5 md:px-6 md:pt-3 md:pb-6'
+                            : 'overflow-y-auto px-4 py-5 md:px-6 md:py-6'
                     "
                 >
                     <slot />

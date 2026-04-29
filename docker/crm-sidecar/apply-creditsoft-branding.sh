@@ -30,6 +30,38 @@ if [ -d "${front_dir}" ]; then
     {} +
 fi
 
+if [ -d "${front_dir}" ] && command -v node >/dev/null 2>&1; then
+  FRONT_DIR="${front_dir}" node <<'NODE'
+const fs = require('fs');
+const path = require('path');
+
+const frontDir = process.env.FRONT_DIR;
+const marker = 'creditsoft-crm-token-handoff';
+const handoff = `<script id="${marker}">(function(){try{var params=new URLSearchParams(window.location.search);var raw=params.get('tokenPair');if(!raw)return;var tokenPair=JSON.parse(raw);if(!tokenPair||!tokenPair.accessOrWorkspaceAgnosticToken||!tokenPair.accessOrWorkspaceAgnosticToken.token)return;document.cookie='tokenPair='+encodeURIComponent(JSON.stringify(tokenPair))+'; Path=/; SameSite=Lax';params.delete('tokenPair');var query=params.toString();window.history.replaceState(null,document.title,window.location.pathname+(query?'?'+query:'')+window.location.hash);}catch(error){console.warn('CreditSoft CRM token handoff failed',error);}})();</script>`;
+
+for (const entry of fs.readdirSync(frontDir)) {
+  if (!entry.endsWith('.html')) {
+    continue;
+  }
+
+  const file = path.join(frontDir, entry);
+  let html = fs.readFileSync(file, 'utf8');
+
+  if (html.includes(marker)) {
+    continue;
+  }
+
+  if (html.includes('</head>')) {
+    html = html.replace('</head>', `${handoff}</head>`);
+  } else {
+    html = `${handoff}\n${html}`;
+  }
+
+  fs.writeFileSync(file, html);
+}
+NODE
+fi
+
 if [ -f /tmp/creditsoft-crm-icon.png ] && [ -f "${launcher_icon}" ]; then
   cp /tmp/creditsoft-crm-icon.png "${launcher_icon}"
 fi

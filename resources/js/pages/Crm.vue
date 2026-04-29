@@ -20,8 +20,8 @@ const reloadFrame = () => {
 <template>
     <Head title="CRM" />
 
-    <section class="flex min-h-[calc(100vh-5.5rem)] flex-col overflow-hidden rounded-lg border border-stone-300/70 bg-white/95">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 px-4 py-3">
+    <section class="flex h-full min-h-0 flex-col overflow-hidden bg-white">
+        <div class="flex min-h-11 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-stone-200 bg-white/95 px-4 py-2">
             <div>
                 <p class="text-[11px] font-semibold tracking-[0.22em] text-stone-500 uppercase">CreditSoft CRM</p>
                 <p v-if="fallback" class="mt-1 flex items-center gap-2 text-sm text-amber-800">
@@ -47,8 +47,8 @@ const reloadFrame = () => {
             :src="launchUrl"
             title="CreditSoft CRM"
             referrerpolicy="no-referrer"
-            sandbox="allow-downloads allow-forms allow-same-origin allow-scripts"
-            class="min-h-[720px] flex-1 border-0 bg-white"
+            sandbox="allow-clipboard-read allow-clipboard-write allow-downloads allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-storage-access-by-user-activation"
+            class="h-full min-h-0 w-full flex-1 border-0 bg-white"
         />
     </section>
 </template>
