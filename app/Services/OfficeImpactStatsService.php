@@ -156,6 +156,19 @@ class OfficeImpactStatsService
     }
 
     /**
+     * Returns evidence-derived impact for one client. No identity or report rows
+     * leave the office through this method.
+     *
+     * @return array{debt_removed:float,negative_items_removed:int}
+     */
+    public function clientImpact(Client $client): array
+    {
+        $client->loadMissing('reportingCycles.bureauSnapshots.tradelines', 'reportingCycles.browserCaptures');
+
+        return $this->removedNegativeImpact($client);
+    }
+
+    /**
      * @return array<string, array{negative:bool,balance:float}>
      */
     protected function cycleAccountIndex(ReportingCycle $cycle): array

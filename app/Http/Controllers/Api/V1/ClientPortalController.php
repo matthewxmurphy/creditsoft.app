@@ -26,6 +26,9 @@ use App\Services\ClientProfileSnapshotService;
 use App\Services\ClientScoreTimeline;
 use App\Services\CreditReportComparisonService;
 use App\Services\DisputeFoxDocumentInboxService;
+use App\Services\DisputeModeCatalog;
+use App\Services\DisputePlanEngine;
+use App\Services\DisputePlanPresenter;
 use App\Services\InstallerState;
 use App\Services\LeadCaptureGuard;
 use App\Services\OfficeGrowthRuntime;
@@ -54,8 +57,10 @@ class ClientPortalController extends Controller
         OfficeGrowthRuntime $growth,
         LeadCaptureGuard $leadGuard,
         ClientProfileSnapshotService $profileSnapshots,
-    ): JsonResponse
-    {
+        DisputeModeCatalog $disputeModes,
+        DisputePlanEngine $disputePlanEngine,
+        DisputePlanPresenter $disputePlanPresenter,
+    ): JsonResponse {
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
@@ -77,6 +82,13 @@ class ClientPortalController extends Controller
             'affiliate_key' => ['nullable', 'string', 'max:255'],
             'crm_values' => ['nullable', 'array'],
             'turnstile_token' => ['nullable', 'string', 'max:4096'],
+            'dispute_mode' => ['nullable', 'string', 'in:'.implode(',', $disputeModes->keys())],
+            'dispute_execution_mode' => ['required_with:dispute_mode', 'string', 'in:review,automatic'],
+            'dispute_mailing_method' => ['required_with:dispute_mode', 'string', 'in:certified,regular'],
+            'dispute_letter_review' => ['required_with:dispute_mode', 'boolean'],
+            'dispute_budget_cap' => ['required_with:dispute_mode', 'numeric', 'min:0', 'max:100000'],
+            'dispute_consent_name' => ['required_with:dispute_mode', 'string', 'max:255'],
+            'dispute_consent_accepted' => ['required_with:dispute_mode', 'accepted'],
         ]);
 
         $metadata = $this->mergeMetadata([], $validated, $growth);
@@ -164,8 +176,28 @@ class ClientPortalController extends Controller
             ],
         );
 
+        $disputePlan = null;
+
+        if (filled($validated['dispute_mode'] ?? null)) {
+            $disputePlan = $disputePlanEngine->enroll($client, [
+                'playbook_key' => $validated['dispute_mode'],
+                'execution_mode' => $validated['dispute_execution_mode'],
+                'mailing_method' => $validated['dispute_mailing_method'],
+                'letter_review' => (bool) $validated['dispute_letter_review'],
+                'budget_cap_cents' => (int) round(((float) $validated['dispute_budget_cap']) * 100),
+                'consent_name' => $validated['dispute_consent_name'],
+                'source' => 'partner_api_onboarding',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+            $disputePlanEngine->runDue($disputePlan);
+        }
+
         return response()->json([
-            'data' => $this->serializeClient($client),
+            'data' => [
+                ...$this->serializeClient($client),
+                'dispute_plan' => $disputePlan ? $disputePlanPresenter->plan($disputePlan) : null,
+            ],
             'meta' => [
                 ...$this->officeResponseMeta($growth),
                 'crm_confirmed' => true,
@@ -815,8 +847,7 @@ class ClientPortalController extends Controller
         AuditTrail $auditTrail,
         OfficeGrowthRuntime $growth,
         ClientProfileSnapshotService $profileSnapshots,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $client = $this->resolveClient($clientCuid);
 
         $validated = $request->validate([
@@ -999,8 +1030,12 @@ class ClientPortalController extends Controller
         ]);
     }
 
-    public function status(string $clientCuid, CreditReportComparisonService $comparisonService, OfficeGrowthRuntime $growth): JsonResponse
-    {
+    public function status(
+        string $clientCuid,
+        CreditReportComparisonService $comparisonService,
+        OfficeGrowthRuntime $growth,
+        DisputePlanPresenter $disputePlans,
+    ): JsonResponse {
         $client = $this->resolveClient($clientCuid);
         $client->load([
             'assignedUser',
@@ -1036,6 +1071,7 @@ class ClientPortalController extends Controller
                     'shareable_briefs' => $client->briefs()->where('sync_eligible', true)->count(),
                     'open_violations' => $client->violations()->whereIn('status', ['open', 'confirmed'])->count(),
                 ],
+                'dispute_plan' => $disputePlans->activeFor($client),
             ],
             'meta' => $this->officeResponseMeta($growth),
         ]);

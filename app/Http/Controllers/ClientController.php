@@ -21,6 +21,7 @@ use App\Services\ClientProfileSnapshotService;
 use App\Services\ClientScoreTimeline;
 use App\Services\CreditReportComparisonService;
 use App\Services\CreditsoftAiRegistry;
+use App\Services\DisputePlanPresenter;
 use App\Services\LicenseStateService;
 use App\Services\OfficeGrowthRuntime;
 use App\Services\SmartCreditCaptureParser;
@@ -305,7 +306,7 @@ class ClientController extends Controller
         $documentFileSizeSql = '(select coalesce(sum(file_size), 0) from client_documents where client_documents.client_id = clients.id)';
         $documentFileCountSql = '(select count(*) from client_documents where client_documents.client_id = clients.id and file_size > 0)';
         $documentRecordCountSql = '(select count(*) from client_documents where client_documents.client_id = clients.id)';
-        $assignedUserNameSql = "(select name from users where users.id = clients.assigned_to limit 1)";
+        $assignedUserNameSql = '(select name from users where users.id = clients.assigned_to limit 1)';
         $latestCycleSql = '(select max(started_at) from reporting_cycles where reporting_cycles.client_id = clients.id)';
         $cycleCountSql = '(select count(*) from reporting_cycles where reporting_cycles.client_id = clients.id)';
 
@@ -502,8 +503,8 @@ class ClientController extends Controller
             "(
                 (metadata::jsonb #> '{imports,disputefox}') is null
                 and lower(coalesce(status, '')) in ('active', 'active_review', 'monitoring')
-                and (".$this->activeClientEvidenceExistsSql().")
-            )",
+                and (".$this->activeClientEvidenceExistsSql().')
+            )',
             "(
                 (metadata::jsonb #> '{imports,disputefox}') is null
                 and exists (
@@ -585,8 +586,8 @@ class ClientController extends Controller
                 $leadWithHistorySql,
                 "(
                     lower(coalesce(status, '')) not in ('active', 'active_review', 'monitoring')
-                    and ".$this->inactiveServicePredicateSql()."
-                )",
+                    and ".$this->inactiveServicePredicateSql().'
+                )',
                 $this->legacyImportedProfileWithoutActiveClientSql(),
             ])
             .") and {$notFiredOrFinal}";
@@ -597,11 +598,11 @@ class ClientController extends Controller
         return '('.implode(' or ', [
             $this->providerLoginExistsSql(),
             $this->billingSignalExistsSql(),
-            "exists (
+            'exists (
                 select 1
                 from client_documents
                 where client_documents.client_id = clients.id
-            )",
+            )',
         ]).')';
     }
 
@@ -712,7 +713,6 @@ class ClientController extends Controller
             and lower(coalesce(metadata::jsonb #>> '{crm,source_kind}', metadata::jsonb #>> '{source_kind}', '')) <> 'client'
         )";
     }
-
 
     protected function canceledPredicateSql(): string
     {
@@ -2054,6 +2054,7 @@ class ClientController extends Controller
         LicenseStateService $licenseState,
         OfficeGrowthRuntime $growth,
         ClientHealthSignalService $clientHealth,
+        DisputePlanPresenter $disputePlans,
     ): Response {
         $client->load([
             'assignedUser',
@@ -2237,6 +2238,8 @@ class ClientController extends Controller
             ])->values(),
             'providerCatalog' => collect(config('creditsoft.client_providers.catalog', []))->values(),
             'providerStatuses' => collect(config('creditsoft.client_providers.statuses', []))->values(),
+            'disputePlanCatalog' => $disputePlans->catalog(),
+            'disputePlan' => $disputePlans->activeFor($client),
         ]);
     }
 
@@ -2396,8 +2399,7 @@ class ClientController extends Controller
         Client $client,
         AuditRetentionPolicy $auditRetentionPolicy,
         ClientHealthSignalService $clientHealth,
-    ): Response
-    {
+    ): Response {
         $retentionDays = $auditRetentionPolicy->effectiveDays();
         $restoreCutoff = now()->subDays($retentionDays);
 

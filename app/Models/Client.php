@@ -127,6 +127,11 @@ class Client extends Model
         return $this->hasMany(SopRun::class)->latest();
     }
 
+    public function disputePlans(): HasMany
+    {
+        return $this->hasMany(DisputePlan::class)->latest('started_at');
+    }
+
     public function getDisplayNameAttribute(): string
     {
         return collect([

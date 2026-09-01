@@ -64,6 +64,69 @@ type ImportedScoreCard = {
     scale?: 'score' | 'grade';
 };
 
+type DisputeMode = {
+    key: 'strategy' | 'aggressive' | 'nuke';
+    name: string;
+    summary: string;
+    first_round_letter_count: number;
+    first_round_cost_cents: number;
+    steps: Array<{
+        key: string;
+        round: number;
+        day: number;
+        title: string;
+        action_type: string;
+        letter_count: number;
+        estimated_cost_cents: number;
+    }>;
+};
+
+type DisputePlan = {
+    id: number;
+    playbook_key: string;
+    display_name: string;
+    status: 'active' | 'sleeping';
+    execution_mode: 'review' | 'automatic';
+    mailing_method: 'certified' | 'regular';
+    letter_review: boolean;
+    budget_cap_cents?: number | null;
+    spent_cents: number;
+    budget_remaining_cents?: number | null;
+    current_round: number;
+    consent_name: string;
+    consented_at: string;
+    next_report_due_at?: string | null;
+    completed_steps: number;
+    total_steps: number;
+    progress_percent: number;
+    deletions: number;
+    debt_removed: number;
+    progress_text: string;
+    steps: Array<{
+        id: number;
+        step_key: string;
+        round: number;
+        title: string;
+        action_type: string;
+        status: string;
+        scheduled_for: string;
+        completed_at?: string | null;
+        estimated_letter_count: number;
+        estimated_cost_cents: number;
+        requires_review: boolean;
+        depends_on?: string | null;
+    }>;
+    clocks: Array<{
+        id: number;
+        bureau: string;
+        clock_type: string;
+        status: string;
+        sent_at: string;
+        due_at: string;
+        responded_at?: string | null;
+    }>;
+};
+
 const props = defineProps<{
     client: {
         id: number;
@@ -478,6 +541,15 @@ const props = defineProps<{
         key: string;
         label: string;
     }>;
+    disputePlanCatalog: {
+        modes: DisputeMode[];
+        mailing_rates_cents: {
+            certified: number;
+            regular: number;
+        };
+        notice: string;
+    };
+    disputePlan?: DisputePlan | null;
 }>();
 
 type ClientDocumentRecord = (typeof props.client.documents)[number];
@@ -1006,7 +1078,40 @@ const manualBillingForm = useForm({
         props.client.billing_profile?.billing_interval ?? 'monthly',
     notes: '',
 });
-const deleteLeadForm = useForm({});
+const disputePlanEnrollmentForm = useForm({
+    playbook_key: 'strategy' as DisputeMode['key'],
+    execution_mode: 'review' as 'review' | 'automatic',
+    mailing_method: 'certified' as 'certified' | 'regular',
+    letter_review: true,
+    budget_cap: '100.00',
+    consent_name: '',
+    consent_accepted: false,
+});
+const disputePlanControlsForm = useForm({
+    execution_mode: props.disputePlan?.execution_mode ?? 'review',
+    mailing_method: props.disputePlan?.mailing_method ?? 'certified',
+    letter_review: props.disputePlan?.letter_review ?? true,
+    budget_cap:
+        props.disputePlan?.budget_cap_cents != null
+            ? (props.disputePlan.budget_cap_cents / 100).toFixed(2)
+            : '',
+});
+watch(
+    () => props.disputePlan,
+    (plan) => {
+        if (!plan) return;
+
+        disputePlanControlsForm.execution_mode = plan.execution_mode;
+        disputePlanControlsForm.mailing_method = plan.mailing_method;
+        disputePlanControlsForm.letter_review = plan.letter_review;
+        disputePlanControlsForm.budget_cap =
+            plan.budget_cap_cents != null
+                ? (plan.budget_cap_cents / 100).toFixed(2)
+                : '';
+    },
+    { immediate: true },
+);
+const deleteLeadForm = useForm({ client: '' });
 const deleteLeadConfirmationArmed = ref(false);
 
 const aiProviderCount = computed(
@@ -1213,6 +1318,40 @@ const billingProfileSummary = computed(() => {
         : 'No recent paid date saved.';
 
     return `${String(profile.status).replaceAll('_', ' ')}${interval} · ${amountLabel} · ${paid}`;
+});
+const selectedDisputeMode = computed(() =>
+    props.disputePlanCatalog.modes.find(
+        (mode) => mode.key === disputePlanEnrollmentForm.playbook_key,
+    ),
+);
+const selectedDisputeRate = computed(
+    () =>
+        props.disputePlanCatalog.mailing_rates_cents[
+            disputePlanEnrollmentForm.mailing_method
+        ] ?? 0,
+);
+const selectedDisputeRoundCost = computed(
+    () =>
+        (selectedDisputeMode.value?.first_round_letter_count ?? 0) *
+        selectedDisputeRate.value,
+);
+const formatCents = (value?: number | null) =>
+    value == null
+        ? 'No cap'
+        : new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+          }).format(value / 100);
+const disputeStepStatusLabel = (status: string) =>
+    status
+        .replaceAll('_', ' ')
+        .replace(/^\w/, (letter) => letter.toUpperCase());
+const disputeStepStatusClass = (status: string) => ({
+    'border-emerald-300 bg-emerald-50 text-emerald-800': status === 'completed',
+    'border-amber-300 bg-amber-50 text-amber-800':
+        status === 'review_ready' || status === 'budget_blocked',
+    'border-sky-300 bg-sky-50 text-sky-800': status === 'queued',
+    'border-stone-300 bg-stone-50 text-stone-600': status === 'pending',
 });
 const manualBillingIsComped = computed(() =>
     ['pro_bono', 'owner_comp'].includes(String(manualBillingForm.kind)),
@@ -2717,6 +2856,55 @@ const saveManualBilling = () => {
     });
 };
 
+const startDisputePlan = () => {
+    disputePlanEnrollmentForm.post(
+        `/clients/${clientRouteKey.value}/dispute-plan`,
+        { preserveScroll: true },
+    );
+};
+
+const saveDisputePlanControls = () => {
+    if (!props.disputePlan) return;
+
+    disputePlanControlsForm.patch(
+        `/clients/${clientRouteKey.value}/dispute-plan/${props.disputePlan.id}`,
+        { preserveScroll: true },
+    );
+};
+
+const toggleDisputePlanSleep = () => {
+    if (!props.disputePlan) return;
+
+    router.patch(
+        `/clients/${clientRouteKey.value}/dispute-plan/${props.disputePlan.id}`,
+        {
+            status:
+                props.disputePlan.status === 'sleeping' ? 'active' : 'sleeping',
+        },
+        { preserveScroll: true },
+    );
+};
+
+const runDisputePlanNow = () => {
+    if (!props.disputePlan) return;
+
+    router.post(
+        `/clients/${clientRouteKey.value}/dispute-plan/${props.disputePlan.id}/run`,
+        {},
+        { preserveScroll: true },
+    );
+};
+
+const completeDisputePlanStep = (stepId: number) => {
+    if (!props.disputePlan) return;
+
+    router.post(
+        `/clients/${clientRouteKey.value}/dispute-plan/${props.disputePlan.id}/steps/${stepId}/complete`,
+        {},
+        { preserveScroll: true },
+    );
+};
+
 const armDeleteLead = () => {
     deleteLeadConfirmationArmed.value = true;
 };
@@ -3143,6 +3331,467 @@ const pruneBrowserCaptureDuplicates = () => {
                     </p>
                 </div>
             </div>
+        </section>
+
+        <section
+            v-if="!focusPanelMode"
+            class="mr-5 ml-10 rounded-[28px] border border-stone-300/70 bg-white/85 p-5 shadow-sm"
+        >
+            <div
+                class="flex flex-wrap items-start justify-between gap-4 border-b border-stone-300/70 pb-4"
+            >
+                <div>
+                    <p
+                        class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"
+                    >
+                        Dispute playbook
+                    </p>
+                    <h2
+                        class="mt-1 text-xl font-semibold tracking-tight text-stone-950"
+                    >
+                        Three modes, one controlled engine
+                    </h2>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
+                        Record the client’s mode and consent, set the mailing
+                        budget, and let CreditSoft queue each timed step. A send
+                        is never recorded until the connected report or mailing
+                        provider confirms it.
+                    </p>
+                </div>
+
+                <div v-if="disputePlan" class="text-left sm:text-right">
+                    <p
+                        class="text-[11px] font-medium tracking-[0.22em] text-stone-500 uppercase"
+                    >
+                        Current mode
+                    </p>
+                    <p class="mt-1 text-lg font-semibold text-stone-950">
+                        {{ disputePlan.display_name }}
+                    </p>
+                    <p class="mt-1 text-sm text-stone-600">
+                        {{ disputePlan.progress_text }}
+                    </p>
+                </div>
+            </div>
+
+            <div v-if="disputePlan" class="mt-5 space-y-6">
+                <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                    <div class="border-t border-stone-300 pt-3">
+                        <p
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                        >
+                            Round
+                        </p>
+                        <p class="mt-2 text-2xl font-semibold text-stone-950">
+                            {{ disputePlan.current_round }}
+                        </p>
+                    </div>
+                    <div class="border-t border-stone-300 pt-3">
+                        <p
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                        >
+                            Steps complete
+                        </p>
+                        <p class="mt-2 text-2xl font-semibold text-stone-950">
+                            {{ disputePlan.completed_steps }}/{{
+                                disputePlan.total_steps
+                            }}
+                        </p>
+                    </div>
+                    <div class="border-t border-stone-300 pt-3">
+                        <p
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                        >
+                            Evidence-based deletions
+                        </p>
+                        <p class="mt-2 text-2xl font-semibold text-stone-950">
+                            {{ disputePlan.deletions }}
+                        </p>
+                    </div>
+                    <div class="border-t border-stone-300 pt-3">
+                        <p
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                        >
+                            Budget remaining
+                        </p>
+                        <p class="mt-2 text-2xl font-semibold text-stone-950">
+                            {{
+                                formatCents(disputePlan.budget_remaining_cents)
+                            }}
+                        </p>
+                    </div>
+                    <div class="border-t border-stone-300 pt-3">
+                        <p
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                        >
+                            Next report loop
+                        </p>
+                        <p class="mt-2 text-sm font-semibold text-stone-950">
+                            {{
+                                disputePlan.next_report_due_at
+                                    ? formatDate(disputePlan.next_report_due_at)
+                                    : 'Not scheduled'
+                            }}
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="h-2 overflow-hidden rounded-full bg-stone-200">
+                        <div
+                            class="h-full rounded-full bg-stone-950 transition-all"
+                            :style="{
+                                width:
+                                    Math.max(
+                                        0,
+                                        Math.min(
+                                            100,
+                                            disputePlan.progress_percent,
+                                        ),
+                                    ) + '%',
+                            }"
+                        />
+                    </div>
+                    <p class="mt-2 text-xs text-stone-500">
+                        Consent recorded for {{ disputePlan.consent_name }} on
+                        {{ formatDate(disputePlan.consented_at) }}.
+                    </p>
+                </div>
+
+                <form
+                    class="grid gap-4 rounded-2xl border border-stone-300 bg-stone-50/70 p-4 lg:grid-cols-4"
+                    @submit.prevent="saveDisputePlanControls"
+                >
+                    <label class="space-y-2">
+                        <span
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >Execution</span
+                        >
+                        <select
+                            v-model="disputePlanControlsForm.execution_mode"
+                            class="h-10 w-full rounded-xl border border-input bg-white px-3 text-sm"
+                        >
+                            <option value="review">Review queue</option>
+                            <option value="automatic">Automatic queue</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2">
+                        <span
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >Mailing estimate</span
+                        >
+                        <select
+                            v-model="disputePlanControlsForm.mailing_method"
+                            class="h-10 w-full rounded-xl border border-input bg-white px-3 text-sm"
+                        >
+                            <option value="certified">Certified</option>
+                            <option value="regular">Regular</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2">
+                        <span
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >Budget cap</span
+                        >
+                        <Input
+                            v-model="disputePlanControlsForm.budget_cap"
+                            inputmode="decimal"
+                        />
+                    </label>
+                    <label
+                        class="flex min-h-10 items-center gap-3 self-end rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-800"
+                    >
+                        <input
+                            v-model="disputePlanControlsForm.letter_review"
+                            type="checkbox"
+                            class="size-4"
+                        />
+                        Hold every letter for review
+                    </label>
+                    <div
+                        class="flex flex-wrap items-center gap-2 lg:col-span-4"
+                    >
+                        <button
+                            type="submit"
+                            class="rounded-full bg-stone-950 px-4 py-2 text-xs font-medium tracking-[0.18em] text-white uppercase disabled:opacity-50"
+                            :disabled="disputePlanControlsForm.processing"
+                        >
+                            Save controls
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium tracking-[0.18em] text-stone-700 uppercase"
+                            @click="toggleDisputePlanSleep"
+                        >
+                            {{
+                                disputePlan.status === 'sleeping'
+                                    ? 'Resume plan'
+                                    : 'Sleep plan'
+                            }}
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium tracking-[0.18em] text-stone-700 uppercase disabled:opacity-50"
+                            :disabled="disputePlan.status === 'sleeping'"
+                            @click="runDisputePlanNow"
+                        >
+                            Run due steps
+                        </button>
+                    </div>
+                </form>
+
+                <div>
+                    <p
+                        class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                    >
+                        Scheduled steps
+                    </p>
+                    <p class="mt-1 text-sm text-stone-600">
+                        Budget-blocked work stays stopped. Completing a
+                        bureau-dispute step starts Day 9 and Day 30 clocks.
+                    </p>
+
+                    <div class="mt-3 divide-y divide-stone-200">
+                        <div
+                            v-for="step in disputePlan.steps"
+                            :key="step.id"
+                            class="grid gap-3 py-4 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center"
+                        >
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="font-medium text-stone-950">
+                                        {{ step.title }}
+                                    </p>
+                                    <span
+                                        class="rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-[0.14em] uppercase"
+                                        :class="
+                                            disputeStepStatusClass(step.status)
+                                        "
+                                    >
+                                        {{
+                                            disputeStepStatusLabel(step.status)
+                                        }}
+                                    </span>
+                                </div>
+                                <p class="mt-1 text-xs text-stone-500">
+                                    Round {{ step.round }} · Due
+                                    {{ formatDate(step.scheduled_for) }}
+                                    <template v-if="step.depends_on">
+                                        · waits for
+                                        {{
+                                            step.depends_on.replaceAll('_', ' ')
+                                        }}
+                                    </template>
+                                </p>
+                            </div>
+                            <div class="text-sm text-stone-600 lg:text-right">
+                                <p v-if="step.estimated_letter_count">
+                                    {{ step.estimated_letter_count }} estimated
+                                    letters
+                                </p>
+                                <p v-if="step.estimated_cost_cents">
+                                    {{ formatCents(step.estimated_cost_cents) }}
+                                </p>
+                            </div>
+                            <button
+                                v-if="
+                                    ['queued', 'review_ready'].includes(
+                                        step.status,
+                                    )
+                                "
+                                type="button"
+                                class="rounded-full border border-stone-300 px-3 py-2 text-xs font-medium text-stone-800"
+                                @click="completeDisputePlanStep(step.id)"
+                            >
+                                Mark complete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="disputePlan.clocks.length">
+                    <p
+                        class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                    >
+                        Bureau clocks
+                    </p>
+                    <div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        <div
+                            v-for="clock in disputePlan.clocks"
+                            :key="clock.id"
+                            class="border-t border-stone-300 pt-3"
+                        >
+                            <p class="font-medium text-stone-950 capitalize">
+                                {{ clock.bureau }} · {{ clock.clock_type }}
+                            </p>
+                            <p class="mt-1 text-sm text-stone-600">
+                                Due {{ formatDate(clock.due_at) }} ·
+                                {{ disputeStepStatusLabel(clock.status) }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form
+                v-else
+                class="mt-5 space-y-5"
+                @submit.prevent="startDisputePlan"
+            >
+                <div class="grid gap-3 lg:grid-cols-3">
+                    <button
+                        v-for="mode in disputePlanCatalog.modes"
+                        :key="mode.key"
+                        type="button"
+                        class="rounded-2xl border p-4 text-left transition"
+                        :class="
+                            disputePlanEnrollmentForm.playbook_key === mode.key
+                                ? 'border-stone-950 bg-stone-950 text-white'
+                                : 'border-stone-300 bg-stone-50 text-stone-900 hover:border-stone-500'
+                        "
+                        @click="
+                            disputePlanEnrollmentForm.playbook_key = mode.key
+                        "
+                    >
+                        <span class="block text-lg font-semibold">
+                            {{ mode.name }}
+                        </span>
+                        <span
+                            class="mt-2 block text-sm leading-6"
+                            :class="
+                                disputePlanEnrollmentForm.playbook_key ===
+                                mode.key
+                                    ? 'text-stone-200'
+                                    : 'text-stone-600'
+                            "
+                        >
+                            {{ mode.summary }}
+                        </span>
+                    </button>
+                </div>
+
+                <div
+                    class="rounded-2xl border border-stone-300 bg-stone-50/70 p-4"
+                >
+                    <p class="text-sm font-semibold text-stone-950">
+                        {{ selectedDisputeMode?.name }} Round 1:
+                        {{ selectedDisputeMode?.first_round_letter_count ?? 0 }}
+                        estimated letters
+                    </p>
+                    <p class="mt-1 text-sm text-stone-600">
+                        About
+                        {{
+                            formatCents(
+                                (selectedDisputeMode?.first_round_letter_count ??
+                                    0) *
+                                    disputePlanCatalog.mailing_rates_cents
+                                        .certified,
+                            )
+                        }}
+                        certified or
+                        {{
+                            formatCents(
+                                (selectedDisputeMode?.first_round_letter_count ??
+                                    0) *
+                                    disputePlanCatalog.mailing_rates_cents
+                                        .regular,
+                            )
+                        }}
+                        regular. Selected estimate:
+                        {{ formatCents(selectedDisputeRoundCost) }}.
+                    </p>
+                </div>
+
+                <div class="grid gap-4 lg:grid-cols-4">
+                    <label class="space-y-2">
+                        <span
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >Execution</span
+                        >
+                        <select
+                            v-model="disputePlanEnrollmentForm.execution_mode"
+                            class="h-10 w-full rounded-xl border border-input bg-white px-3 text-sm"
+                        >
+                            <option value="review">Review queue</option>
+                            <option value="automatic">Automatic queue</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2">
+                        <span
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >Mailing estimate</span
+                        >
+                        <select
+                            v-model="disputePlanEnrollmentForm.mailing_method"
+                            class="h-10 w-full rounded-xl border border-input bg-white px-3 text-sm"
+                        >
+                            <option value="certified">Certified</option>
+                            <option value="regular">Regular</option>
+                        </select>
+                    </label>
+                    <label class="space-y-2">
+                        <span
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >Client budget cap</span
+                        >
+                        <Input
+                            v-model="disputePlanEnrollmentForm.budget_cap"
+                            inputmode="decimal"
+                        />
+                    </label>
+                    <label
+                        class="flex min-h-10 items-center gap-3 self-end rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm text-stone-800"
+                    >
+                        <input
+                            v-model="disputePlanEnrollmentForm.letter_review"
+                            type="checkbox"
+                            class="size-4"
+                        />
+                        Hold every letter for review
+                    </label>
+                </div>
+
+                <div
+                    class="grid gap-4 lg:grid-cols-[1fr_1.4fr_auto] lg:items-end"
+                >
+                    <label class="space-y-2">
+                        <span
+                            class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >Client consent name</span
+                        >
+                        <Input
+                            v-model="disputePlanEnrollmentForm.consent_name"
+                            autocomplete="name"
+                            placeholder="Typed by the consenting client"
+                        />
+                    </label>
+                    <label
+                        class="flex min-h-10 items-start gap-3 rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm leading-6 text-stone-700"
+                    >
+                        <input
+                            v-model="disputePlanEnrollmentForm.consent_accepted"
+                            type="checkbox"
+                            class="mt-1 size-4 shrink-0"
+                        />
+                        The client selected this mode, reviewed the timing,
+                        letter-review setting, and budget cap, and authorized
+                        the plan to start.
+                    </label>
+                    <button
+                        type="submit"
+                        class="h-11 rounded-full bg-stone-950 px-5 text-xs font-medium tracking-[0.18em] whitespace-nowrap text-white uppercase disabled:opacity-50"
+                        :disabled="disputePlanEnrollmentForm.processing"
+                    >
+                        Start playbook
+                    </button>
+                </div>
+
+                <p class="text-xs leading-5 text-stone-500">
+                    {{ disputePlanCatalog.notice }} Automatic queue removes the
+                    staff click from scheduling; it does not fabricate report
+                    findings, legal violations, delivery, or bureau responses.
+                </p>
+            </form>
         </section>
 
         <section

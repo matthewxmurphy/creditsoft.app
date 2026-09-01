@@ -1,13 +1,14 @@
 <?php
 
-use App\Console\Commands\CreditsoftPruneAuditRetention;
 use App\Console\Commands\CreditsoftCaptureSystemDiagnostics;
+use App\Console\Commands\CreditsoftPruneAuditRetention;
 use App\Console\Commands\CreditsoftReconcileDisputeFoxDocuments;
 use App\Console\Commands\CreditsoftReloadConfig;
 use App\Console\Commands\CreditsoftRetryClusterActions;
 use App\Console\Commands\CreditsoftRetryClusterApiKeySyncs;
 use App\Console\Commands\CreditsoftRetryClusterDatabaseSyncs;
 use App\Console\Commands\CreditsoftRetryClusterLicenseSyncs;
+use App\Console\Commands\CreditsoftRunDisputePlans;
 use App\Console\Commands\CreditsoftSyncCrmRoster;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -26,5 +27,6 @@ Schedule::command(CreditsoftRetryClusterActions::class)->everyMinute()->withoutO
 Schedule::command(CreditsoftRetryClusterDatabaseSyncs::class)->everyMinute()->withoutOverlapping();
 Schedule::command(CreditsoftRetryClusterApiKeySyncs::class)->everyMinute()->withoutOverlapping();
 Schedule::command(CreditsoftRetryClusterLicenseSyncs::class)->everyMinute()->withoutOverlapping();
+Schedule::command(CreditsoftRunDisputePlans::class)->everyFiveMinutes()->withoutOverlapping();
 Schedule::command(CreditsoftReloadConfig::class)->dailyAt('02:15');
 Schedule::command(CreditsoftPruneAuditRetention::class)->dailyAt('02:40');
