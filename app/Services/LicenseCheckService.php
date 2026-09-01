@@ -60,8 +60,7 @@ class LicenseCheckService
         int $graceDays = 7,
         string $requestedMode = 'soft',
         bool $remoteUnreachable = false,
-    ): array
-    {
+    ): array {
         $valid = (bool) preg_match('/^[A-Z0-9]{4,8}(?:-[A-Z0-9]{4,8}){2,5}$/', $normalizedKey);
         $message = $valid
             ? 'License format looks valid. Configure a remote endpoint later if you want live entitlement checks.'
@@ -100,6 +99,8 @@ class LicenseCheckService
             'tailscale_hostname' => $context['tailscale_hostname'] ?? null,
             'company_name' => $context['company_name'] ?? null,
             'admin_email' => $context['admin_email'] ?? null,
+            'business_city' => $context['business_city'] ?? null,
+            'business_state' => $context['business_state'] ?? null,
         ];
 
         try {

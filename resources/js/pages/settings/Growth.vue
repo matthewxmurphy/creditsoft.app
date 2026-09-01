@@ -69,6 +69,7 @@ type CompanyProfile = {
     business_phone: string;
     security_sms_phone: string;
     fax: string;
+    usps_mailer_id: string;
     timezone_mode: string;
     allow_round_robin: boolean;
     assigned_only_default: boolean;
@@ -148,6 +149,7 @@ const defaultCompanyProfile = (): CompanyProfile => ({
     business_phone: '',
     security_sms_phone: '',
     fax: '',
+    usps_mailer_id: '',
     timezone_mode: 'browser',
     allow_round_robin: true,
     assigned_only_default: false,
@@ -357,6 +359,39 @@ const activityStats = computed(() => ({
                         <label class="space-y-2">
                             <span class="text-[11px] font-medium uppercase tracking-[0.24em] text-stone-500">Fax</span>
                             <input v-model="form.company_profile.fax" type="text" class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm text-stone-900" />
+                        </label>
+                        <label class="space-y-2 lg:col-span-2">
+                            <span class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium uppercase tracking-[0.24em] text-stone-500">
+                                USPS Mailer ID
+                                <a
+                                    href="https://postalpro.usps.com/mailing/mailer-id"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    class="font-semibold tracking-[0.18em] text-amber-700 transition hover:text-stone-950"
+                                >
+                                    How to get one
+                                </a>
+                                <a
+                                    href="https://postalpro.usps.com/node/2340"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    class="font-semibold tracking-[0.18em] text-amber-700 transition hover:text-stone-950"
+                                >
+                                    MSP CRID/MID application
+                                </a>
+                            </span>
+                            <input
+                                v-model="form.company_profile.usps_mailer_id"
+                                type="text"
+                                inputmode="numeric"
+                                autocomplete="off"
+                                maxlength="9"
+                                class="w-full rounded-2xl border border-stone-300 px-4 py-3 text-sm text-stone-900"
+                                placeholder="6 or 9 digit MID"
+                            />
+                            <span class="block text-xs leading-5 text-stone-500">
+                                Saved once per office. Client files use this later for full Intelligent Mail barcode generation.
+                            </span>
                         </label>
                         <label class="space-y-2 lg:col-span-2">
                             <span class="text-[11px] font-medium uppercase tracking-[0.24em] text-stone-500">Timezone mode</span>

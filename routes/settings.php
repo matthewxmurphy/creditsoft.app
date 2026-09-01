@@ -26,6 +26,7 @@ Route::middleware([AuthenticateOrAllowLocalBypass::class])->group(function () {
     Route::get('settings/ai', [AiController::class, 'edit'])->name('ai.edit');
     Route::put('settings/ai', [AiController::class, 'update'])->name('ai.update');
     Route::get('settings/api', [ApiDocsController::class, 'edit'])->name('api-docs.edit');
+    Route::get('settings/api-webhooks', [ApiDocsController::class, 'edit'])->name('api-webhooks.edit');
     Route::put('settings/api', [ApiDocsController::class, 'update'])->name('api-docs.update');
     Route::get('settings/filesystem', [BackupFilesystemController::class, 'edit'])->name('backup-filesystem.edit');
     Route::get('settings/social', [SocialController::class, 'edit'])->name('social.edit');

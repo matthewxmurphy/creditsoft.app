@@ -5,6 +5,8 @@ const DEFAULT_SETTINGS = {
 
 const API_PING_PATH = '/api/v1/migration-operator/ping';
 const LOCAL_API_CANDIDATES = [
+  'http://127.0.0.1:8877',
+  'http://localhost:8877',
   'http://127.0.0.1',
   'http://localhost',
   'http://127.0.0.1:8001',
@@ -149,7 +151,7 @@ async function resolveApiBaseUrl(settings) {
     }
   }
 
-  throw new Error('Could not auto-detect the OPS API. It tries port 80 first, then 8001.');
+  throw new Error('Could not auto-detect the OPS API. It tries the 8877 router first, then port 80 and 8001.');
 }
 
 async function testPing() {

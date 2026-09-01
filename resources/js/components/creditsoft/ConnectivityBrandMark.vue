@@ -1,6 +1,6 @@
 <script setup lang="ts">
 withDefaults(defineProps<{
-    brand: 'local' | 'tailscale' | 'ngrok' | 'openapi' | 'wasabi' | 'dropbox' | 'google_drive';
+    brand: 'local' | 'tailscale' | 'ngrok' | 'openapi' | 'wasabi' | 'syncthing' | 'dropbox' | 'google_drive';
     large?: boolean;
     compact?: boolean;
 }>(), {
@@ -100,22 +100,50 @@ withDefaults(defineProps<{
             />
         </template>
 
-        <template v-else-if="brand === 'dropbox'">
-            <img
-                src="/assets/vendor-logos/dropbox-icon.svg"
-                alt="Dropbox"
-                class="w-auto object-contain"
+        <template v-else-if="brand === 'syncthing'">
+            <svg
+                viewBox="0 0 64 64"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-auto"
                 :class="compact ? 'h-[18px]' : (large ? 'h-7' : 'h-6')"
-            />
+                aria-label="Syncthing"
+            >
+                <circle cx="32" cy="32" r="30" fill="#0882c8" />
+                <path
+                    fill="#fff"
+                    d="M19.3 23.3a6.7 6.7 0 1 1 9.8-5.9 6.6 6.6 0 0 1-1.4 4.1l7.8 10.1a6.6 6.6 0 0 1 5.4.2l4.8-5.8a6.7 6.7 0 1 1 3.3 2.8l-4.8 5.8a6.7 6.7 0 0 1 .3 7.1l4.1 3.8a6.7 6.7 0 1 1-3.1 3.1l-4.1-3.8a6.7 6.7 0 0 1-9-1.3l-9.2 4.2a6.7 6.7 0 1 1-1.8-4l9.2-4.2a6.7 6.7 0 0 1 1.5-5.3l-7.8-10.1a6.6 6.6 0 0 1-5-.8Zm3.1-10.1a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Zm27.6 7.4a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6ZM38.5 35a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6ZM18.3 45.1a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Zm32.3 2.6a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z"
+                />
+            </svg>
+        </template>
+
+        <template v-else-if="brand === 'dropbox'">
+            <svg
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-auto"
+                :class="compact ? 'h-[18px]' : (large ? 'h-7' : 'h-6')"
+                aria-label="Dropbox"
+            >
+                <path fill="#0061ff" d="M14.3 5.9 2 13.8l8.5 6.8 12.4-7.7L14.3 5.9Z" />
+                <path fill="#0061ff" d="M33.7 5.9 25.1 13l12.4 7.7 8.5-6.8-12.3-8Z" />
+                <path fill="#0061ff" d="M2 27.4l12.3 8 8.6-7.1-12.4-7.7L2 27.4Z" />
+                <path fill="#0061ff" d="m37.5 20.6-12.4 7.7 8.6 7.1 12.3-8-8.5-6.8Z" />
+                <path fill="#0061ff" d="m24 30.1-8.5 7 8.5 5.1 8.5-5.1-8.5-7Z" />
+            </svg>
         </template>
 
         <template v-else-if="brand === 'google_drive'">
-            <img
-                src="/assets/vendor-logos/google-drive-icon.svg"
-                alt="Google Drive"
-                class="w-auto object-contain"
+            <svg
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-auto"
                 :class="compact ? 'h-[18px]' : (large ? 'h-7' : 'h-6')"
-            />
+                aria-label="Google Drive"
+            >
+                <path fill="#1e8e3e" d="M18.6 6h10.8l16.1 27.9H34.7L18.6 6Z" />
+                <path fill="#fbbc04" d="M2.5 33.9 18.6 6l5.4 9.3-10.7 18.6H2.5Z" />
+                <path fill="#4285f4" d="M13.3 33.9h32.2L40.1 43H7.9l5.4-9.1Z" />
+            </svg>
         </template>
 
         <template v-else>

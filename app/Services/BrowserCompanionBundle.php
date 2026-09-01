@@ -37,16 +37,28 @@ class BrowserCompanionBundle
 
     public function downloadName(): string
     {
+        return 'creditsoft-browser-companion.zip';
+    }
+
+    public function versionedDownloadName(): string
+    {
         return sprintf('creditsoft-browser-companion-v%s.zip', $this->version());
     }
 
     public function publicDownloadUrl(): string
     {
         $configuredUrl = trim((string) config('creditsoft.updates.browser_companion_download_url', ''));
+        $feedUrl = $this->feedDownloadUrl();
 
-        return $configuredUrl !== ''
-            ? $configuredUrl
-            : sprintf('https://updates.creditsoft.app/downloads/%s', $this->downloadName());
+        if ($feedUrl !== null) {
+            return $feedUrl;
+        }
+
+        if ($configuredUrl !== '') {
+            return $configuredUrl;
+        }
+
+        return sprintf('https://update.creditsoft.app/downloads/%s', $this->downloadName());
     }
 
     public function build(): string
@@ -81,6 +93,7 @@ class BrowserCompanionBundle
             'name' => (string) data_get($this->manifest(), 'name', 'CreditSoft Companion Capture'),
             'version' => $this->version(),
             'download_name' => $this->downloadName(),
+            'versioned_download_name' => $this->versionedDownloadName(),
             'description' => 'Bundled Chromium companion plus Safari webarchive quick-start.',
         ];
     }
@@ -128,10 +141,42 @@ class BrowserCompanionBundle
         File::ensureDirectoryExists($downloadsDirectory);
 
         $publishedPath = $downloadsDirectory.DIRECTORY_SEPARATOR.$this->downloadName();
+        $versionedPublishedPath = $downloadsDirectory.DIRECTORY_SEPARATOR.$this->versionedDownloadName();
 
         if (! is_file($publishedPath) || filemtime($publishedPath) < filemtime($archivePath)) {
             File::copy($archivePath, $publishedPath);
         }
+
+        if (! is_file($versionedPublishedPath) || filemtime($versionedPublishedPath) < filemtime($archivePath)) {
+            File::copy($archivePath, $versionedPublishedPath);
+        }
+    }
+
+    protected function feedDownloadUrl(): ?string
+    {
+        try {
+            $feed = app(CreditsoftUpdateFeed::class)->current();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        foreach (['browser_companion.download_url', 'browser_companion_url'] as $key) {
+            $url = trim((string) data_get($feed, $key, ''));
+
+            if ($this->isPublicZipUrl($url)) {
+                return $url;
+            }
+        }
+
+        return null;
+    }
+
+    protected function isPublicZipUrl(string $url): bool
+    {
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        $path = strtolower((string) parse_url($url, PHP_URL_PATH));
+
+        return in_array($scheme, ['http', 'https'], true) && str_ends_with($path, '.zip');
     }
 
     /**

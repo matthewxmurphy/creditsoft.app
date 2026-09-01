@@ -187,9 +187,9 @@
       border: 0;
       background: transparent;
       color: var(--ink);
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -201,7 +201,7 @@
 
     .icon-button:hover {
       transform: translateY(-1px);
-      background: rgba(31, 26, 23, 0.06);
+      background: transparent;
     }
 
     .body {
@@ -324,6 +324,57 @@
       color: var(--muted);
       border: 1px solid rgba(31, 26, 23, 0.1);
       padding: 11px 14px;
+    }
+
+    button[data-icon-class],
+    button.primary[data-icon-class],
+    button.secondary[data-icon-class],
+    button.ghost[data-icon-class] {
+      display: inline-flex;
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      min-height: 30px;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: rgba(31, 26, 23, 0.72);
+      box-shadow: none;
+    }
+
+    button[data-icon-class]:hover,
+    button.primary[data-icon-class]:hover,
+    button.secondary[data-icon-class]:hover,
+    button.ghost[data-icon-class]:hover {
+      color: var(--accent-ink);
+      background: transparent;
+      box-shadow: none;
+    }
+
+    button[data-icon-class]:focus-visible {
+      outline: 2px solid rgba(245, 178, 35, 0.78);
+      outline-offset: 3px;
+    }
+
+    button[data-icon-class] i {
+      display: inline-flex;
+      width: 18px;
+      height: 18px;
+      align-items: center;
+      justify-content: center;
+      color: currentColor;
+      font-style: normal;
+      line-height: 1;
+    }
+
+    button[data-icon-class] i svg {
+      display: block;
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
     }
 
     .results,
@@ -467,11 +518,6 @@
       align-items: center;
     }
 
-    .actions .primary {
-      min-width: 84px;
-      padding-inline: 18px;
-    }
-
     .status {
       min-height: 18px;
       font-size: 12px;
@@ -524,7 +570,7 @@
         </div>
         <div class="header-actions">
           <span id="pairedDot" class="paired-dot" aria-label="CreditSoft API key status" role="status"></span>
-          <button id="openSettings" class="icon-button" type="button" aria-label="Open extension settings">⚙</button>
+          <button id="openSettings" class="icon-button" type="button" aria-label="Open extension settings" title="Open extension settings" data-icon-class="fa-solid fa-gear" data-label="Open extension settings"></button>
         </div>
       </div>
 
@@ -539,7 +585,7 @@
             <select id="clientSelect" aria-label="Client">
               <option value="">Load clients from CreditSoft</option>
             </select>
-            <button id="refreshClients" class="secondary" type="button">Refresh</button>
+            <button id="refreshClients" class="secondary" type="button" aria-label="Reload clients from CreditSoft" title="Reload clients from CreditSoft" data-icon-class="fa-solid fa-rotate" data-label="Reload clients from CreditSoft"></button>
           </div>
 
           <div id="clientEmpty" class="empty">Save a CreditSoft API key, then load clients from CreditSoft.</div>
@@ -558,20 +604,22 @@
             <input id="disputefoxUsername" type="text" placeholder="Pulse username" autocomplete="username">
             <input id="disputefoxPassword" type="password" placeholder="Pulse password" autocomplete="current-password">
             <div class="credential-actions">
-              <button id="saveDisputeFoxCredentials" class="secondary" type="button">Save locally</button>
-              <button id="syncDisputeFoxProfile" class="primary" type="button">Sync page</button>
+              <button id="saveDisputeFoxCredentials" class="secondary" type="button" aria-label="Save DisputeFox credentials in this browser only" title="Save DisputeFox credentials in this browser only" data-icon-class="fa-regular fa-floppy-disk" data-label="Save DisputeFox credentials"></button>
+              <button id="syncDisputeFoxFiles" class="secondary" type="button" aria-label="Download and reattach files from the current DisputeFox profile" title="Download and reattach files from the current DisputeFox profile" data-icon-class="fa-regular fa-folder" data-label="Download DisputeFox files"></button>
+              <button id="syncDisputeFoxProfile" class="primary" type="button" aria-label="Sync the current DisputeFox profile page" title="Sync the current DisputeFox profile page" data-icon-class="fa-solid fa-rotate" data-label="Sync current DisputeFox profile"></button>
             </div>
           </div>
         </section>
 
         <section class="actions">
-          <button id="goCapture" class="primary" type="button">Go</button>
+          <button id="goCapture" class="primary" type="button" aria-label="Send the current provider page to CreditSoft" title="Send the current provider page to CreditSoft" data-icon-class="fa-solid fa-play" data-label="Send current page to CreditSoft"></button>
         </section>
 
         <p id="status" class="status" aria-live="polite"></p>
       </div>
     </section>
   </main>
+  <script src="fontawesome-lite.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

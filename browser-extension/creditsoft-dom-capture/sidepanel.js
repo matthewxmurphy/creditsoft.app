@@ -7,9 +7,11 @@ const DEFAULT_SETTINGS = {
 };
 
 const API_OVERVIEW_PATH = '/api/v1';
+const API_COMPANION_CHECK_PATH = '/api/v1/clients/picker?limit=1';
 const API_ENDPOINT_PATH = '/api/v1/browser-companion/intake';
 const API_CLIENT_SYNC_PATH = '/api/v1/browser-companion/client-sync';
 const API_CLIENT_DOCUMENT_PATH = '/api/v1/browser-companion/client-document';
+const API_DISPUTEFOX_DOCUMENT_RECONCILE_PATH = '/api/v1/browser-companion/disputefox-documents/reconcile';
 const API_PROVIDER_STATUS_PATH = '/api/v1/browser-companion/provider-status';
 const API_AUTOMATION_DISCOVERY_PATH = '/api/v1/browser-companion/automation-discovery';
 const DEFAULT_PROVIDER_KEY = 'smartcredit';
@@ -45,8 +47,11 @@ const PULSE_MIGRATION_LANES = [
 ];
 const PULSE_PROFILE_PROCESS_LANES = PULSE_MIGRATION_LANES.filter((lane) => ['clients', 'leads'].includes(lane.key));
 const PULSE_PROFILE_PROCESS_LIMIT = 500;
+const DISPUTEFOX_TINY_PREVIEW_IMAGE_MAX_BYTES = 65536;
 const CONTEXT_POLL_MS = 1400;
 const LOCAL_API_CANDIDATES = [
+    'http://127.0.0.1:8877',
+    'http://localhost:8877',
     'http://127.0.0.1',
     'http://localhost',
     'http://127.0.0.1:8001',
@@ -71,6 +76,7 @@ const elements = {
     processingDetail: document.getElementById('processingDetail'),
     integrationMenuToggle: document.getElementById('integrationMenuToggle'),
     integrationMenu: document.getElementById('integrationMenu'),
+    openProviderUpdate: document.getElementById('openProviderUpdate'),
     openDisputeFoxImport: document.getElementById('openDisputeFoxImport'),
     credentialToggle: document.getElementById('credentialToggle'),
     credentialPanel: document.getElementById('credentialPanel'),
@@ -85,8 +91,10 @@ const elements = {
     importDisputeFoxAffiliates: document.getElementById('importDisputeFoxAffiliates'),
     importDisputeFoxAutomation: document.getElementById('importDisputeFoxAutomation'),
     processPulseProfiles: document.getElementById('processPulseProfiles'),
+    processPulseFiles: document.getElementById('processPulseFiles'),
     closeDisputeFoxImport: document.getElementById('closeDisputeFoxImport'),
     syncDisputeFoxProfile: document.getElementById('syncDisputeFoxProfile'),
+    stopRunnerButton: document.getElementById('stopRunnerButton'),
 };
 
 let settingsCache = { ...DEFAULT_SETTINGS };
@@ -111,9 +119,14 @@ let syncActiveContextPromise = null;
 let runnerState = {
     active: false,
     busy: false,
+    migrationActive: false,
+    stopRequested: false,
     account: null,
     completedSteps: [],
+    processedProviderAccountIds: [],
     forceUpdate: false,
+    providerKey: null,
+    lastQueueCheckAt: 0,
 };
 
 function disputeFoxImportButtons() {
@@ -147,6 +160,73 @@ function accountRunnerKey(account) {
 
 function completedStepKey(account, stepKey) {
     return `${accountRunnerKey(account)}::${stepKey}`;
+}
+
+function normalizeProviderAccountId(value) {
+    const id = Number(value);
+
+    return Number.isFinite(id) && id > 0 ? Math.trunc(id) : null;
+}
+
+function rememberProcessedProviderAccount(accountOrId) {
+    const id = normalizeProviderAccountId(
+        typeof accountOrId === 'object'
+            ? accountOrId?.provider_account?.id
+            : accountOrId,
+    );
+
+    if (id && !runnerState.processedProviderAccountIds.includes(id)) {
+        runnerState.processedProviderAccountIds.push(id);
+    }
+
+    return id;
+}
+
+function runnerExcludedProviderAccountIds(extraIds = []) {
+    const ids = [
+        ...runnerState.processedProviderAccountIds,
+        ...extraIds,
+    ]
+        .map((id) => normalizeProviderAccountId(id))
+        .filter(Boolean);
+
+    return [...new Set(ids)];
+}
+
+function runnerHasCompletedStepForAccount(account) {
+    const key = accountRunnerKey(account);
+
+    return runnerState.completedSteps.some((stepKey) => stepKey.startsWith(`${key}::`));
+}
+
+function providerAccountIdFromAccount(account) {
+    return normalizeProviderAccountId(account?.provider_account?.id);
+}
+
+function companionAccountIsDue(account) {
+    const provider = account?.provider_account ?? null;
+
+    if (!provider) {
+        return false;
+    }
+
+    if (!toText(provider.last_imported_at).trim()) {
+        return true;
+    }
+
+    const nextDueAt = toText(provider.next_import_due_at).trim();
+
+    if (!nextDueAt) {
+        return false;
+    }
+
+    const dueTimestamp = Date.parse(nextDueAt);
+
+    if (!Number.isFinite(dueTimestamp)) {
+        return false;
+    }
+
+    return dueTimestamp <= Date.now() + 30000;
 }
 
 function providerCapturePlan(providerKey) {
@@ -265,8 +345,50 @@ function nextPendingCaptureStep(account) {
     return plan.find((stepKey) => !runnerState.completedSteps.includes(completedStepKey(account, stepKey))) ?? null;
 }
 
+function captureWouldCompleteProviderRun(account, captureStep) {
+    const providerKey = toText(account?.provider_account?.provider_key);
+    const plan = providerCapturePlan(providerKey);
+
+    if (!captureStep || plan.length === 0 || !plan.includes(captureStep)) {
+        return true;
+    }
+
+    return plan.every((stepKey) => (
+        stepKey === captureStep
+        || runnerState.completedSteps.includes(completedStepKey(account, stepKey))
+    ));
+}
+
 function toText(value) {
     return typeof value === 'string' ? value : '';
+}
+
+function setButtonLabel(button, label) {
+    if (!button) {
+        return;
+    }
+
+    const text = String(label ?? '').trim();
+    const iconClass = String(button.dataset.iconClass || '').replace(/[^a-z0-9 -]/gi, '').trim();
+    button.dataset.label = text;
+    button.setAttribute('aria-label', text || button.getAttribute('aria-label') || 'CreditSoft action');
+    button.title = text || button.title || 'CreditSoft action';
+
+    if (!iconClass) {
+        button.textContent = text;
+
+        return;
+    }
+
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i>`;
+    window.creditsoftRenderFontAwesome?.(button);
+}
+
+function syncButtonLabels() {
+    document.querySelectorAll('button[data-icon-class]').forEach((button) => {
+        const label = button.dataset.label || button.textContent.trim();
+        setButtonLabel(button, label);
+    });
 }
 
 function maskToken(token) {
@@ -288,7 +410,9 @@ function normalizeBaseUrl(value) {
         return '';
     }
 
-    return trimmed.replace(/\/+$/, '');
+    return trimmed
+        .replace(/\/+$/, '')
+        .replace(/\/api\/v1$/i, '');
 }
 
 function candidateBaseUrls(value) {
@@ -303,7 +427,7 @@ function activeRunnerAccount() {
 }
 
 function updateProcessingHero() {
-    const processing = runnerState.active;
+    const processing = runnerState.active || runnerState.busy || runnerState.migrationActive;
     const account = activeRunnerAccount();
     const clientName = account?.client?.display_name ? toText(account.client.display_name).trim() : '';
     const providerKey = toText(account?.provider_account?.provider_key || activePageContext?.provider_key).trim();
@@ -312,15 +436,24 @@ function updateProcessingHero() {
 
     elements.panel?.classList.toggle('is-processing', processing);
 
+    if (elements.stopRunnerButton) {
+        elements.stopRunnerButton.hidden = false;
+        elements.stopRunnerButton.disabled = !processing;
+    }
+
     if (elements.processingTitle) {
         elements.processingTitle.textContent = processing
-            ? (clientName ? `Updating reports for ${clientName}` : `Updating ${providerName}`)
+            ? (runnerState.migrationActive
+                ? 'Importing DisputeFox data'
+                : (clientName ? `Updating reports for ${clientName}` : `Updating ${providerName}`))
             : 'Provider report update';
     }
 
     if (elements.processingDetail) {
         elements.processingDetail.textContent = processing
-            ? (statusText || `Working through ${providerName} and preparing the next report page.`)
+            ? (statusText || (runnerState.migrationActive
+                ? 'Working through DisputeFox lists, profiles, and saved documents.'
+                : `Working through ${providerName} and preparing the next report page.`))
             : 'CreditSoft is waiting for the next provider report update.';
     }
 }
@@ -653,20 +786,57 @@ function setRunnerAccount(account) {
 }
 
 function startRunner(account = null, options = {}) {
+    runnerState.stopRequested = false;
     runnerState.active = true;
     runnerState.account = account ?? null;
     runnerState.completedSteps = [];
+    runnerState.processedProviderAccountIds = [];
     runnerState.forceUpdate = Boolean(options.forceUpdate);
+    runnerState.providerKey = toText(options.providerKey).trim() || null;
+    runnerState.lastQueueCheckAt = 0;
     updateProcessingHero();
+    renderNextClient();
+}
+
+function consumeRunnerForceUpdate() {
+    const shouldForce = runnerState.forceUpdate;
+    runnerState.forceUpdate = false;
+
+    return shouldForce;
 }
 
 function stopRunner() {
+    runnerState.stopRequested = true;
     runnerState.active = false;
     runnerState.busy = false;
+    runnerState.migrationActive = false;
     runnerState.account = null;
     runnerState.completedSteps = [];
+    runnerState.processedProviderAccountIds = [];
     runnerState.forceUpdate = false;
+    runnerState.providerKey = null;
+    runnerState.lastQueueCheckAt = 0;
     updateProcessingHero();
+    renderNextClient();
+}
+
+function startMigrationRun() {
+    runnerState.stopRequested = false;
+    runnerState.migrationActive = true;
+    updateProcessingHero();
+    syncFeatureVisibility();
+}
+
+function finishMigrationRun() {
+    runnerState.migrationActive = false;
+    updateProcessingHero();
+    syncFeatureVisibility();
+}
+
+function assertNotStopped() {
+    if (runnerState.stopRequested) {
+        throw new Error('Stopped by owner.');
+    }
 }
 
 function delay(ms) {
@@ -860,6 +1030,58 @@ async function submitProviderLogin(account) {
 
             element.dispatchEvent(new Event('input', { bubbles: true }));
             element.dispatchEvent(new Event('change', { bubbles: true }));
+            element.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
+            element.dispatchEvent(new Event('blur', { bubbles: true }));
+        };
+
+        const textInputLooksLikeLogin = (element) => {
+            if (!(element instanceof HTMLInputElement) || !isVisible(element)) {
+                return false;
+            }
+
+            const type = (element.getAttribute('type') || 'text').toLowerCase();
+
+            if (!['email', 'text', 'search', 'tel'].includes(type)) {
+                return false;
+            }
+
+            const name = [
+                element.getAttribute('name') || '',
+                element.id || '',
+                element.getAttribute('autocomplete') || '',
+                element.getAttribute('placeholder') || '',
+                element.getAttribute('aria-label') || '',
+                element.labels ? Array.from(element.labels).map((label) => label.textContent || '').join(' ') : '',
+            ].join(' ').toLowerCase();
+
+            return element.id === 'loginId'
+                || element.name === 'loginId'
+                || name.includes('email')
+                || name.includes('user')
+                || name.includes('login')
+                || name.includes('member')
+                || name.includes('username');
+        };
+
+        const findLoginField = (root) => {
+            const preferredSelectors = [
+                '#loginId',
+                'input[name="loginId"]',
+                'input[name="email"]',
+                'input[type="email"]',
+                'input[autocomplete="username"]',
+                'input[autocomplete="email"]',
+            ];
+
+            for (const selector of preferredSelectors) {
+                const match = root.querySelector(selector);
+
+                if (textInputLooksLikeLogin(match)) {
+                    return match;
+                }
+            }
+
+            return Array.from(root.querySelectorAll('input')).find(textInputLooksLikeLogin) ?? null;
         };
 
         const currentUrl = window.location.href.toLowerCase();
@@ -936,27 +1158,18 @@ async function submitProviderLogin(account) {
         }
 
         const fieldRoot = passwordField.closest('form') ?? document;
-        const loginField = Array.from(fieldRoot.querySelectorAll('input'))
-            .find((element) => {
-                if (element === passwordField || !isVisible(element)) {
-                    return false;
-                }
+        const loginField = findLoginField(fieldRoot) || findLoginField(document);
 
-                const type = (element.getAttribute('type') || 'text').toLowerCase();
-                const name = `${element.getAttribute('name') || ''} ${element.id || ''} ${element.getAttribute('autocomplete') || ''}`.toLowerCase();
-
-                return ['email', 'text', 'search'].includes(type)
-                    || name.includes('email')
-                    || name.includes('user')
-                    || name.includes('login')
-                    || name.includes('member');
-            });
-
-        if (loginField) {
-            setInputValue(loginField, credentials.login);
+        if (!loginField) {
+            return { submitted: false, reason: 'missing-login-field' };
         }
 
+        setInputValue(loginField, credentials.login);
         setInputValue(passwordField, credentials.password);
+
+        if (loginField.value !== credentials.login || passwordField.value !== credentials.password) {
+            return { submitted: false, reason: 'field-fill-did-not-stick' };
+        }
 
         const submitButton = Array.from(fieldRoot.querySelectorAll('button, input[type="submit"]'))
             .find((element) => {
@@ -1164,7 +1377,9 @@ function renderNextClient() {
 
     const onProviderPage = isSupportedProviderPageContext(activePageContext);
     const captureReady = isCaptureReadyPageContext(activePageContext);
-    const pairedAndReady = Boolean(settingsCache.office_token) && connectionState === 'ready';
+    const hasApiKey = Boolean(settingsCache.office_token);
+    const canAttemptUpdate = hasApiKey && connectionState !== 'error';
+    const runnerActive = runnerState.active;
 
     if (isImportMenuContext()) {
         nextReadyAccount = null;
@@ -1186,7 +1401,7 @@ function renderNextClient() {
         elements.nextClientCard.innerHTML = '';
         elements.nextClientEmpty.hidden = false;
         elements.nextClientEmpty.textContent = 'Choose DisputeFox migration to import legacy CRM data.';
-        elements.goCapture.textContent = 'Import';
+        setButtonLabel(elements.goCapture, runnerActive ? 'Running' : 'Import');
         elements.goCapture.disabled = true;
         return;
     }
@@ -1214,8 +1429,10 @@ function renderNextClient() {
         elements.nextClientEmpty.textContent = isDisputeFoxPulseUrl(activePageContext.url)
             ? `Current source: ${laneLabel}. Choose a list import, profile details, or current page.`
             : 'Open DisputeFox, log in, then choose an import action.';
-        elements.goCapture.textContent = isDisputeFoxPulseUrl(activePageContext.url) ? 'Import' : 'Open DisputeFox';
-        elements.goCapture.disabled = false;
+        setButtonLabel(elements.goCapture, runnerActive
+            ? 'Running'
+            : (isDisputeFoxPulseUrl(activePageContext.url) ? 'Import' : 'Open DisputeFox'));
+        elements.goCapture.disabled = runnerActive;
         return;
     }
 
@@ -1232,7 +1449,7 @@ function renderNextClient() {
         elements.nextSectionHelp.hidden = true;
     }
 
-    elements.goCapture.textContent = 'Update';
+    setButtonLabel(elements.goCapture, runnerActive ? 'Running' : 'Update');
 
     if (!onProviderPage) {
         nextReadyAccount = null;
@@ -1241,8 +1458,10 @@ function renderNextClient() {
         elements.nextClientEmpty.hidden = false;
         elements.nextClientEmpty.textContent = isUnsupportedBrowserPage(activePageContext.url)
             ? 'Update opens the next provider report page. Browser internal pages cannot be captured.'
-            : 'Update opens the next provider report page.';
-        elements.goCapture.disabled = !pairedAndReady;
+            : (hasApiKey
+                ? 'Update will verify the saved API key, then open the next provider report page.'
+                : 'Save a CreditSoft API key, then Update opens the next provider report page.');
+        elements.goCapture.disabled = runnerActive || !canAttemptUpdate;
         return;
     }
 
@@ -1256,7 +1475,7 @@ function renderNextClient() {
         elements.nextClientEmpty.textContent = settingsCache.office_token
             ? `No ${providerLabel(activePageContext.provider_key)} report update is queued.`
             : 'Save a CreditSoft API key, then the next report update will appear here.';
-        elements.goCapture.disabled = true;
+        elements.goCapture.disabled = runnerActive || !canAttemptUpdate;
         return;
     }
 
@@ -1286,7 +1505,7 @@ function renderNextClient() {
         </div>
         </div>
     `;
-    elements.goCapture.disabled = !pairedAndReady;
+    elements.goCapture.disabled = runnerActive || !canAttemptUpdate;
 
     if (!captureReady && elements.nextClientEmpty) {
         elements.nextClientEmpty.hidden = false;
@@ -1329,21 +1548,26 @@ function syncCredentialForm() {
 function syncFeatureVisibility() {
     const enabled = Boolean(featureFlags.client_sync && featureFlags.disputefox_credentials);
     const ready = enabled && connectionState === 'ready';
+    const processing = runnerState.active || runnerState.busy || runnerState.migrationActive;
 
     if (elements.credentialFeature) {
         elements.credentialFeature.hidden = !disputeFoxImportOpen;
     }
 
     if (elements.syncDisputeFoxProfile) {
-        elements.syncDisputeFoxProfile.disabled = !ready;
+        elements.syncDisputeFoxProfile.disabled = !ready || processing;
     }
 
     disputeFoxImportButtons().forEach((button) => {
-        button.disabled = !ready;
+        button.disabled = !ready || processing;
     });
 
     if (elements.processPulseProfiles) {
-        elements.processPulseProfiles.disabled = !ready;
+        elements.processPulseProfiles.disabled = !ready || processing;
+    }
+
+    if (elements.processPulseFiles) {
+        elements.processPulseFiles.disabled = !ready || processing;
     }
 
     if (elements.closeDisputeFoxImport) {
@@ -1402,6 +1626,26 @@ async function loadSettings() {
             await loadNextClient({ quiet: true });
         }
     }
+}
+
+function refreshSettingsFromStorageChanges(changes) {
+    const watchedKeys = Object.keys(DEFAULT_SETTINGS);
+    const touchedKeys = watchedKeys.filter((key) => Object.prototype.hasOwnProperty.call(changes, key));
+
+    if (!touchedKeys.length) {
+        return false;
+    }
+
+    for (const key of touchedKeys) {
+        settingsCache[key] = changes[key]?.newValue ?? DEFAULT_SETTINGS[key];
+    }
+
+    if (Object.prototype.hasOwnProperty.call(changes, 'office_token')) {
+        connectionState = settingsCache.office_token ? 'saved' : 'empty';
+        nextReadyAccount = null;
+    }
+
+    return true;
 }
 
 async function saveSettingsFromForm() {
@@ -2478,7 +2722,13 @@ async function fetchNextClient(settings, pageContext, options = {}) {
     const excludeProviderAccountId = Number.isFinite(options?.excludeProviderAccountId)
         ? Number(options.excludeProviderAccountId)
         : null;
+    const excludeProviderAccountIds = Array.isArray(options?.excludeProviderAccountIds)
+        ? options.excludeProviderAccountIds
+            .map((id) => normalizeProviderAccountId(id))
+            .filter(Boolean)
+        : [];
     const forceUpdate = Boolean(options?.forceUpdate);
+    const preferredClientCuid = toText(options?.preferredClientCuid).trim();
 
     if (providerKey) {
         params.set('provider_key', providerKey);
@@ -2492,8 +2742,16 @@ async function fetchNextClient(settings, pageContext, options = {}) {
         params.set('page_title', pageContext.title);
     }
 
+    if (preferredClientCuid) {
+        params.set('client_cuid', preferredClientCuid);
+    }
+
     if (excludeProviderAccountId) {
         params.set('exclude_provider_account_id', String(excludeProviderAccountId));
+    }
+
+    for (const id of [...new Set(excludeProviderAccountIds)]) {
+        params.append('exclude_provider_account_ids[]', String(id));
     }
 
     if (forceUpdate) {
@@ -2543,16 +2801,46 @@ async function fetchApiOverview(settings) {
     return parsed;
 }
 
-async function fetchQueuedAccountForContext(settings, { preferCurrentPage = true, excludeProviderAccountId = null, forceUpdate = false } = {}) {
-    const requestContext = preferCurrentPage && isSupportedProviderPageContext(activePageContext)
+async function fetchCompanionAccessCheck(settings) {
+    const apiBaseUrl = await resolveApiBaseUrl(settings);
+    const endpoint = `${apiBaseUrl}${API_COMPANION_CHECK_PATH}`;
+
+    const response = await fetch(endpoint, {
+        headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${settings.office_token}`,
+            'X-CreditSoft-Token': settings.office_token,
+        },
+    });
+
+    const parsed = await parseJsonResponse(response);
+
+    if (!response.ok) {
+        throw new Error(apiErrorMessage(parsed, response.status, 'Could not verify browser companion access.'));
+    }
+
+    return parsed;
+}
+
+async function fetchQueuedAccountForContext(settings, { preferCurrentPage = true, excludeProviderAccountId = null, excludeProviderAccountIds = [], forceUpdate = false, providerKey = null, preferredClientCuid = null } = {}) {
+    const preferredProviderKey = toText(providerKey || runnerState.providerKey).trim();
+    const shouldUseActiveProvider = preferCurrentPage
+        && isSupportedProviderPageContext(activePageContext)
+        && (!preferredProviderKey || activePageContext.provider_key === preferredProviderKey);
+    const requestContext = shouldUseActiveProvider
         ? activePageContext
         : {
-            provider_key: null,
-            page_url: '',
-            page_title: '',
+            provider_key: preferredProviderKey || null,
+            url: '',
+            title: '',
         };
 
-    const parsed = await fetchNextClient(settings, requestContext, { excludeProviderAccountId, forceUpdate });
+    const parsed = await fetchNextClient(settings, requestContext, {
+        excludeProviderAccountId,
+        excludeProviderAccountIds,
+        forceUpdate,
+        preferredClientCuid,
+    });
 
     return extractNextReadyClient(parsed);
 }
@@ -2610,6 +2898,12 @@ async function loadNextClient({ quiet = false } = {}) {
         const parsed = await fetchNextClient(settingsCache, activePageContext);
         applyFeatureFlags(parsed);
         nextReadyAccount = extractNextReadyClient(parsed);
+
+        if (nextReadyAccount?.provider_account && !companionAccountIsDue(nextReadyAccount)) {
+            rememberProcessedProviderAccount(nextReadyAccount);
+            nextReadyAccount = null;
+        }
+
         connectionState = 'ready';
         renderNextClient();
         syncPairingState();
@@ -2672,10 +2966,14 @@ async function markSmartCreditNeedsPaymentAndAdvance(settings, account) {
         },
     }, settings);
 
+    rememberProcessedProviderAccount(providerAccountId);
+
     const nextAccount = await fetchQueuedAccountForContext(settings, {
         preferCurrentPage: false,
         excludeProviderAccountId: providerAccountId,
-        forceUpdate: runnerState.forceUpdate,
+        excludeProviderAccountIds: runnerExcludedProviderAccountIds([providerAccountId]),
+        forceUpdate: false,
+        preferredClientCuid: account?.client?.cuid,
     });
     const logoutUrl = providerLogoutUrlFromAccount(account);
 
@@ -2684,6 +2982,148 @@ async function markSmartCreditNeedsPaymentAndAdvance(settings, account) {
         setRunnerAccount(null);
         pushActivity(`${clientName} was noted as needing SmartCredit payment/reactivation. Queue complete for now.`, 'success');
         setStatus(`${clientName} needs SmartCredit payment/reactivation. Queue complete for now.`, 'success');
+
+        if (logoutUrl) {
+            await navigateActiveTab(logoutUrl);
+        }
+
+        return true;
+    }
+
+    runnerState.completedSteps = [];
+    setRunnerAccount(nextAccount);
+    pushActivity(`Continuing with ${clientNameFromAccount(nextAccount)}.`, 'info');
+    setStatus(`Continuing with ${clientNameFromAccount(nextAccount)}...`, 'info');
+
+    if (logoutUrl) {
+        await navigateActiveTab(logoutUrl);
+
+        return true;
+    }
+
+    const pendingStep = nextPendingCaptureStep(nextAccount);
+    const targetUrl = providerStepUrl(toText(nextAccount?.provider_account?.provider_key), pendingStep)
+        || providerStartUrlFromAccount(nextAccount);
+
+    if (targetUrl) {
+        await navigateActiveTab(targetUrl);
+    }
+
+    return true;
+}
+
+async function refreshRunnerAccountFromServerQueue(settings, account) {
+    const currentProviderAccountId = providerAccountIdFromAccount(account);
+
+    if (!currentProviderAccountId || runnerHasCompletedStepForAccount(account)) {
+        return account;
+    }
+
+    const now = Date.now();
+
+    if (runnerState.lastQueueCheckAt && now - runnerState.lastQueueCheckAt < 10000) {
+        return account;
+    }
+
+    runnerState.lastQueueCheckAt = now;
+
+    const providerKey = runnerState.providerKey || toText(account?.provider_account?.provider_key).trim();
+    let freshAccount = await fetchQueuedAccountForContext(settings, {
+        preferCurrentPage: false,
+        forceUpdate: false,
+        providerKey,
+    });
+    let freshProviderAccountId = providerAccountIdFromAccount(freshAccount);
+
+    if (freshProviderAccountId && !companionAccountIsDue(freshAccount)) {
+        rememberProcessedProviderAccount(freshProviderAccountId);
+
+        if (freshProviderAccountId === currentProviderAccountId) {
+            freshAccount = null;
+            freshProviderAccountId = null;
+        }
+    }
+
+    if (freshProviderAccountId === currentProviderAccountId) {
+        setRunnerAccount(freshAccount);
+
+        return freshAccount;
+    }
+
+    rememberProcessedProviderAccount(currentProviderAccountId);
+
+    if (freshAccount?.client && freshAccount?.provider_account) {
+        runnerState.completedSteps = [];
+        setRunnerAccount(freshAccount);
+        pushActivity(`${clientNameFromAccount(account)} is no longer due. Continuing with ${clientNameFromAccount(freshAccount)}.`, 'info');
+        setStatus(`Continuing with ${clientNameFromAccount(freshAccount)}...`, 'info');
+
+        return freshAccount;
+    }
+
+    const providerName = providerLabel(providerKey);
+
+    stopRunner();
+    setRunnerAccount(null);
+    pushActivity(`${clientNameFromAccount(account)} is already imported or no longer due. Queue complete for now.`, 'success');
+    setStatus(`No ${providerName} update is waiting right now. Reports already pulled today stay skipped until tomorrow.`, 'info');
+
+    return null;
+}
+
+async function markProviderAccessStuckAndAdvance(settings, account) {
+    const providerAccountId = providerAccountIdFromAccount(account);
+    const providerKey = toText(account?.provider_account?.provider_key).trim();
+    const providerName = providerLabel(providerKey);
+    const clientName = clientNameFromAccount(account);
+
+    if (!providerAccountId) {
+        stopRunner();
+        setRunnerAccount(null);
+        throw new Error(`CreditSoft could not identify the ${providerName} provider account to skip.`);
+    }
+
+    const pageState = await inspectPageAutomationState();
+    const looksLikeLoginBlock = Boolean(pageState?.hasPasswordField || pageState?.hasLoginField || pageState?.hasLoginTrigger);
+    const status = looksLikeLoginBlock ? 'needs_credentials' : 'blocked';
+    const reason = looksLikeLoginBlock ? 'provider_login_stuck' : 'provider_access_not_ready';
+
+    pushActivity(`${clientName} did not reach a ${providerName} report page. Marking it for review and moving on.`, 'warn');
+    setStatus(`${clientName} needs ${providerName} access review. Skipping to the next queued client...`, 'warn');
+
+    await postProviderAccountStatus({
+        provider_account_id: providerAccountId,
+        status,
+        reason,
+        message: looksLikeLoginBlock
+            ? `The companion could not get past the ${providerName} login after repeated attempts. Review the saved login or provider access before trying again.`
+            : `The companion could not reach a ${providerName} report page after repeated attempts. Review the provider account before trying again.`,
+        page_url: activePageContext.url,
+        page_title: activePageContext.title,
+        worker_id: settings.worker_id,
+        companion: {
+            name: 'CreditSoft Browser Companion',
+            version: chrome.runtime.getManifest().version,
+        },
+    }, settings);
+
+    rememberProcessedProviderAccount(providerAccountId);
+
+    const nextAccount = await fetchQueuedAccountForContext(settings, {
+        preferCurrentPage: false,
+        excludeProviderAccountId: providerAccountId,
+        excludeProviderAccountIds: runnerExcludedProviderAccountIds([providerAccountId]),
+        forceUpdate: false,
+        providerKey: runnerState.providerKey || providerKey,
+        preferredClientCuid: account?.client?.cuid,
+    });
+    const logoutUrl = providerLogoutUrlFromAccount(account);
+
+    if (!nextAccount?.client || !nextAccount?.provider_account) {
+        stopRunner();
+        setRunnerAccount(null);
+        pushActivity(`${clientName} was marked for review. Queue complete for now.`, 'success');
+        setStatus(`${clientName} needs review. Queue complete for now.`, 'success');
 
         if (logoutUrl) {
             await navigateActiveTab(logoutUrl);
@@ -2734,6 +3174,10 @@ async function continueRunner({ source = 'manual' } = {}) {
             throw new Error('Save a CreditSoft API key first from Extension options.');
         }
 
+        if (!runnerState.active) {
+            return;
+        }
+
         if (connectionState !== 'ready') {
             const verified = await verifyConnection({ quiet: source !== 'manual' });
 
@@ -2743,34 +3187,58 @@ async function continueRunner({ source = 'manual' } = {}) {
             }
         }
 
+        if (!runnerState.active) {
+            return;
+        }
+
         let account = runnerState.account;
 
         if (!account?.client?.cuid) {
             if (source === 'manual') {
-                pushActivity('Checking CreditSoft for the next report update.');
-                setStatus('Checking CreditSoft for the next report update...', 'info');
+                const queueLabel = runnerState.providerKey
+                    ? `${providerLabel(runnerState.providerKey)} report`
+                    : 'report';
+                pushActivity(`Checking CreditSoft for the next ${queueLabel} update.`);
+                setStatus(`Checking CreditSoft for the next ${queueLabel} update...`, 'info');
             }
 
             account = await fetchQueuedAccountForContext(settings, {
                 preferCurrentPage: true,
-                forceUpdate: runnerState.forceUpdate || source === 'manual',
+                excludeProviderAccountIds: runnerExcludedProviderAccountIds(),
+                forceUpdate: consumeRunnerForceUpdate(),
+                providerKey: runnerState.providerKey,
             });
 
+            if (!runnerState.active) {
+                return;
+            }
+
             if (!account?.client || !account?.provider_account) {
+                const queueLabel = runnerState.providerKey
+                    ? `${providerLabel(runnerState.providerKey)} report`
+                    : 'report';
                 stopRunner();
                 setRunnerAccount(null);
-                setStatus('No report update is waiting right now. Reports already pulled today stay skipped until tomorrow.', 'info');
-                pushActivity('No report update is waiting right now. Reports already pulled today stay skipped until tomorrow.', 'warn');
+                setStatus(`No ${queueLabel} update is waiting right now. Reports already pulled today stay skipped until tomorrow.`, 'info');
+                pushActivity(`No ${queueLabel} update is waiting right now. Reports already pulled today stay skipped until tomorrow.`, 'warn');
                 return;
             }
 
             setRunnerAccount(account);
+            runnerState.forceUpdate = false;
 
             if (source === 'manual') {
                 pushActivity(`Loaded ${clientNameFromAccount(account)} for a ${providerLabel(account.provider_account.provider_key)} report update.`, 'success');
             }
         } else {
             setRunnerAccount(account);
+            runnerState.forceUpdate = false;
+        }
+
+        account = await refreshRunnerAccountFromServerQueue(settings, account);
+
+        if (!runnerState.active || !account?.client || !account?.provider_account) {
+            return;
         }
 
         if (
@@ -2783,7 +3251,15 @@ async function continueRunner({ source = 'manual' } = {}) {
 
         const ready = await advanceToCaptureReady(account);
 
+        if (!runnerState.active) {
+            return;
+        }
+
         await syncActiveContext({ loadQueue: false, quiet: true });
+
+        if (!runnerState.active) {
+            return;
+        }
 
         if (
             toText(account?.provider_account?.provider_key) === 'smartcredit'
@@ -2794,7 +3270,7 @@ async function continueRunner({ source = 'manual' } = {}) {
         }
 
         if (!ready) {
-            setStatus(`Updating ${providerLabel(account.provider_account.provider_key)} reports for ${clientNameFromAccount(account)}...`, 'info');
+            await markProviderAccessStuckAndAdvance(settings, account);
             return;
         }
 
@@ -2820,12 +3296,20 @@ async function continueRunner({ source = 'manual' } = {}) {
         setStatus(`Reading ${clientNameFromAccount(account)}...`, 'info');
 
         const capture = await captureActiveTab();
-        const payload = buildPayload(capture, settings);
+        const payload = buildPayload(capture, settings, account);
+
+        if (!runnerState.active) {
+            return;
+        }
 
         pushActivity('Sending the current page into CreditSoft.');
         setStatus(`Sending ${clientNameFromAccount(account)} to CreditSoft...`, 'info');
 
         const result = await postCapture(payload, settings);
+
+        if (!runnerState.active) {
+            return;
+        }
         const importedClientName = result?.data?.client?.display_name ?? clientNameFromAccount(account);
         const capturedStep = currentStep ?? detectCaptureStep({
             url: capture.url,
@@ -2857,10 +3341,15 @@ async function continueRunner({ source = 'manual' } = {}) {
             }
         }
 
+        rememberProcessedProviderAccount(account);
+
         const nextAccount = await fetchQueuedAccountForContext(settings, {
             preferCurrentPage: false,
             excludeProviderAccountId: account?.provider_account?.id ?? null,
-            forceUpdate: runnerState.forceUpdate,
+            excludeProviderAccountIds: runnerExcludedProviderAccountIds([account?.provider_account?.id]),
+            forceUpdate: false,
+            providerKey: runnerState.providerKey,
+            preferredClientCuid: account?.client?.cuid,
         });
 
         const logoutUrl = providerLogoutUrlFromAccount(account);
@@ -2925,6 +3414,11 @@ async function verifyConnection({ quiet = false } = {}) {
             api_base_url: normalizeBaseUrl(settingsCache.api_base_url),
         });
         applyFeatureFlags(overview);
+        const check = await fetchCompanionAccessCheck({
+            ...settingsCache,
+            api_base_url: normalizeBaseUrl(settingsCache.api_base_url),
+        });
+        applyFeatureFlags(check);
         connectionState = 'ready';
         syncPairingState();
 
@@ -2955,13 +3449,25 @@ async function verifyConnection({ quiet = false } = {}) {
     }
 }
 
-function buildPayload(capture, settings) {
+function buildPayload(capture, settings, account = nextReadyAccount) {
+    const providerKey = toText(account?.provider_account?.provider_key)
+        || detectProviderFromContext(capture.url, capture.title)
+        || DEFAULT_PROVIDER_KEY;
+    const captureStep = detectCaptureStep({
+        url: capture.url,
+        title: capture.title,
+        provider_key: providerKey,
+    });
+
     return {
         ...capture,
         api_base_url: settings.api_base_url,
         office_token_present: Boolean(settings.office_token),
-        client_cuid: nextReadyAccount?.client?.cuid ?? '',
-        provider_key: nextReadyAccount?.provider_account?.provider_key ?? detectProviderFromContext(capture.url, capture.title) ?? DEFAULT_PROVIDER_KEY,
+        client_cuid: account?.client?.cuid ?? '',
+        provider_key: providerKey,
+        provider_account_id: account?.provider_account?.id ?? null,
+        provider_capture_step: captureStep,
+        provider_capture_run_complete: captureWouldCompleteProviderRun(account, captureStep),
         cycle_label: currentCycleLabel(),
         source_type: 'companion_capture',
         capture_source: capture.capture_source || 'companion_capture',
@@ -3084,23 +3590,172 @@ function safePulseDocumentFilename(documentRecord, response) {
     return candidate || 'pulse-document';
 }
 
+class TinyPulsePreviewError extends Error {
+    constructor(message = 'DisputeFox returned a tiny preview image instead of the actual document.') {
+        super(message);
+        this.name = 'TinyPulsePreviewError';
+    }
+}
+
+function isTinyPulsePreviewError(error) {
+    return error?.name === 'TinyPulsePreviewError';
+}
+
+function fileExtensionFromName(value = '') {
+    return String(value || '')
+        .split(/[?#]/)[0]
+        .split(/[\\/]/)
+        .pop()
+        ?.split('.')
+        .pop()
+        ?.toLowerCase() || '';
+}
+
+function pulseDocumentLooksLikeTinyPreview(documentRecord, filePayload = {}) {
+    const fileName = filePayload.fileName
+        || filePayload.filename
+        || documentRecord?.file_name
+        || safePulseDocumentFilename(documentRecord, null);
+    const mimeType = String(filePayload.mimeType || documentRecord?.mime_type || '').toLowerCase();
+    const extension = fileExtensionFromName(fileName);
+    const size = Number(
+        filePayload.size
+        || filePayload.fileSize
+        || filePayload.bytesReceived
+        || filePayload.blob?.size
+        || documentRecord?.file_size
+        || 0,
+    ) || 0;
+    const isImage = mimeType.startsWith('image/')
+        || ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
+
+    if (!isImage || size <= 0 || size > DISPUTEFOX_TINY_PREVIEW_IMAGE_MAX_BYTES) {
+        return false;
+    }
+
+    if (size < 8192) {
+        return true;
+    }
+
+    const sourceText = [
+        documentRecord?.download_url,
+        documentRecord?.preview_url,
+        documentRecord?.source_path,
+        documentRecord?.source,
+        fileName,
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return sourceText.includes('/static-resources/client_documents/')
+        || sourceText.includes('method=clientdocument')
+        || sourceText.includes('documentpreview')
+        || sourceText.includes('preview');
+}
+
+function removeChromeDownloadFile(downloadId) {
+    if (!downloadId || !chrome?.downloads?.removeFile) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        chrome.downloads.removeFile(downloadId, () => {
+            chrome.downloads.erase?.({ id: downloadId }, () => resolve());
+            if (!chrome.downloads.erase) {
+                resolve();
+            }
+        });
+    });
+}
+
 async function downloadPulseDocumentToInbox(documentRecord) {
     const url = documentRecord?.download_url || documentRecord?.preview_url || '';
 
     if (!url || !chrome?.downloads?.download) {
-        return false;
+        return { downloaded: false, skipped: false };
     }
 
     const filename = `CreditSoft DisputeFox/${safePulseDocumentFilename(documentRecord, null)}`;
 
-    await chrome.downloads.download({
+    const downloadId = await chrome.downloads.download({
         url,
         filename,
         conflictAction: 'uniquify',
         saveAs: false,
     });
 
-    return true;
+    const result = await waitForChromeDownload(downloadId);
+
+    if (!result.completed) {
+        return { downloaded: false, skipped: false };
+    }
+
+    const item = result.item || {};
+
+    if (pulseDocumentLooksLikeTinyPreview(documentRecord, {
+        fileName: item.filename || filename,
+        fileSize: item.fileSize,
+        bytesReceived: item.bytesReceived,
+    })) {
+        await removeChromeDownloadFile(downloadId);
+
+        return { downloaded: false, skipped: true };
+    }
+
+    return { downloaded: true, skipped: false };
+}
+
+function waitForChromeDownload(downloadId, timeoutMs = 120000) {
+    if (!downloadId || !chrome?.downloads?.onChanged) {
+        return Promise.resolve({ completed: true, item: null });
+    }
+
+    return new Promise((resolve) => {
+        let settled = false;
+        let timer = null;
+        const resolveWith = (ok, item = null) => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            if (timer) {
+                clearTimeout(timer);
+            }
+            chrome.downloads.onChanged.removeListener(listener);
+            resolve({ completed: Boolean(ok), item });
+        };
+        const finish = (ok) => {
+            if (chrome?.downloads?.search) {
+                chrome.downloads.search({ id: downloadId }, (items) => resolveWith(ok, items?.[0] || null));
+
+                return;
+            }
+
+            resolveWith(ok);
+        };
+        const listener = (delta) => {
+            if (delta.id !== downloadId) {
+                return;
+            }
+
+            if (delta.error?.current || delta.state?.current === 'interrupted') {
+                finish(false);
+            } else if (delta.state?.current === 'complete') {
+                finish(true);
+            }
+        };
+        timer = setTimeout(() => finish(false), timeoutMs);
+
+        chrome.downloads.onChanged.addListener(listener);
+        chrome.downloads.search?.({ id: downloadId }, (items) => {
+            const state = items?.[0]?.state;
+
+            if (state === 'complete') {
+                finish(true);
+            } else if (state === 'interrupted') {
+                finish(false);
+            }
+        });
+    });
 }
 
 async function fetchPulseDocumentFile(documentRecord) {
@@ -3126,11 +3781,17 @@ async function fetchPulseDocumentFile(documentRecord) {
         throw new Error('DisputeFox returned a page instead of the document file. Open the document drawer and try again.');
     }
 
-    return {
+    const filePayload = {
         blob,
         fileName: safePulseDocumentFilename(documentRecord, response),
         mimeType: contentType || blob.type || 'application/octet-stream',
     };
+
+    if (pulseDocumentLooksLikeTinyPreview(documentRecord, filePayload)) {
+        throw new TinyPulsePreviewError();
+    }
+
+    return filePayload;
 }
 
 async function postClientDocument(clientCuid, documentRecord, filePayload, settings, capture) {
@@ -3187,12 +3848,20 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
         attempted: records.length,
         uploaded: 0,
         downloaded: 0,
+        local_attached: 0,
+        skipped: 0,
         failed: 0,
         last_error: '',
     };
 
     for (const documentRecord of records) {
         try {
+            if (pulseDocumentLooksLikeTinyPreview(documentRecord)) {
+                stats.skipped++;
+
+                continue;
+            }
+
             const filePayload = await fetchPulseDocumentFile(documentRecord);
             await postClientDocument(clientCuid, {
                 ...documentRecord,
@@ -3202,9 +3871,23 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
             }, filePayload, settings, capture);
             stats.uploaded++;
         } catch (error) {
+            const tinyPreviewError = isTinyPulsePreviewError(error);
+
             try {
-                if (await downloadPulseDocumentToInbox(documentRecord)) {
+                const label = toText(documentRecord?.title || documentRecord?.file_name || documentRecord?.source_document_uid).trim() || 'DisputeFox document';
+                pushActivity(`Downloading ${label} to the CreditSoft DisputeFox inbox.`, 'info');
+                const downloadResult = await downloadPulseDocumentToInbox(documentRecord);
+
+                if (downloadResult.skipped) {
+                    stats.skipped++;
+                    pushActivity(`Skipped tiny preview image for ${label}.`, 'info');
+
+                    continue;
+                }
+
+                if (downloadResult.downloaded) {
                     stats.downloaded++;
+                    pushActivity(`Downloaded ${label}; asking CreditSoft to attach it.`, 'success');
 
                     continue;
                 }
@@ -3212,12 +3895,53 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
                 stats.last_error = downloadError instanceof Error ? downloadError.message : '';
             }
 
+            if (tinyPreviewError) {
+                stats.skipped++;
+
+                continue;
+            }
+
             stats.failed++;
             stats.last_error = stats.last_error || (error instanceof Error ? error.message.replace(/\bPulse\b/g, 'DisputeFox') : 'Could not import a DisputeFox document.');
         }
     }
 
+    if (stats.downloaded > 0) {
+        try {
+            const reconcile = await reconcileLocalDisputeFoxDocuments(settings, clientCuid);
+            stats.local_attached = Number(reconcile?.data?.attached || 0);
+        } catch (error) {
+            stats.last_error = error instanceof Error ? error.message : 'CreditSoft could not reconcile downloaded DisputeFox files yet.';
+        }
+    }
+
     return stats;
+}
+
+async function reconcileLocalDisputeFoxDocuments(settings, clientCuid = '') {
+    const apiBaseUrl = await resolveApiBaseUrl(settings);
+    const endpoint = `${apiBaseUrl}${API_DISPUTEFOX_DOCUMENT_RECONCILE_PATH}`;
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${settings.office_token}`,
+            'X-CreditSoft-Token': settings.office_token,
+        },
+        body: JSON.stringify({
+            client_cuid: clientCuid || null,
+            keep_source: true,
+        }),
+    });
+    const parsed = await parseJsonResponse(response);
+
+    if (!response.ok) {
+        throw new Error(apiErrorMessage(parsed, response.status, 'CreditSoft could not reconcile downloaded DisputeFox files.'));
+    }
+
+    return parsed;
 }
 
 async function postAutomationDiscovery(payload, settings) {
@@ -3338,7 +4062,8 @@ async function syncDisputeFoxRecordList(capture = null, options = {}) {
     return result;
 }
 
-async function syncDisputeFoxProfile() {
+async function syncDisputeFoxProfile(options = {}) {
+    const filesOnly = Boolean(options.filesOnly);
     const credentials = readCredentialSettings();
     await chrome.storage.local.set(credentials);
     settingsCache = {
@@ -3372,8 +4097,8 @@ async function syncDisputeFoxProfile() {
         return;
     }
 
-    pushActivity('Reading DisputeFox profile fields.');
-    setStatus('Reading DisputeFox profile fields...', 'info');
+    pushActivity(filesOnly ? 'Reading DisputeFox file records.' : 'Reading DisputeFox profile fields.');
+    setStatus(filesOnly ? 'Reading DisputeFox file records...' : 'Reading DisputeFox profile fields...', 'info');
     const capture = await captureActiveTab();
     const profile = capture.structured_customer || {};
     const fields = profile.fields || {};
@@ -3429,15 +4154,20 @@ async function syncDisputeFoxProfile() {
         setStatus(`Found ${documents.length} DisputeFox document records. Importing files when DisputeFox allows it...`, 'info');
         const uploadStats = await uploadPulseDocumentsForClient(documents, client.cuid, settings, capture);
 
-        if (uploadStats.uploaded > 0) {
-            documentMessage = ` Imported ${uploadStats.uploaded} file${uploadStats.uploaded === 1 ? '' : 's'}.`;
+        if (uploadStats.skipped > 0) {
+            pushActivity(`Skipped ${uploadStats.skipped} tiny preview image${uploadStats.skipped === 1 ? '' : 's'}.`, 'info');
+        }
+
+        if (uploadStats.uploaded > 0 || uploadStats.local_attached > 0) {
+            const imported = uploadStats.uploaded + uploadStats.local_attached;
+            documentMessage = ` Imported ${imported} file${imported === 1 ? '' : 's'}.`;
         } else if (uploadStats.downloaded > 0) {
             documentMessage = ` Downloaded ${uploadStats.downloaded} file${uploadStats.downloaded === 1 ? '' : 's'} for the CreditSoft inbox.`;
         } else if (Number(syncedDocuments.total || 0) > 0) {
             documentMessage = ` Recorded ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}; waiting for the local document inbox.`;
         }
 
-        if (uploadStats.failed > 0 && uploadStats.uploaded === 0 && uploadStats.last_error) {
+        if (uploadStats.failed > 0 && uploadStats.uploaded === 0 && uploadStats.local_attached === 0 && uploadStats.last_error) {
             pushActivity(uploadStats.last_error, 'warn');
         }
     } else if (Number(syncedDocuments.total || 0) > 0) {
@@ -3448,8 +4178,9 @@ async function syncDisputeFoxProfile() {
         ? ` Attached ${providerAccounts.map((provider) => provider.provider_label || provider.provider_key).join(', ')} provider login${providerAccounts.length === 1 ? '' : 's'}.`
         : '';
 
-    pushActivity(`Synced ${displayName} from DisputeFox.${documentMessage}${providerMessage}`, 'success');
-    setStatus(`Synced ${displayName} from DisputeFox.${documentMessage}${providerMessage}`, 'success');
+    const actionLabel = filesOnly ? 'Checked files for' : 'Synced';
+    pushActivity(`${actionLabel} ${displayName} from DisputeFox.${documentMessage}${filesOnly ? '' : providerMessage}`, 'success');
+    setStatus(`${actionLabel} ${displayName} from DisputeFox.${documentMessage}${filesOnly ? '' : providerMessage}`, 'success');
 
     if (client?.cuid) {
         nextReadyAccount = {
@@ -3756,42 +4487,49 @@ async function importPulseMigrationLane(lane, settings) {
 async function runPulseMigration(lanes = PULSE_MIGRATION_LANES, title = 'list import') {
     disputeFoxImportOpen = true;
     integrationMenuOpen = false;
+    startMigrationRun();
     syncForm();
 
-    const settings = await ensurePulseMigrationReady();
-    let importedAny = false;
-    const importedSummaries = [];
+    try {
+        const settings = await ensurePulseMigrationReady();
+        let importedAny = false;
+        const importedSummaries = [];
 
-    for (const lane of lanes) {
-        await syncActiveContext({ loadQueue: false, quiet: true });
-
-        if (pulseMigrationLaneForUrl(activePageContext.url)?.key !== lane.key) {
-            pushActivity(`Opening DisputeFox ${lane.label}.`, 'info');
-            setStatus(`Opening DisputeFox ${lane.label}...`, 'info');
-            await navigateActiveTab(lane.url);
-            await delay(2200);
+        for (const lane of lanes) {
+            assertNotStopped();
             await syncActiveContext({ loadQueue: false, quiet: true });
+
+            if (pulseMigrationLaneForUrl(activePageContext.url)?.key !== lane.key) {
+                pushActivity(`Opening DisputeFox ${lane.label}.`, 'info');
+                setStatus(`Opening DisputeFox ${lane.label}...`, 'info');
+                await navigateActiveTab(lane.url);
+                await delay(2200);
+                assertNotStopped();
+                await syncActiveContext({ loadQueue: false, quiet: true });
+            }
+
+            const result = await importPulseMigrationLane(lane, settings);
+
+            if (result.blocked) {
+                return;
+            }
+
+            importedAny = importedAny || result.imported;
+
+            if (result.imported && result.summary) {
+                importedSummaries.push(result.summary);
+            }
         }
 
-        const result = await importPulseMigrationLane(lane, settings);
-
-        if (result.blocked) {
-            return;
-        }
-
-        importedAny = importedAny || result.imported;
-
-        if (result.imported && result.summary) {
-            importedSummaries.push(result.summary);
-        }
+        finishPulseMigrationMode(
+            importedAny
+                ? `DisputeFox ${title} complete. ${importedSummaries.join(' | ')}. Companion is back to provider report updates.`
+                : `DisputeFox ${title} finished, but no visible rows were imported. Check the active filters and try again.`,
+            importedAny ? 'success' : 'warn',
+        );
+    } finally {
+        finishMigrationRun();
     }
-
-    finishPulseMigrationMode(
-        importedAny
-            ? `DisputeFox ${title} complete. ${importedSummaries.join(' | ')}. Companion is back to provider report updates.`
-            : `DisputeFox ${title} finished, but no visible rows were imported. Check the active filters and try again.`,
-        importedAny ? 'success' : 'warn',
-    );
 }
 
 function pulseRecordValue(record, labels = []) {
@@ -3900,7 +4638,8 @@ async function capturePulseListForProfiles(lane) {
     return capture;
 }
 
-async function processPulseProfilesForLane(lane, settings, seenUrls) {
+async function processPulseProfilesForLane(lane, settings, seenUrls, options = {}) {
+    assertNotStopped();
     await syncActiveContext({ loadQueue: false, quiet: true });
 
     if (pulseMigrationLaneForUrl(activePageContext.url)?.key !== lane.key) {
@@ -3908,6 +4647,7 @@ async function processPulseProfilesForLane(lane, settings, seenUrls) {
         setStatus(`Opening DisputeFox ${lane.label}...`, 'info');
         await navigateActiveTab(lane.url);
         await delay(2400);
+        assertNotStopped();
         await syncActiveContext({ loadQueue: false, quiet: true });
     }
 
@@ -3953,10 +4693,12 @@ async function processPulseProfilesForLane(lane, settings, seenUrls) {
     const cappedTargets = targets.slice(0, PULSE_PROFILE_PROCESS_LIMIT);
 
     for (const [index, target] of cappedTargets.entries()) {
+        assertNotStopped();
         pushActivity(`Opening ${lane.label} profile ${index + 1}/${cappedTargets.length}: ${target.name}.`, 'info');
         setStatus(`Importing ${target.name} (${index + 1}/${cappedTargets.length})...`, 'info');
         await navigateActiveTab(target.url);
         await delay(2400);
+        assertNotStopped();
         await syncActiveContext({ loadQueue: false, quiet: true });
 
         const profilePrompt = await resolvePulseSessionPrompt();
@@ -3966,7 +4708,7 @@ async function processPulseProfilesForLane(lane, settings, seenUrls) {
         }
 
         try {
-            await syncDisputeFoxProfile();
+            await syncDisputeFoxProfile({ filesOnly: Boolean(options.filesOnly) });
             processed++;
         } catch (error) {
             failed++;
@@ -3980,6 +4722,7 @@ async function processPulseProfilesForLane(lane, settings, seenUrls) {
         }
 
         await delay(450);
+        assertNotStopped();
     }
 
     if (targets.length > cappedTargets.length) {
@@ -3999,80 +4742,162 @@ async function processPulseProfilesForLane(lane, settings, seenUrls) {
 async function runPulseProfileProcessing() {
     disputeFoxImportOpen = true;
     integrationMenuOpen = false;
+    startMigrationRun();
     syncForm();
 
-    const settings = await ensurePulseMigrationReady();
-    const seenUrls = new Set();
-    const summaries = [];
-    const failedProfiles = [];
-    const supportingSummaries = [];
-    let totalProcessed = 0;
-    let totalFailed = 0;
+    try {
+        const settings = await ensurePulseMigrationReady();
+        const seenUrls = new Set();
+        const summaries = [];
+        const failedProfiles = [];
+        const supportingSummaries = [];
+        let totalProcessed = 0;
+        let totalFailed = 0;
 
-    for (const lane of PULSE_PROFILE_PROCESS_LANES) {
-        const result = await processPulseProfilesForLane(lane, settings, seenUrls);
+        for (const lane of PULSE_PROFILE_PROCESS_LANES) {
+            assertNotStopped();
+            const result = await processPulseProfilesForLane(lane, settings, seenUrls);
 
-        if (result.blocked) {
-            setStatus('DisputeFox profile import paused by a session prompt.', 'warn');
-            return;
+            if (result.blocked) {
+                setStatus('DisputeFox profile import paused by a session prompt.', 'warn');
+                return;
+            }
+
+            totalProcessed += result.processed;
+            totalFailed += result.failed;
+            failedProfiles.push(...(result.failures || []).map((failure) => ({
+                ...failure,
+                lane: lane.label,
+            })));
+            summaries.push(`${lane.label}: ${result.processed}/${result.targets} profiles`);
         }
 
-        totalProcessed += result.processed;
-        totalFailed += result.failed;
-        failedProfiles.push(...(result.failures || []).map((failure) => ({
-            ...failure,
-            lane: lane.label,
-        })));
-        summaries.push(`${lane.label}: ${result.processed}/${result.targets} profiles`);
-    }
-
-    for (const lane of PULSE_MIGRATION_LANES.filter((migrationLane) => !PULSE_PROFILE_PROCESS_LANES.some((profileLane) => profileLane.key === migrationLane.key))) {
-        await syncActiveContext({ loadQueue: false, quiet: true });
-
-        if (pulseMigrationLaneForUrl(activePageContext.url)?.key !== lane.key) {
-            pushActivity(`Opening DisputeFox ${lane.label} for supporting records.`, 'info');
-            setStatus(`Opening DisputeFox ${lane.label}...`, 'info');
-            await navigateActiveTab(lane.url);
-            await delay(2200);
+        for (const lane of PULSE_MIGRATION_LANES.filter((migrationLane) => !PULSE_PROFILE_PROCESS_LANES.some((profileLane) => profileLane.key === migrationLane.key))) {
+            assertNotStopped();
             await syncActiveContext({ loadQueue: false, quiet: true });
+
+            if (pulseMigrationLaneForUrl(activePageContext.url)?.key !== lane.key) {
+                pushActivity(`Opening DisputeFox ${lane.label} for supporting records.`, 'info');
+                setStatus(`Opening DisputeFox ${lane.label}...`, 'info');
+                await navigateActiveTab(lane.url);
+                await delay(2200);
+                assertNotStopped();
+                await syncActiveContext({ loadQueue: false, quiet: true });
+            }
+
+            const result = await importPulseMigrationLane(lane, settings);
+
+            if (result.blocked) {
+                setStatus('DisputeFox profile import paused by a session prompt.', 'warn');
+                return;
+            }
+
+            if (result.imported && result.summary) {
+                supportingSummaries.push(result.summary);
+            }
         }
 
-        const result = await importPulseMigrationLane(lane, settings);
+        const failureSummary = failedProfiles.length > 0
+            ? ` Failed: ${failedProfiles
+                .slice(0, 5)
+                .map((failure) => `${failure.lane} ${failure.name}`)
+                .join('; ')}${failedProfiles.length > 5 ? `; plus ${failedProfiles.length - 5} more` : ''}.`
+            : '';
 
-        if (result.blocked) {
-            setStatus('DisputeFox profile import paused by a session prompt.', 'warn');
-            return;
+        if (failedProfiles.length > 0) {
+            pushActivity(
+                `DisputeFox profiles needing retry: ${failedProfiles.map((failure) => `${failure.lane} ${failure.name}`).join('; ')}.`,
+                'warn',
+            );
         }
 
-        if (result.imported && result.summary) {
-            supportingSummaries.push(result.summary);
-        }
-    }
+        const supportingSummary = supportingSummaries.length > 0
+            ? ` Supporting lists: ${supportingSummaries.join(' | ')}.`
+            : ' Supporting lists checked; no invoice, affiliate, or automation rows were imported.';
 
-    const failureSummary = failedProfiles.length > 0
-        ? ` Failed: ${failedProfiles
-            .slice(0, 5)
-            .map((failure) => `${failure.lane} ${failure.name}`)
-            .join('; ')}${failedProfiles.length > 5 ? `; plus ${failedProfiles.length - 5} more` : ''}.`
-        : '';
-
-    if (failedProfiles.length > 0) {
-        pushActivity(
-            `DisputeFox profiles needing retry: ${failedProfiles.map((failure) => `${failure.lane} ${failure.name}`).join('; ')}.`,
-            'warn',
+        finishPulseMigrationMode(
+            totalProcessed > 0
+                ? `DisputeFox profile import complete. ${summaries.join(' | ')}. Legacy reports/documents were uploaded or queued for the local CreditSoft inbox where browser access allowed it.${supportingSummary}${totalFailed > 0 ? ` ${totalFailed} failed.` : ''}${failureSummary}`
+                : 'DisputeFox profile import finished, but no profile links were visible to import.',
+            totalProcessed > 0 ? 'success' : 'warn',
         );
+    } finally {
+        finishMigrationRun();
     }
+}
 
-    const supportingSummary = supportingSummaries.length > 0
-        ? ` Supporting lists: ${supportingSummaries.join(' | ')}.`
-        : ' Supporting lists checked; no invoice, affiliate, or automation rows were imported.';
+async function runPulseFileProcessing() {
+    disputeFoxImportOpen = true;
+    integrationMenuOpen = false;
+    startMigrationRun();
+    syncForm();
 
-    finishPulseMigrationMode(
-        totalProcessed > 0
-            ? `DisputeFox profile import complete. ${summaries.join(' | ')}. Legacy reports/documents were uploaded or queued for the local CreditSoft inbox where browser access allowed it.${supportingSummary}${totalFailed > 0 ? ` ${totalFailed} failed.` : ''}${failureSummary}`
-            : 'DisputeFox profile import finished, but no profile links were visible to import.',
-        totalProcessed > 0 ? 'success' : 'warn',
-    );
+    try {
+        const settings = await ensurePulseMigrationReady();
+        const seenUrls = new Set();
+        const summaries = [];
+        const failedProfiles = [];
+        let totalProcessed = 0;
+        let totalFailed = 0;
+
+        try {
+            const reconcile = await reconcileLocalDisputeFoxDocuments(settings);
+            const attached = Number(reconcile?.data?.attached || 0);
+            const pruned = Number(reconcile?.data?.pruned_tiny_previews || 0);
+
+            if (attached > 0 || pruned > 0) {
+                pushActivity(`Reconciled local DisputeFox inbox: ${attached} attached, ${pruned} preview files ignored.`, 'success');
+            }
+        } catch (error) {
+            pushActivity(error instanceof Error ? error.message : 'CreditSoft could not reconcile the local DisputeFox inbox before starting.', 'warn');
+        }
+
+        for (const lane of PULSE_PROFILE_PROCESS_LANES) {
+            assertNotStopped();
+            const result = await processPulseProfilesForLane(lane, settings, seenUrls, { filesOnly: true });
+
+            if (result.blocked) {
+                setStatus('DisputeFox file import paused by a session prompt.', 'warn');
+                return;
+            }
+
+            totalProcessed += result.processed;
+            totalFailed += result.failed;
+            failedProfiles.push(...(result.failures || []).map((failure) => ({
+                ...failure,
+                lane: lane.label,
+            })));
+            summaries.push(`${lane.label}: ${result.processed}/${result.targets} profiles`);
+        }
+
+        try {
+            const reconcile = await reconcileLocalDisputeFoxDocuments(settings);
+            const attached = Number(reconcile?.data?.attached || 0);
+            const pruned = Number(reconcile?.data?.pruned_tiny_previews || 0);
+
+            if (attached > 0 || pruned > 0) {
+                pushActivity(`Final inbox reconcile: ${attached} attached, ${pruned} preview files ignored.`, 'success');
+            }
+        } catch (error) {
+            pushActivity(error instanceof Error ? error.message : 'CreditSoft could not reconcile downloaded DisputeFox files yet.', 'warn');
+        }
+
+        const failureSummary = failedProfiles.length > 0
+            ? ` Failed: ${failedProfiles
+                .slice(0, 5)
+                .map((failure) => `${failure.lane} ${failure.name}`)
+                .join('; ')}${failedProfiles.length > 5 ? `; plus ${failedProfiles.length - 5} more` : ''}.`
+            : '';
+
+        finishPulseMigrationMode(
+            totalProcessed > 0
+                ? `DisputeFox files pass complete. ${summaries.join(' | ')}.${totalFailed > 0 ? ` ${totalFailed} failed.` : ''}${failureSummary}`
+                : 'DisputeFox files pass finished, but no profile links were visible to check.',
+            totalProcessed > 0 ? 'success' : 'warn',
+        );
+    } finally {
+        finishMigrationRun();
+    }
 }
 
 async function handleDisputeFoxGo() {
@@ -4183,7 +5008,7 @@ async function resolveApiBaseUrl(settings) {
         }
     }
 
-    throw new Error('Could not auto-detect the local CreditSoft API. It tries port 80 first, then 8001.');
+    throw new Error('Could not auto-detect the local CreditSoft API. It tries the 8877 router first, then port 80 and 8001.');
 }
 
 function escapeHtml(value) {
@@ -4199,15 +5024,98 @@ elements.openSettings?.addEventListener('click', async () => {
     await chrome.runtime.openOptionsPage();
 });
 
+chrome.storage?.onChanged?.addListener((changes, areaName) => {
+    if (areaName !== 'local' || !refreshSettingsFromStorageChanges(changes)) {
+        return;
+    }
+
+    syncForm();
+
+    if (!settingsCache.office_token) {
+        setStatus('Save a CreditSoft API key first from Extension options.', 'warn');
+        return;
+    }
+
+    setStatus('CreditSoft API key saved. Verifying connection...', 'info');
+
+    void (async () => {
+        const verified = await verifyConnection({ quiet: true });
+
+        if (verified) {
+            await loadNextClient({ quiet: true });
+            setStatus('CreditSoft API key verified. Update is ready.', 'success');
+            return;
+        }
+
+        setStatus('The saved API key could not be verified yet. Check the API base URL or paste a new key.', 'error');
+    })();
+});
+
+async function beginProviderUpdate(providerKey = null) {
+    const selectedProviderKey = toText(providerKey).trim() || null;
+    const providerName = selectedProviderKey ? providerLabel(selectedProviderKey) : 'provider';
+
+    disputeFoxImportOpen = false;
+    integrationMenuOpen = false;
+    syncIntegrationMenu();
+    syncFeatureVisibility();
+    await syncActiveContext({ loadQueue: false, quiet: true });
+
+    const message = selectedProviderKey
+        ? `${providerName} update selected. Checking CreditSoft for the next queued client.`
+        : 'Provider update selected. Checking CreditSoft for the next queued provider login.';
+
+    resetActivity(message, 'info');
+    setStatus(message, 'info');
+    startRunner(null, { forceUpdate: false, providerKey: selectedProviderKey });
+    await continueRunner({ source: 'manual' });
+}
+
 elements.integrationMenuToggle?.addEventListener('click', () => {
     integrationMenuOpen = !integrationMenuOpen;
     syncForm();
     const message = integrationMenuOpen
-        ? 'Choose an import source. DisputeFox migration imports legacy CRM data; Update pulls fresh provider reports.'
+        ? 'Choose provider updates for SmartCredit-style report pulls, or DisputeFox migration for old CRM data.'
         : 'Import systems menu closed.';
 
     resetActivity(message, integrationMenuOpen ? 'info' : 'success');
     setStatus(message, integrationMenuOpen ? 'info' : 'success');
+});
+
+elements.openProviderUpdate?.addEventListener('click', async () => {
+    try {
+        await beginProviderUpdate(null);
+    } catch (error) {
+        pushActivity(error instanceof Error ? error.message : 'Could not start provider updates.', 'error');
+        setStatus(error instanceof Error ? error.message : 'Could not start provider updates.', 'error');
+    }
+});
+
+elements.openSmartCreditUpdate?.addEventListener('click', async () => {
+    try {
+        await beginProviderUpdate('smartcredit');
+    } catch (error) {
+        pushActivity(error instanceof Error ? error.message : 'Could not start SmartCredit updates.', 'error');
+        setStatus(error instanceof Error ? error.message : 'Could not start SmartCredit updates.', 'error');
+    }
+});
+
+elements.openIdentityIqUpdate?.addEventListener('click', async () => {
+    try {
+        await beginProviderUpdate('identityiq');
+    } catch (error) {
+        pushActivity(error instanceof Error ? error.message : 'Could not start IdentityIQ updates.', 'error');
+        setStatus(error instanceof Error ? error.message : 'Could not start IdentityIQ updates.', 'error');
+    }
+});
+
+elements.refreshProviderQueue?.addEventListener('click', async () => {
+    try {
+        await beginProviderUpdate(null);
+    } catch (error) {
+        pushActivity(error instanceof Error ? error.message : 'Could not start the next provider update.', 'error');
+        setStatus(error instanceof Error ? error.message : 'Could not start the next provider update.', 'error');
+    }
 });
 
 elements.openDisputeFoxImport?.addEventListener('click', async () => {
@@ -4263,14 +5171,14 @@ elements.saveDisputeFoxCredentials?.addEventListener('click', async () => {
 async function runDisputeFoxListImportFromButton(button, lanes, activeLabel, restingLabel) {
     try {
         button.disabled = true;
-        button.textContent = 'Importing...';
+        setButtonLabel(button, 'Importing...');
         await runPulseMigration(lanes, activeLabel);
     } catch (error) {
         const message = error instanceof Error ? error.message.replace(/\bPulse\b/g, 'DisputeFox') : 'Could not import DisputeFox lists.';
         pushActivity(message, 'error');
         setStatus(message, 'error');
     } finally {
-        button.textContent = restingLabel;
+        setButtonLabel(button, restingLabel);
         syncFeatureVisibility();
     }
 }
@@ -4302,14 +5210,29 @@ elements.importDisputeFoxAutomation?.addEventListener('click', async () => {
 elements.processPulseProfiles?.addEventListener('click', async () => {
     try {
         elements.processPulseProfiles.disabled = true;
-        elements.processPulseProfiles.textContent = 'Importing...';
+        setButtonLabel(elements.processPulseProfiles, 'Importing...');
         await runPulseProfileProcessing();
     } catch (error) {
         const message = error instanceof Error ? error.message.replace(/\bPulse\b/g, 'DisputeFox') : 'Could not import DisputeFox profiles.';
         pushActivity(message, 'error');
         setStatus(message, 'error');
     } finally {
-        elements.processPulseProfiles.textContent = 'Profile details';
+        setButtonLabel(elements.processPulseProfiles, 'Profile details');
+        syncFeatureVisibility();
+    }
+});
+
+elements.processPulseFiles?.addEventListener('click', async () => {
+    try {
+        elements.processPulseFiles.disabled = true;
+        setButtonLabel(elements.processPulseFiles, 'Files...');
+        await runPulseFileProcessing();
+    } catch (error) {
+        const message = error instanceof Error ? error.message.replace(/\bPulse\b/g, 'DisputeFox') : 'Could not import DisputeFox files.';
+        pushActivity(message, 'error');
+        setStatus(message, 'error');
+    } finally {
+        setButtonLabel(elements.processPulseFiles, 'Files');
         syncFeatureVisibility();
     }
 });
@@ -4321,13 +5244,13 @@ elements.closeDisputeFoxImport?.addEventListener('click', () => {
 elements.syncDisputeFoxProfile?.addEventListener('click', async () => {
     try {
         elements.syncDisputeFoxProfile.disabled = true;
-        elements.syncDisputeFoxProfile.textContent = 'Syncing...';
+        setButtonLabel(elements.syncDisputeFoxProfile, 'Syncing...');
         await syncDisputeFoxProfile();
     } catch (error) {
         pushActivity(error instanceof Error ? error.message : 'Could not sync DisputeFox client data.', 'error');
         setStatus(error instanceof Error ? error.message : 'Could not sync DisputeFox client data.', 'error');
     } finally {
-        elements.syncDisputeFoxProfile.textContent = 'Current page';
+        setButtonLabel(elements.syncDisputeFoxProfile, 'Current page');
         syncFeatureVisibility();
     }
 });
@@ -4342,13 +5265,32 @@ elements.goCapture?.addEventListener('click', async () => {
             return;
         }
 
-        startRunner(nextReadyAccount, { forceUpdate: true });
+        const queuedAccount = nextReadyAccount && companionAccountIsDue(nextReadyAccount)
+            ? nextReadyAccount
+            : null;
+        const providerKey = toText(queuedAccount?.provider_account?.provider_key || activePageContext?.provider_key).trim() || null;
+
+        if (nextReadyAccount && !queuedAccount) {
+            rememberProcessedProviderAccount(nextReadyAccount);
+            setRunnerAccount(null);
+        }
+
+        startRunner(queuedAccount, { forceUpdate: false, providerKey });
         await continueRunner({ source: 'manual' });
     } catch (error) {
         pushActivity(error instanceof Error ? error.message : 'Could not update or import from this page.', 'error');
         setStatus(error instanceof Error ? error.message : 'Could not update or import from this page.', 'error');
     }
 });
+
+elements.stopRunnerButton?.addEventListener('click', () => {
+    stopRunner();
+    setRunnerAccount(null);
+    resetActivity('Stopped by owner.', 'warn');
+    setStatus('Stopped. The companion will not move to the next account or DisputeFox profile until you start it again.', 'warn');
+});
+
+syncButtonLabels();
 
 loadSettings().catch((error) => {
     pushActivity(error instanceof Error ? error.message : 'Could not load extension settings.', 'error');

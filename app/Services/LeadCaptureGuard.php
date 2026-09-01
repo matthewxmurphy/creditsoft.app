@@ -38,6 +38,21 @@ class LeadCaptureGuard
             $domain = is_string($asciiDomain) && $asciiDomain !== '' ? $asciiDomain : $domain;
         }
 
+        $blockedDomains = collect((array) config('creditsoft.lead_capture.blocked_email_domains', [
+            'immenseignite.info',
+        ]))
+            ->map(fn (mixed $blocked): string => Str::lower(trim((string) $blocked)))
+            ->filter()
+            ->all();
+
+        if (in_array(Str::lower($domain), $blockedDomains, true)) {
+            return [
+                'ok' => false,
+                'domain' => $domain,
+                'error' => 'That email domain is not accepted for lead capture.',
+            ];
+        }
+
         $hasMx = function_exists('checkdnsrr') && checkdnsrr($domain, 'MX');
 
         if (! $hasMx) {

@@ -19,6 +19,7 @@ https://www.creditsoft.app/pricing-plan
 https://www.creditsoft.app/releases
 https://www.creditsoft.app/renewal
 https://www.creditsoft.app/reporting
+https://www.creditsoft.app/resources
 https://www.creditsoft.app/roadmap
 https://www.creditsoft.app/social-media
 https://www.creditsoft.app/tech-stack

@@ -1,12 +1,22 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import AccountAccess from "../components/AccountAccess.astro";
+import { loadThemePage } from "../lib/preview-content";
 
-const target = "https://admin.creditsoft.app";
+const theme = await loadThemePage();
 ---
 
-<BaseLayout title="Login | CreditSoft" description="CreditSoft login lives on admin.creditsoft.app.">
-  <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />
-  <main class="redirect-page">
-    <a href={target}>Continue to the CreditSoft login</a>
+<BaseLayout
+  title="Login | CreditSoft"
+  description="CreditSoft login for account billing history, license access, downloads, API license code, and the protected office workspace."
+  path="/login"
+  showChat={false}
+>
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+  <main>
+    <AccountAccess />
   </main>
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
 </BaseLayout>

@@ -1,23 +1,26 @@
 ---
 const supportEmail = "hello@creditsoft.app";
+const { showChat = true } = Astro.props;
 ---
 
-<div class="creditsoft-chat" data-creditsoft-chat>
-  <button class="creditsoft-chat-toggle" type="button" aria-expanded="false" aria-controls="creditsoftChatPanel">
-    <span>Chat</span>
-    <strong aria-hidden="true">+</strong>
-  </button>
-  <section class="creditsoft-chat-panel" id="creditsoftChatPanel" hidden>
-    <div class="creditsoft-chat-log" data-chat-log>
-      <div class="creditsoft-chat-message is-bot">Hi. Ask me about CreditSoft pricing, Metro2 review, migration, local office nodes, or the client portal.</div>
-    </div>
-    <form class="creditsoft-chat-form" data-chat-form>
-      <input type="text" name="message" placeholder="Type a message..." autocomplete="off" />
-      <button type="submit">Send</button>
-    </form>
-    <a class="creditsoft-chat-email" href={`mailto:${supportEmail}`}>Email {supportEmail}</a>
-  </section>
-</div>
+{showChat && (
+  <div class="creditsoft-chat" data-creditsoft-chat>
+    <button class="creditsoft-chat-toggle" type="button" aria-expanded="false" aria-controls="creditsoftChatPanel">
+      <span>Chat</span>
+      <strong aria-hidden="true">+</strong>
+    </button>
+    <section class="creditsoft-chat-panel" id="creditsoftChatPanel" hidden>
+      <div class="creditsoft-chat-log" data-chat-log>
+        <div class="creditsoft-chat-message is-bot">Hi. Ask me about CreditSoft pricing, Metro2 review, migration, local office nodes, or the client portal.</div>
+      </div>
+      <form class="creditsoft-chat-form" data-chat-form>
+        <input type="text" name="message" placeholder="Type a message..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+      <a class="creditsoft-chat-email" href={`mailto:${supportEmail}`}>Email {supportEmail}</a>
+    </section>
+  </div>
+)}
 
 <div class="creditsoft-cookie-banner" data-cookie-banner hidden>
   <div class="creditsoft-cookie-copy">
@@ -35,8 +38,11 @@ const supportEmail = "hello@creditsoft.app";
   (() => {
     const cookieName = "cookie_consent";
     const getCookie = (name) => document.cookie.split("; ").find((row) => row.startsWith(`${name}=`))?.split("=")[1] || "";
+    const getConsent = () => getCookie(cookieName) || window.localStorage?.getItem(cookieName) || "";
     const setCookie = (value) => {
-      document.cookie = `${cookieName}=${value};max-age=31536000;path=/;SameSite=Lax`;
+      const expires = new Date(Date.now() + 31536000 * 1000).toUTCString();
+      document.cookie = `${cookieName}=${value};max-age=31536000;expires=${expires};path=/;SameSite=Lax`;
+      window.localStorage?.setItem(cookieName, value);
     };
     const updateConsent = (accepted) => {
       if (typeof window.gtag === "function") {
@@ -53,6 +59,12 @@ const supportEmail = "hello@creditsoft.app";
     };
 
     const banner = document.querySelector("[data-cookie-banner]");
+    const hideBanner = () => {
+      if (!banner) return;
+      banner.hidden = true;
+      banner.setAttribute("aria-hidden", "true");
+      updateCookieOffset();
+    };
     const updateCookieOffset = () => {
       const visible = Boolean(banner && !banner.hidden);
       document.documentElement.classList.toggle("creditsoft-cookie-visible", visible);
@@ -62,8 +74,9 @@ const supportEmail = "hello@creditsoft.app";
       );
     };
 
-    if (banner && !getCookie(cookieName)) {
+    if (banner && !getConsent()) {
       banner.hidden = false;
+      banner.setAttribute("aria-hidden", "false");
       requestAnimationFrame(updateCookieOffset);
     } else {
       updateCookieOffset();
@@ -72,22 +85,20 @@ const supportEmail = "hello@creditsoft.app";
     document.querySelector("[data-cookie-accept]")?.addEventListener("click", () => {
       setCookie("accepted");
       updateConsent(true);
-      if (banner) banner.hidden = true;
-      updateCookieOffset();
+      hideBanner();
     });
 
     document.querySelector("[data-cookie-decline]")?.addEventListener("click", () => {
       setCookie("declined");
       updateConsent(false);
-      if (banner) banner.hidden = true;
-      updateCookieOffset();
+      hideBanner();
     });
 
     window.addEventListener("resize", () => {
       requestAnimationFrame(updateCookieOffset);
     });
 
-    if (getCookie(cookieName) === "accepted") {
+    if (getConsent() === "accepted") {
       updateConsent(true);
     }
 
@@ -287,6 +298,14 @@ const supportEmail = "hello@creditsoft.app";
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 -22px 54px rgba(0, 0, 0, 0.34);
     backdrop-filter: blur(18px);
+  }
+
+  .creditsoft-cookie-banner[hidden] {
+    display: none;
+  }
+
+  :global(.creditsoft-cookie-visible) .creditsoft-chat {
+    display: none;
   }
 
   .creditsoft-cookie-copy {

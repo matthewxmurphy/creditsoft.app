@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -33,6 +34,26 @@ class EmployeeProfile extends Model
         'payroll_notes',
         'metadata',
     ];
+
+    public function getPhoneAttribute(mixed $value): ?string
+    {
+        return PhoneNumber::normalize($value);
+    }
+
+    public function setPhoneAttribute(mixed $value): void
+    {
+        $this->attributes['phone'] = PhoneNumber::normalize($value);
+    }
+
+    public function getEmergencyContactPhoneAttribute(mixed $value): ?string
+    {
+        return PhoneNumber::normalize($value);
+    }
+
+    public function setEmergencyContactPhoneAttribute(mixed $value): void
+    {
+        $this->attributes['emergency_contact_phone'] = PhoneNumber::normalize($value);
+    }
 
     protected function casts(): array
     {

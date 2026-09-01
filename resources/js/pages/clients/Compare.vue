@@ -30,6 +30,7 @@ type BureauEntry = {
 const props = defineProps<{
     client: {
         id: number;
+        cuid?: string | null;
         display_name: string;
         status?: string | null;
     };
@@ -96,15 +97,16 @@ const page = usePage<{
 }>();
 const bureauOrder: BureauKey[] = ['experian', 'transunion', 'equifax'];
 const reviewLabelStyle = computed(() => String(page.props.creditsoft?.ui?.review_label_style ?? '10'));
+const clientRouteKey = computed(() => String(props.client.id));
 
 const changeCycle = (event: Event) => {
     const target = event.target as HTMLSelectElement;
 
-    router.get(`/clients/${props.client.id}/compare`, { cycle: target.value }, { preserveState: true });
+    router.get(`/clients/${clientRouteKey.value}/compare`, { cycle: target.value }, { preserveState: true });
 };
 
 const queueSuggestions = () => {
-    router.post(`/clients/${props.client.id}/violations/scan`, {
+    router.post(`/clients/${clientRouteKey.value}/violations/scan`, {
         reporting_cycle_id: props.cycle.id,
     }, {
         preserveScroll: true,
@@ -351,7 +353,7 @@ const sectionCopy = (mode: 'needs-review' | 'aligned') => {
                     <button
                         type="button"
                         class="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-stone-700 transition hover:border-stone-500"
-                        @click="router.visit(`/clients/${client.id}/violations?cycle=${cycle.id}`)"
+                        @click="router.visit(`/clients/${clientRouteKey}/violations?cycle=${cycle.id}`)"
                     >
                         Open Violation Queue
                     </button>

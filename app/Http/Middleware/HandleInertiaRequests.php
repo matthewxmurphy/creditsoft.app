@@ -3,14 +3,12 @@
 namespace App\Http\Middleware;
 
 use App\Models\Client;
-use App\Models\Task;
-use App\Models\ViolationCandidate;
+use App\Services\CreditsoftRailBadgeService;
 use App\Services\CreditsoftStorageHealthService;
 use App\Services\CreditsoftUpdateFeed;
 use App\Services\InstallerState;
 use App\Services\LicenseStateService;
 use App\Services\OfficeBackupFilesystemSettingsService;
-use App\Services\OperationalReminderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Middleware;
@@ -31,7 +29,7 @@ class HandleInertiaRequests extends Middleware
         $updateFeed = app(CreditsoftUpdateFeed::class);
         $backupFilesystemSettings = app(OfficeBackupFilesystemSettingsService::class)->load();
         $storageHealth = app(CreditsoftStorageHealthService::class)->current();
-        $operationalReminders = app(OperationalReminderService::class);
+        $railBadges = app(CreditsoftRailBadgeService::class);
         $installerState = app(InstallerState::class)->read();
         $loginAccounts = collect(config('creditsoft.access.login_accounts', []))
             ->filter(fn (array $account) => (bool) ($account['readonly'] ?? false))
@@ -45,19 +43,16 @@ class HandleInertiaRequests extends Middleware
             ->values()
             ->all();
 
-        $badgeCounts = $user
-            ? [
-                'clients' => Client::query()->count(),
-                'inbox' => $operationalReminders->activeCount(),
-                'tasks' => Task::query()->whereIn('status', ['open', 'in_progress'])->count(),
-                'violations' => ViolationCandidate::query()->whereIn('status', ['open', 'confirmed'])->count(),
-            ]
-            : [
-                'clients' => 0,
-                'inbox' => 0,
-                'tasks' => 0,
-                'violations' => 0,
-            ];
+        if ($user) {
+            $railBadges->markRequestSeen($request, $user);
+        }
+
+        $badgeCounts = $user ? $railBadges->countsFor($user) : [
+            'clients' => 0,
+            'inbox' => 0,
+            'tasks' => 0,
+            'violations' => 0,
+        ];
 
         return [
             ...parent::share($request),
@@ -464,6 +459,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             'id' => $client->getKey(),
+            'cuid' => $client->cuid,
             'first_name' => filled($client->first_name) ? (string) $client->first_name : null,
             'last_name' => filled($client->last_name) ? (string) $client->last_name : null,
             'display_name' => $displayName,

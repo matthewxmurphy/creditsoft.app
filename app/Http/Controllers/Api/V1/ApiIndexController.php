@@ -63,6 +63,7 @@ class ApiIndexController extends Controller
                         'POST /browser-companion/intake',
                         'POST /browser-companion/client-sync',
                         'POST /browser-companion/automation-discovery',
+                        'POST /crm/twenty/webhook',
                     ],
                 ],
                 'endpoints' => [
@@ -74,7 +75,7 @@ class ApiIndexController extends Controller
                     [
                         'method' => 'GET',
                         'path' => '/office-stats',
-                        'summary' => 'Read public-safe office brag metrics for website hero cards and dashboards.',
+                        'summary' => 'Read aggregate-only office impact, lifecycle, customer city/state, business-location comparison, and seasonality statistics without customer identifiers.',
                     ],
                     [
                         'method' => 'GET',
@@ -200,6 +201,11 @@ class ApiIndexController extends Controller
                         'method' => 'POST',
                         'path' => '/browser-companion/intake',
                         'summary' => 'Resolve a client by email or name and ingest a browser companion capture into the right cycle.',
+                    ],
+                    [
+                        'method' => 'POST',
+                        'path' => '/crm/twenty/webhook',
+                        'summary' => 'Receive Twenty CRM webhooks and queue AI-assisted CreditSoft tasks, notes, and outbound drafts.',
                     ],
                 ],
             ],

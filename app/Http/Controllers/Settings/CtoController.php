@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Services\AuditTrail;
 use App\Services\CreditsoftAiService;
-use App\Services\CtoAdvisorActionService;
+use App\Services\CreditsoftClusterActionService;
 use App\Services\CreditsoftClusterDiagnosticsService;
 use App\Services\CreditsoftSystemDiagnosticsService;
 use App\Services\OfficeBackupFilesystemSettingsService;
@@ -127,8 +127,7 @@ class CtoController extends Controller
     public function performanceAction(
         Request $request,
         CreditsoftClusterDiagnosticsService $clusterDiagnostics,
-        OfficeBackupFilesystemSettingsService $filesystemSettings,
-        CtoAdvisorActionService $advisorActions,
+        CreditsoftClusterActionService $clusterActions,
         AuditTrail $auditTrail,
     ): JsonResponse {
         $validated = $request->validate([
@@ -139,7 +138,6 @@ class CtoController extends Controller
 
         $action = (string) $validated['action'];
         $cluster = $clusterDiagnostics->overview();
-        $peerResults = [];
 
         if ($action === 'prefer_healthy_node') {
             $preferredNode = $this->healthiestNode($cluster);
@@ -151,8 +149,6 @@ class CtoController extends Controller
             }
 
             $payload = $this->routerPreferencePayload($preferredNode);
-            $result = $advisorActions->applyLocal($action, $payload);
-            $peerResults = $this->broadcastPeerAction($filesystemSettings, $cluster, $action, $payload);
         } else {
             $targetNode = $this->targetNode(
                 $cluster,
@@ -166,13 +162,18 @@ class CtoController extends Controller
                     ?? data_get($cluster, 'office_label', 'this office node')
                 ),
             ];
-
-            if (($targetNode['source'] ?? 'local') === 'peer') {
-                $result = $this->postPeerAction($filesystemSettings, $targetNode, $action, $payload);
-            } else {
-                $result = $advisorActions->applyLocal($action, $payload);
-            }
         }
+
+        $clusterAction = $clusterActions->dispatchEverywhere('cto.'.$action, $payload);
+        $result = [
+            ...$clusterAction['local'],
+            'cluster_action_uuid' => $clusterAction['action_uuid'],
+            'cluster_node_count' => $clusterAction['cluster_node_count'],
+            'cluster_delivered' => $clusterAction['delivered'],
+            'cluster_queued' => $clusterAction['queued'],
+            'cluster_messages' => $clusterAction['messages'],
+        ];
+        $peerResults = $clusterAction['peer_results'];
 
         $auditTrail->record(
             $request->user(),

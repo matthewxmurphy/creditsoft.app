@@ -1,15 +1,142 @@
 <?php
 declare(strict_types=1);
 
-$pricingConfigPath = dirname(__DIR__) . '/web/pricing-config.php';
+foreach ([
+    dirname(__DIR__) . '/credit_config.php',
+    dirname(__DIR__) . '/web-meta/credit_config.php',
+    dirname(__DIR__, 2) . '/credit_config.php',
+] as $configPath) {
+    if (is_file($configPath)) {
+        require_once $configPath;
+        break;
+    }
+}
 
-if (is_file($pricingConfigPath)) {
-    require_once $pricingConfigPath;
+$pricingConfigPaths = [
+    dirname(__DIR__) . '/pricing-config.php',
+    dirname(__DIR__) . '/web/pricing-config.php',
+    dirname(__DIR__) . '/legacy/web-php-20260426214317/pricing-config.php',
+];
+
+foreach ($pricingConfigPaths as $pricingConfigPath) {
+    if (is_file($pricingConfigPath)) {
+        require_once $pricingConfigPath;
+        break;
+    }
+}
+
+function update_creditsoft_config_value(array $names): string
+{
+    foreach ($names as $name) {
+        if (defined($name) && trim((string) constant($name)) !== '') {
+            return trim((string) constant($name));
+        }
+
+        $value = getenv($name);
+        if (is_string($value) && trim($value) !== '') {
+            return trim($value);
+        }
+    }
+
+    return '';
+}
+
+function update_creditsoft_turnstile_site_key(): string
+{
+    return update_creditsoft_config_value([
+        'CREDITSOFT_TURNSTILE_SITE_KEY',
+        'TURNSTILE_SITE_KEY',
+        'CLOUDFLARE_TURNSTILE_SITE_KEY',
+    ]);
+}
+
+function update_creditsoft_turnstile_secret(): string
+{
+    return update_creditsoft_config_value([
+        'CREDITSOFT_TURNSTILE_SECRET_KEY',
+        'TURNSTILE_SECRET_KEY',
+        'CLOUDFLARE_TURNSTILE_SECRET_KEY',
+    ]);
+}
+
+function update_creditsoft_turnstile_is_valid(?string $token): bool
+{
+    $secret = update_creditsoft_turnstile_secret();
+
+    if ($secret === '') {
+        return true;
+    }
+
+    $token = trim((string) $token);
+
+    if ($token === '') {
+        return false;
+    }
+
+    $payload = http_build_query([
+        'secret' => $secret,
+        'response' => $token,
+        'remoteip' => $_SERVER['REMOTE_ADDR'] ?? null,
+    ]);
+
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'POST',
+            'header' => "Content-Type: application/x-www-form-urlencoded\r\n",
+            'content' => $payload,
+            'timeout' => 5,
+        ],
+    ]);
+
+    $response = @file_get_contents('https://challenges.cloudflare.com/turnstile/v0/siteverify', false, $context);
+    $decoded = is_string($response) ? json_decode($response, true) : null;
+
+    return is_array($decoded) && (bool) ($decoded['success'] ?? false);
+}
+
+function update_creditsoft_email_domain_has_mx(string $email): bool
+{
+    $domain = substr((string) strrchr(strtolower(trim($email)), '@'), 1);
+
+    if ($domain === '' || ! str_contains($domain, '.')) {
+        return false;
+    }
+
+    if (function_exists('idn_to_ascii')) {
+        $ascii = idn_to_ascii($domain, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
+        if (is_string($ascii) && $ascii !== '') {
+            $domain = strtolower($ascii);
+        }
+    }
+
+    return function_exists('checkdnsrr')
+        ? (checkdnsrr($domain, 'MX') || checkdnsrr($domain, 'A') || checkdnsrr($domain, 'AAAA'))
+        : true;
+}
+
+function update_creditsoft_text_looks_human(string $value): bool
+{
+    $value = trim($value);
+
+    if ($value === '') {
+        return false;
+    }
+
+    if (preg_match('/^[a-z]{8,}$/i', $value) === 1 && ! preg_match('/[aeiou]/i', $value)) {
+        return false;
+    }
+
+    return preg_match('/[a-z0-9]/i', $value) === 1;
 }
 
 function update_creditsoft_feed_path(): string
 {
     return __DIR__.'/data/update-feed.json';
+}
+
+function update_creditsoft_public_renewal_url(): string
+{
+    return 'https://www.creditsoft.app/renewal/';
 }
 
 function update_creditsoft_plan_catalog(): array
@@ -38,37 +165,7 @@ function update_creditsoft_plan_catalog(): array
         }
     }
 
-    return [
-        'professional' => [
-            'name' => 'Enterprise',
-            'monthly' => 89.95,
-            'monthly_list' => 119.95,
-            'yearly' => 863.52,
-            'yearly_list' => 1439.40,
-            'features' => [
-                'Unlimited clients',
-                'Unlimited users',
-                'Metro2 review, letters, and briefs',
-                'Client portal',
-                'Priority support',
-                'No Chrome browser plugin',
-            ],
-        ],
-        'enterprise' => [
-            'name' => 'Enterprise Pro',
-            'monthly' => 199.95,
-            'monthly_list' => 266.60,
-            'yearly' => 1919.52,
-            'yearly_list' => 3199.20,
-            'features' => [
-                'Everything in Enterprise',
-                'Chrome browser companion',
-                'API access',
-                'Automation workflows',
-                'Priority support',
-            ],
-        ],
-    ];
+    return [];
 }
 
 function update_creditsoft_money(float $amount): string
@@ -81,17 +178,39 @@ function update_creditsoft_zelle_quote(string $planKey = 'enterprise', string $b
     $plans = update_creditsoft_plan_catalog();
     $normalizedPlan = strtolower(trim($planKey));
     $catalogKey = match ($normalizedPlan) {
-        'professional', 'enterprise-basic', 'enterprise_basic', 'basic' => 'professional',
-        'enterprise', 'enterprise-pro', 'enterprise_pro', 'pro', 'api', 'api_version' => 'enterprise',
+        'professional', 'enterprise-basic', 'enterprise_basic', 'basic' => 'enterprise',
+        'enterprise', 'enterprise-pro', 'enterprise_pro', 'pro', 'api', 'api_version' => 'enterprise_pro',
         default => array_key_exists($normalizedPlan, $plans) ? $normalizedPlan : 'enterprise',
     };
     $selected = $plans[$catalogKey] ?? $plans['enterprise'] ?? reset($plans);
+
+    if (! is_array($selected) || $selected === []) {
+        return [
+            'plan_key' => $catalogKey,
+            'plan_name' => 'CreditSoft',
+            'billing' => 'monthly',
+            'interval_label' => 'month',
+            'base_amount' => null,
+            'base_amount_label' => null,
+            'discount_percent' => 0,
+            'discount_amount' => null,
+            'discount_amount_label' => null,
+            'zelle_amount' => null,
+            'zelle_amount_label' => null,
+        ];
+    }
     $normalizedBilling = strtolower(trim($billing));
     $billingKey = in_array($normalizedBilling, ['yearly', 'annual'], true) ? 'yearly' : 'monthly';
     $baseAmount = (float) ($selected[$billingKey] ?? 0);
-    $discountPercent = 10;
+    $discountPercent = function_exists('creditsoft_site_manual_payment_discount_percent')
+        ? creditsoft_site_manual_payment_discount_percent()
+        : 0;
     $discountAmount = $baseAmount > 0 ? round($baseAmount * ($discountPercent / 100), 2) : null;
-    $zelleAmount = $baseAmount > 0 ? round($baseAmount - (float) $discountAmount, 2) : null;
+    $zelleAmount = $baseAmount > 0
+        ? (function_exists('creditsoft_site_manual_payment_amount')
+            ? creditsoft_site_manual_payment_amount($baseAmount, $discountPercent)
+            : round($baseAmount - (float) $discountAmount, 2))
+        : null;
 
     return [
         'plan_key' => $catalogKey,
@@ -184,7 +303,7 @@ function update_creditsoft_load_feed(): array
             'summary' => 'The update metadata file is missing.',
             'notes' => [],
             'download_url' => update_creditsoft_site_url(),
-            'renewal_url' => update_creditsoft_site_url('renew.php'),
+            'renewal_url' => update_creditsoft_public_renewal_url(),
             'support_url' => 'https://creditsoft.app/',
             'update_required' => false,
             'minimum_version' => null,
@@ -204,7 +323,7 @@ function update_creditsoft_load_feed(): array
             'summary' => 'The update metadata file could not be parsed.',
             'notes' => [],
             'download_url' => update_creditsoft_site_url(),
-            'renewal_url' => update_creditsoft_site_url('renew.php'),
+            'renewal_url' => update_creditsoft_public_renewal_url(),
             'support_url' => 'https://creditsoft.app/',
             'update_required' => false,
             'minimum_version' => null,
@@ -221,13 +340,13 @@ function update_creditsoft_load_feed(): array
         'summary' => '',
         'notes' => [],
         'download_url' => update_creditsoft_site_url(),
-        'renewal_url' => update_creditsoft_site_url('renew.php'),
+        'renewal_url' => update_creditsoft_public_renewal_url(),
         'support_url' => 'https://creditsoft.app/',
         'update_required' => false,
         'minimum_version' => null,
     ], $decoded, [
         'download_url' => $decoded['download_url'] ?? update_creditsoft_site_url(),
-        'renewal_url' => $decoded['renewal_url'] ?? update_creditsoft_site_url('renew.php'),
+        'renewal_url' => $decoded['renewal_url'] ?? update_creditsoft_public_renewal_url(),
         'support_url' => $decoded['support_url'] ?? 'https://creditsoft.app/',
     ]);
 }

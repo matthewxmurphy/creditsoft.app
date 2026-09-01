@@ -99,7 +99,7 @@ class ProfileController extends Controller
             $name = 'Intranet client';
         }
 
-        $plainToken = $apiAccess->issueUserToken($user, $name, ['partner_api', 'browser_companion', 'intranet_client']);
+        $plainToken = $apiAccess->issueUserToken($user, $name, ['partner_api', 'browser_companion', 'intranet_client', 'crm_automation']);
         $request->session()->flash('generated_personal_api_token', $plainToken);
 
         $auditTrail->record(

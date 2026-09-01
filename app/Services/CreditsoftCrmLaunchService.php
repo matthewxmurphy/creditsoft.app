@@ -47,7 +47,6 @@ class CreditsoftCrmLaunchService
         }
 
         $this->provisionWorkspaceFromHr($user, $link);
-        $this->syncCreditsoftRoster($link);
 
         $link->forceFill([
             'last_launched_at' => now(),
@@ -75,28 +74,23 @@ class CreditsoftCrmLaunchService
 
     protected function userLink(User $user): OfficeCrmUserLink
     {
-        $email = Str::of((string) $user->email)->lower()->trim()->value();
-
-        if ($email === '') {
-            throw new RuntimeException('CreditSoft cannot open the CRM because this user does not have an email address.');
-        }
-
-        $link = OfficeCrmUserLink::query()->firstOrNew(['user_id' => $user->getKey()]);
+        $email = $this->crmOwnerLoginEmail();
+        $link = $this->crmOwnerLink($user, $email);
 
         if (! $link->exists) {
             $link->crm_email = $email;
             $link->crm_password = Str::password(40);
+            $link->metadata = [
+                'owner_display_email' => $this->crmOwnerDisplayEmail(),
+                'owner_privacy_mode' => 'local_self_hosted',
+            ];
             $link->save();
 
             return $link;
         }
 
         if ($link->crm_email !== $email) {
-            return $this->rotateCrmLinkPassword(
-                $link,
-                $email,
-                'CreditSoft aligned the CRM sidecar email with this intranet user.',
-            );
+            return $this->moveCrmLinkToLocalOwner($link, $email);
         }
 
         if (! filled($this->crmPassword($link))) {
@@ -110,10 +104,36 @@ class CreditsoftCrmLaunchService
         return $link;
     }
 
+    protected function crmOwnerLink(User $user, string $email): OfficeCrmUserLink
+    {
+        $canonical = OfficeCrmUserLink::query()
+            ->where('crm_email', $email)
+            ->orderByRaw('case when crm_workspace_id is null then 1 else 0 end')
+            ->orderBy('id')
+            ->first();
+
+        if ($canonical) {
+            return $canonical;
+        }
+
+        $existingWorkspace = OfficeCrmUserLink::query()
+            ->whereNotNull('crm_workspace_id')
+            ->orderBy('id')
+            ->first();
+
+        if ($existingWorkspace) {
+            return $existingWorkspace;
+        }
+
+        return OfficeCrmUserLink::query()->firstOrNew(['user_id' => $user->getKey()]);
+    }
+
     protected function rotateCrmLinkPassword(OfficeCrmUserLink $link, string $email, string $reason): OfficeCrmUserLink
     {
         $metadata = array_filter([
             ...($link->metadata ?? []),
+            'owner_display_email' => $this->crmOwnerDisplayEmail(),
+            'owner_privacy_mode' => 'local_self_hosted',
             'password_rotated_at' => now()->toIso8601String(),
             'password_rotation_reason' => $reason,
         ]);
@@ -128,6 +148,113 @@ class CreditsoftCrmLaunchService
             ]);
 
         return OfficeCrmUserLink::query()->findOrFail($link->getKey());
+    }
+
+    protected function moveCrmLinkToLocalOwner(OfficeCrmUserLink $link, string $email): OfficeCrmUserLink
+    {
+        $previousEmail = trim((string) $link->crm_email);
+        $password = $this->crmPassword($link) ?: Str::password(40);
+        $metadata = array_filter([
+            ...($link->metadata ?? []),
+            'owner_display_email' => $this->crmOwnerDisplayEmail(),
+            'owner_privacy_mode' => 'local_self_hosted',
+            'owner_neutralized_from' => $previousEmail,
+            'owner_neutralized_at' => now()->toIso8601String(),
+            'owner_neutralization_reason' => 'CreditSoft keeps the self-hosted CRM owner identity local and neutral.',
+        ]);
+
+        try {
+            $this->neutralizeCrmSidecarOwner($link, $previousEmail, $email, $password);
+            $metadata['owner_neutralization_status'] = 'crm_sidecar_updated';
+        } catch (Throwable $exception) {
+            $metadata['owner_neutralization_status'] = 'crm_sidecar_update_failed';
+            $metadata['owner_neutralization_last_error'] = Str::limit($exception->getMessage(), 240);
+
+            $link->forceFill([
+                'metadata' => $metadata,
+            ])->save();
+
+            return $link;
+        }
+
+        DB::table($link->getTable())
+            ->where('id', $link->getKey())
+            ->update([
+                'crm_email' => $email,
+                'crm_password' => $this->encryptCrmPassword($password),
+                'metadata' => json_encode($metadata, JSON_THROW_ON_ERROR),
+                'updated_at' => now(),
+            ]);
+
+        return OfficeCrmUserLink::query()->findOrFail($link->getKey());
+    }
+
+    protected function neutralizeCrmSidecarOwner(
+        OfficeCrmUserLink $link,
+        string $previousEmail,
+        string $email,
+        string $password,
+    ): void {
+        if ($previousEmail === '' || $previousEmail === $email) {
+            return;
+        }
+
+        $this->withCrmConnection(function (Connection $connection) use ($link, $previousEmail, $email, $password): void {
+            $identity = $this->crmOwnerIdentity();
+            $now = now();
+            $passwordHash = $this->crmPasswordHash($password);
+
+            $oldUser = $connection->table('core.user')
+                ->where('email', $previousEmail)
+                ->first(['id']);
+
+            $desiredUser = $connection->table('core.user')
+                ->where('email', $email)
+                ->first(['id']);
+
+            $ownerUserId = (string) ($oldUser?->id ?? $desiredUser?->id ?? '');
+
+            if ($oldUser && (! $desiredUser || (string) $desiredUser->id === (string) $oldUser->id)) {
+                $ownerUserId = (string) $oldUser->id;
+                $connection->table('core.user')
+                    ->where('id', $oldUser->id)
+                    ->update([
+                        'email' => $email,
+                        'firstName' => $identity['first_name'],
+                        'lastName' => $identity['last_name'],
+                        'defaultAvatarUrl' => $identity['avatar_url'],
+                        'passwordHash' => $passwordHash,
+                        'isEmailVerified' => true,
+                        'disabled' => false,
+                        'updatedAt' => $now,
+                    ]);
+            } elseif ($desiredUser) {
+                $ownerUserId = (string) $desiredUser->id;
+                $connection->table('core.user')
+                    ->where('id', $desiredUser->id)
+                    ->update([
+                        'firstName' => $identity['first_name'],
+                        'lastName' => $identity['last_name'],
+                        'defaultAvatarUrl' => $identity['avatar_url'],
+                        'passwordHash' => $passwordHash,
+                        'isEmailVerified' => true,
+                        'disabled' => false,
+                        'updatedAt' => $now,
+                    ]);
+            }
+
+            foreach ($this->crmWorkspaceSchemas($connection, $link) as $schema) {
+                $this->neutralizeWorkspaceMember(
+                    $connection,
+                    $schema,
+                    $previousEmail,
+                    $email,
+                    $ownerUserId,
+                    $identity,
+                    $now,
+                );
+            }
+        });
     }
 
     protected function encryptCrmPassword(string $password): string
@@ -412,7 +539,7 @@ class CreditsoftCrmLaunchService
                     return;
                 }
 
-                $identity = $this->crmIdentity($user);
+                $identity = $this->crmOwnerIdentity();
                 $now = now();
 
                 $connection->table('core.user')
@@ -438,9 +565,10 @@ class CreditsoftCrmLaunchService
                         $identity['timezone'],
                         $now,
                         json_encode([
-                            'source' => 'creditsoft_hr',
+                            'source' => 'creditsoft_local_owner',
                             'department' => $identity['department'],
                             'title' => $identity['title'],
+                            'display_email' => $identity['display_email'],
                             'synced_at' => now()->toIso8601String(),
                         ], JSON_THROW_ON_ERROR),
                         $link->crm_email,
@@ -484,6 +612,116 @@ class CreditsoftCrmLaunchService
                 ]),
             ])->save();
         }
+    }
+
+    protected function crmOwnerLoginEmail(): string
+    {
+        $email = Str::of((string) config('creditsoft.integrations.crm.owner_email', 'admin@localhost.local'))
+            ->lower()
+            ->trim()
+            ->value();
+
+        return filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : 'admin@localhost.local';
+    }
+
+    protected function crmOwnerDisplayEmail(): string
+    {
+        $email = trim((string) config('creditsoft.integrations.crm.owner_display_email', 'admin@127.0.0.1'));
+
+        return $email !== '' ? $email : 'admin@127.0.0.1';
+    }
+
+    protected function crmOwnerIdentity(): array
+    {
+        [$firstName, $lastName] = $this->splitName((string) config('creditsoft.integrations.crm.owner_name', 'Local Admin'));
+
+        return [
+            'first_name' => $firstName !== '' ? $firstName : 'Local',
+            'last_name' => $lastName !== '' ? $lastName : 'Admin',
+            'timezone' => (string) config('app.timezone', 'America/Los_Angeles'),
+            'avatar_url' => null,
+            'department' => 'Local CRM',
+            'title' => 'Self-hosted owner',
+            'display_email' => $this->crmOwnerDisplayEmail(),
+        ];
+    }
+
+    protected function crmWorkspaceSchemas(Connection $connection, OfficeCrmUserLink $link): array
+    {
+        $workspaceId = trim((string) $link->crm_workspace_id);
+        $query = $connection->table('core.workspace');
+
+        if ($workspaceId !== '') {
+            $query->where('id', $workspaceId);
+        }
+
+        return collect($query->pluck('databaseSchema'))
+            ->map(fn (mixed $schema): string => (string) $schema)
+            ->filter(fn (string $schema): bool => (bool) preg_match('/^workspace_[a-z0-9_]+$/', $schema))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    protected function neutralizeWorkspaceMember(
+        Connection $connection,
+        string $schema,
+        string $previousEmail,
+        string $email,
+        string $ownerUserId,
+        array $identity,
+        mixed $now,
+    ): void {
+        $context = json_encode([
+            'source' => 'creditsoft_local_owner',
+            'department' => $identity['department'],
+            'title' => $identity['title'],
+            'display_email' => $identity['display_email'],
+            'synced_at' => now()->toIso8601String(),
+        ], JSON_THROW_ON_ERROR);
+
+        if ($ownerUserId !== '') {
+            $connection->update(
+                'update '.$this->qualifiedTable($schema, 'workspaceMember').'
+                 set "nameFirstName" = ?, "nameLastName" = ?, "userEmail" = ?, "userId" = ?::uuid, "avatarUrl" = ?, "timeZone" = ?, "updatedAt" = ?, "updatedByContext" = ?::jsonb
+                 where "userEmail" = ?
+                    or "userEmail" = ?
+                    or "userId" = ?::uuid',
+                [
+                    $identity['first_name'],
+                    $identity['last_name'],
+                    $email,
+                    $ownerUserId,
+                    $identity['avatar_url'],
+                    $identity['timezone'],
+                    $now,
+                    $context,
+                    $previousEmail,
+                    $email,
+                    $ownerUserId,
+                ],
+            );
+
+            return;
+        }
+
+        $connection->update(
+            'update '.$this->qualifiedTable($schema, 'workspaceMember').'
+             set "nameFirstName" = ?, "nameLastName" = ?, "userEmail" = ?, "avatarUrl" = ?, "timeZone" = ?, "updatedAt" = ?, "updatedByContext" = ?::jsonb
+             where "userEmail" = ?
+                or "userEmail" = ?',
+            [
+                $identity['first_name'],
+                $identity['last_name'],
+                $email,
+                $identity['avatar_url'],
+                $identity['timezone'],
+                $now,
+                $context,
+                $previousEmail,
+                $email,
+            ],
+        );
     }
 
     protected function crmIdentity(User $user): array

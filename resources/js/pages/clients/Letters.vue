@@ -33,6 +33,7 @@ type PdfProfile = {
 const props = defineProps<{
     client: {
         id: number;
+        cuid?: string | null;
         display_name: string;
         status?: string | null;
     };
@@ -114,6 +115,8 @@ const openDocumentPreview = (
 const closeDocumentPreview = () => {
     activeDocumentPreview.value = null;
 };
+
+const clientRouteKey = computed(() => String(props.client.id));
 
 const templateLookup = computed(() =>
     Object.fromEntries(
@@ -310,7 +313,7 @@ const applyTemplateToAi = (template: TemplateEntry) => {
 };
 
 const submit = () => {
-    form.post(`/clients/${props.client.id}/letters`, {
+    form.post(`/clients/${clientRouteKey.value}/letters`, {
         preserveScroll: true,
         onSuccess: () => form.reset('title', 'content'),
     });
@@ -338,7 +341,7 @@ const generateAiDraft = () => {
         return;
     }
 
-    aiForm.post(`/clients/${props.client.id}/letters/ai-draft`, {
+    aiForm.post(`/clients/${clientRouteKey.value}/letters/ai-draft`, {
         preserveScroll: true,
         onSuccess: () => aiForm.reset('operator_focus'),
     });
@@ -346,7 +349,7 @@ const generateAiDraft = () => {
 
 const setStatus = (id: number, status: string) => {
     router.patch(
-        `/clients/${props.client.id}/letters/${id}`,
+        `/clients/${clientRouteKey.value}/letters/${id}`,
         { status },
         { preserveScroll: true },
     );
@@ -380,7 +383,7 @@ const exportPdf = (letter: (typeof props.letters)[number]) => {
     const profile = pdfProfileFor(letter);
 
     router.patch(
-        `/clients/${props.client.id}/letters/${letter.id}`,
+        `/clients/${clientRouteKey.value}/letters/${letter.id}`,
         {
             status: 'exported',
             pdf_profile: {

@@ -1,13 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 
-const target = "/contact-us";
+const target = "/checkout/?plan=professional&billing=monthly&payment=zelle";
 ---
 
-<BaseLayout title="Start Intake | CreditSoft" description="Start a CreditSoft office intake conversation.">
+<BaseLayout title="Start Checkout | CreditSoft" description="Start a CreditSoft checkout and create a payment reference before paying by Zelle or Cash App.">
   <meta http-equiv="refresh" content={`0; url=${target}`} slot="head" />
   <main class="redirect-page">
-    <a href={target}>Continue to CreditSoft intake</a>
+    <a href={target}>Continue to CreditSoft checkout</a>
   </main>
 </BaseLayout>
-

@@ -91,6 +91,18 @@ class ClientHealthSignalService
         $hasLateHistory = $latePayments->isNotEmpty()
             || $importedLateCount > 0
             || $this->textMatchesLate(data_get($profileMetadata, 'history'), data_get($profileMetadata, 'payment_history'), $profile?->notes);
+        $ownerAccount = filter_var(
+            data_get($profileMetadata, 'owner_account')
+                ?? data_get($profileMetadata, 'manual_billing.owner_account')
+                ?? data_get($clientMetadata, 'owner_account'),
+            FILTER_VALIDATE_BOOLEAN,
+        );
+        $proBonoAccount = filter_var(
+            data_get($profileMetadata, 'pro_bono')
+                ?? data_get($profileMetadata, 'manual_billing.pro_bono')
+                ?? data_get($clientMetadata, 'billing.pro_bono'),
+            FILTER_VALIDATE_BOOLEAN,
+        );
         $isBehind = $this->textMatchesLate($profileStatus)
             || ($profileIsBillable && $standingNextDueAt && $standingNextDueAt->isPast())
             || $this->textMatchesLate($latestPayment?->status)
@@ -125,6 +137,26 @@ class ClientHealthSignalService
             'imported_payment_label' => $this->importedPaymentLabel($latestImportedPayment),
             'updated_at' => now()->toIso8601String(),
         ];
+
+        if ($ownerAccount || $proBonoAccount) {
+            $label = $ownerAccount ? 'Owner account' : 'Pro bono';
+            $detail = $ownerAccount
+                ? 'Internal owner account; client payment is not required for report monitoring.'
+                : 'Pro bono account; client payment is intentionally waived.';
+
+            return $this->withFingerprint([
+                ...$base,
+                'state' => $ownerAccount ? 'owner' : 'pro_bono',
+                'label' => $label,
+                'detail' => $detail,
+                'reason' => $detail.' CreditSoft keeps the file active without marking billing behind.',
+                'reason_code' => $ownerAccount ? 'owner_internal' : 'pro_bono_manual',
+                'tone' => $ownerAccount ? 'blue' : 'green',
+                'color' => $ownerAccount ? 'blue' : 'green',
+                'score' => $ownerAccount ? 100 : 90,
+                'score_label' => $ownerAccount ? '100/100' : '90/100',
+            ]);
+        }
 
         if (! $profile && $payments->isEmpty() && $importedPaymentMarkers->isEmpty()) {
             return $this->withFingerprint([

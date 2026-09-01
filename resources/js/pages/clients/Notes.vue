@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import ClientHealthSummary from '@/components/creditsoft/ClientHealthSummary.vue';
 import ClientWorkspaceNav from '@/components/creditsoft/ClientWorkspaceNav.vue';
@@ -9,6 +10,7 @@ import { formatDate } from '@/lib/creditsoft';
 const props = defineProps<{
     client: {
         id: number;
+        cuid?: string | null;
         display_name: string;
         status?: string | null;
     };
@@ -34,8 +36,10 @@ const form = useForm({
     note: '',
 });
 
+const clientRouteKey = computed(() => String(props.client.id));
+
 const submit = () => {
-    form.post(`/clients/${props.client.id}/notes`, {
+    form.post(`/clients/${clientRouteKey.value}/notes`, {
         preserveScroll: true,
         onSuccess: () => form.reset('note'),
     });

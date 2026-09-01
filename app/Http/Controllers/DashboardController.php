@@ -10,6 +10,7 @@ use App\Models\ClientPayment;
 use App\Models\CashAppPaymentRequest;
 use App\Models\MetricSnapshot;
 use App\Models\OfficeBillingSetting;
+use App\Models\ReportingCycle;
 use App\Models\Task;
 use App\Models\ViolationCandidate;
 use App\Services\CreditsoftUpdateFeed;
@@ -39,11 +40,10 @@ class DashboardController extends Controller
             return Inertia::location(route('billing.index'));
         }
 
-        $latestCycle = Client::query()
-            ->with(['reportingCycles.bureauSnapshots.tradelines'])
-            ->get()
-            ->flatMap(fn (Client $client) => $client->reportingCycles)
-            ->sortByDesc('started_at')
+        $latestCycle = ReportingCycle::query()
+            ->with(['client', 'bureauSnapshots.tradelines', 'violationCandidates', 'browserCaptures'])
+            ->orderByDesc('started_at')
+            ->orderByDesc('id')
             ->first();
         $openTaskQuery = Task::query()->whereIn('status', ['open', 'in_progress']);
         $billingProfiles = ClientBillingProfile::query()

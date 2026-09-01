@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\PhoneNumber;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
@@ -100,6 +101,7 @@ class OfficeGrowthSettingsService
                 'business_phone' => '',
                 'security_sms_phone' => '',
                 'fax' => '',
+                'usps_mailer_id' => '',
                 'timezone_mode' => 'browser',
                 'allow_round_robin' => true,
                 'assigned_only_default' => false,
@@ -262,7 +264,7 @@ class OfficeGrowthSettingsService
                     'last_name' => 'Perry',
                     'company' => 'Digital Media Partners',
                     'email' => 'dmpkcmo@gmail.com',
-                    'phone' => '+1 8162871858',
+                    'phone' => '+1 (816) 287-1858',
                     'assigned_to' => 'Office Admin',
                 ],
             ],
@@ -278,9 +280,10 @@ class OfficeGrowthSettingsService
             'company_name' => trim((string) Arr::get($input, 'company_profile.company_name', $defaults['company_profile']['company_name'])),
             'customer_portal_link' => trim((string) Arr::get($input, 'company_profile.customer_portal_link', $defaults['company_profile']['customer_portal_link'])),
             'support_email' => trim((string) Arr::get($input, 'company_profile.support_email', $defaults['company_profile']['support_email'])),
-            'business_phone' => trim((string) Arr::get($input, 'company_profile.business_phone', $defaults['company_profile']['business_phone'])),
-            'security_sms_phone' => trim((string) Arr::get($input, 'company_profile.security_sms_phone', $defaults['company_profile']['security_sms_phone'])),
+            'business_phone' => PhoneNumber::normalize(Arr::get($input, 'company_profile.business_phone', $defaults['company_profile']['business_phone'])) ?? '',
+            'security_sms_phone' => PhoneNumber::normalize(Arr::get($input, 'company_profile.security_sms_phone', $defaults['company_profile']['security_sms_phone'])) ?? '',
             'fax' => trim((string) Arr::get($input, 'company_profile.fax', $defaults['company_profile']['fax'])),
+            'usps_mailer_id' => substr(preg_replace('/\D+/', '', (string) Arr::get($input, 'company_profile.usps_mailer_id', $defaults['company_profile']['usps_mailer_id'])) ?? '', 0, 9),
             'timezone_mode' => trim((string) Arr::get($input, 'company_profile.timezone_mode', $defaults['company_profile']['timezone_mode'])) ?: 'browser',
             'allow_round_robin' => (bool) Arr::get($input, 'company_profile.allow_round_robin', $defaults['company_profile']['allow_round_robin']),
             'assigned_only_default' => (bool) Arr::get($input, 'company_profile.assigned_only_default', $defaults['company_profile']['assigned_only_default']),
@@ -442,7 +445,7 @@ class OfficeGrowthSettingsService
             $lastName = trim((string) Arr::get($affiliate, 'last_name'));
             $company = trim((string) Arr::get($affiliate, 'company'));
             $email = trim((string) Arr::get($affiliate, 'email'));
-            $phone = trim((string) Arr::get($affiliate, 'phone'));
+            $phone = PhoneNumber::normalize(Arr::get($affiliate, 'phone')) ?? '';
             $assignedTo = trim((string) Arr::get($affiliate, 'assigned_to'));
 
             if ($firstName === '' && $lastName === '' && $company === '' && $email === '') {

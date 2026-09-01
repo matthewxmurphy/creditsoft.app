@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Casts\SafeEncryptedString;
+use App\Support\ClientName;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,7 +23,9 @@ class Client extends Model
     protected $fillable = [
         'cuid',
         'first_name',
+        'middle_name',
         'last_name',
+        'name_suffix',
         'email',
         'secondary_email',
         'phone',
@@ -98,6 +102,11 @@ class Client extends Model
         return $this->hasMany(ClientPayment::class)->latest('paid_at');
     }
 
+    public function profileSnapshots(): HasMany
+    {
+        return $this->hasMany(ClientProfileSnapshot::class)->latest('recorded_at');
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(ClientDocument::class)->latest('uploaded_at');
@@ -120,7 +129,45 @@ class Client extends Model
 
     public function getDisplayNameAttribute(): string
     {
-        return trim("{$this->first_name} {$this->last_name}");
+        return collect([
+            $this->first_name,
+            $this->middle_name,
+            $this->last_name,
+            $this->name_suffix,
+        ])
+            ->map(fn ($part) => trim((string) $part))
+            ->filter()
+            ->implode(' ');
+    }
+
+    public function getPhoneAttribute(mixed $value): ?string
+    {
+        return PhoneNumber::normalize($value);
+    }
+
+    public function setFirstNameAttribute(mixed $value): void
+    {
+        $this->attributes['first_name'] = ClientName::normalizePart($value);
+    }
+
+    public function setMiddleNameAttribute(mixed $value): void
+    {
+        $this->attributes['middle_name'] = ClientName::normalizePart($value);
+    }
+
+    public function setLastNameAttribute(mixed $value): void
+    {
+        $this->attributes['last_name'] = ClientName::normalizePart($value);
+    }
+
+    public function setNameSuffixAttribute(mixed $value): void
+    {
+        $this->attributes['name_suffix'] = ClientName::normalizeSuffix($value);
+    }
+
+    public function setPhoneAttribute(mixed $value): void
+    {
+        $this->attributes['phone'] = PhoneNumber::normalize($value);
     }
 
     public function getClientHealthAttribute(): ?array

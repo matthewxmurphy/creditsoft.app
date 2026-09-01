@@ -19,8 +19,7 @@ class ApiDocsController extends Controller
         CreditsoftApiAccess $apiAccess,
         TailscaleStatusService $tailscaleStatus,
         ConnectivityLaneService $laneService,
-    ): Response
-    {
+    ): Response {
         $tailscale = $tailscaleStatus->current();
         $apiUrls = $laneService->apiUrls($request, $apiAccess, $tailscale);
         $configuredPublicApiStatus = $apiAccess->configuredPublicApiBaseStatus();
@@ -66,7 +65,7 @@ class ApiDocsController extends Controller
                     [
                         'method' => 'GET',
                         'path' => '/office-stats',
-                        'summary' => 'Read public-safe office brag metrics for website hero cards and dashboards.',
+                        'summary' => 'Read aggregate-only office impact, lifecycle, geography, and seasonality statistics without customer identifiers.',
                     ],
                     [
                         'method' => 'POST',
@@ -178,6 +177,11 @@ class ApiDocsController extends Controller
                         'path' => '/browser-companion/intake',
                         'summary' => 'Resolve a client by email or name and ingest a browser companion capture into the right cycle.',
                     ],
+                    [
+                        'method' => 'POST',
+                        'path' => '/crm/twenty/webhook',
+                        'summary' => 'Accept Twenty CRM webhooks, match them to CreditSoft clients, then queue AI-assisted tasks, notes, and outbound drafts.',
+                    ],
                 ],
             ],
         ]);
@@ -187,8 +191,7 @@ class ApiDocsController extends Controller
         Request $request,
         EnvironmentEditor $editor,
         CreditsoftApiAccess $apiAccess,
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         $existingPublicApiBaseUrl = $apiAccess->rawConfiguredPublicApiBaseUrl();
         $validated = $request->validate([
             'public_api_base_url' => ['nullable', 'url', 'max:255'],

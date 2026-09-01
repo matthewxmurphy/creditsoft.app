@@ -22,6 +22,7 @@ use App\Http\Controllers\Internal\ConfigReloadController;
 use App\Http\Controllers\Internal\CreditsoftBackupController;
 use App\Http\Controllers\Internal\CreditsoftCrmFrameController;
 use App\Http\Controllers\Internal\CreditsoftCrmLaunchController;
+use App\Http\Controllers\Internal\CreditsoftCrmProxyController;
 use App\Http\Controllers\Internal\CreditsoftDiagnosticsController;
 use App\Http\Controllers\Internal\CreditsoftUpdateController;
 use App\Http\Controllers\LetterDraftController;
@@ -149,10 +150,13 @@ Route::middleware([AuthenticateOrAllowLocalBypass::class, 'verified'])->group(fu
     Route::post('clients/import/disputefox', [ClientImportController::class, 'importDisputeFox'])->name('clients.import.disputefox');
     Route::post('clients/assign-unassigned', [ClientImportController::class, 'assignUnassigned'])->name('clients.assign-unassigned');
     Route::post('clients/{client}/promote', [ClientController::class, 'promoteLead'])->name('clients.promote-lead');
+    Route::post('clients/{client}/review-lead', [ClientController::class, 'reviewLead'])->name('clients.review-lead');
     Route::post('clients/{client}/fire', [ClientController::class, 'fireClient'])->name('clients.fire');
     Route::post('clients/{client}/graduate', [ClientController::class, 'graduateClient'])->name('clients.graduate');
     Route::delete('clients/{client}', [ClientController::class, 'destroy'])->name('clients.destroy');
     Route::get('clients/{client}', [ClientController::class, 'show'])->name('clients.show');
+    Route::patch('clients/{client}', [ClientController::class, 'update'])->name('clients.update');
+    Route::post('clients/{client}/billing/manual', [ClientController::class, 'storeManualBilling'])->name('clients.billing.manual');
     Route::post('clients/{client}/end-relationship', [ClientController::class, 'endRelationship'])->name('clients.end-relationship');
     Route::get('clients/{client}/audit', [ClientController::class, 'timeline'])->name('clients.audit');
     Route::get('clients/{client}/timeline', fn (Client $client) => redirect()->route('clients.audit', $client));
@@ -190,6 +194,19 @@ Route::middleware([AuthenticateOrAllowLocalBypass::class, 'verified'])->group(fu
 
     Route::get('cfo', [CfoController::class, 'index'])->name('cfo.index');
     Route::get('crm', CreditsoftCrmFrameController::class)->name('integrations.crm.frame');
+    Route::any('__creditsoft/crm/{path?}', CreditsoftCrmProxyController::class)
+        ->where('path', '.*')
+        ->name('integrations.crm.proxy');
+    Route::any('assets/{path?}', [CreditsoftCrmProxyController::class, 'asset'])
+        ->where('path', '.*')
+        ->name('integrations.crm.proxy.assets');
+    Route::any('images/{path?}', [CreditsoftCrmProxyController::class, 'image'])
+        ->where('path', '.*')
+        ->name('integrations.crm.proxy.images');
+    Route::any('objects/{path?}', [CreditsoftCrmProxyController::class, 'object'])
+        ->where('path', '.*')
+        ->name('integrations.crm.proxy.objects');
+    Route::redirect('integrations/crm', '/crm')->name('integrations.crm.legacy');
     Route::get('integrations/crm/launch', CreditsoftCrmLaunchController::class)->name('integrations.crm.launch');
     Route::get('browser-companion/download', [BrowserCompanionController::class, 'download'])
         ->name('browser-companion.download');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'creditsoft-shell-v8';
+const CACHE_NAME = 'creditsoft-shell-v20260505-11';
 const OFFLINE_URL = '/offline.html';
 const PRECACHE_URLS = [
     OFFLINE_URL,
@@ -43,7 +43,7 @@ self.addEventListener('fetch', (event) => {
 
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request).catch(async () => {
+            fetch(event.request, { cache: 'no-store' }).catch(async () => {
                 const cache = await caches.open(CACHE_NAME);
                 const offline = await cache.match(OFFLINE_URL);
 

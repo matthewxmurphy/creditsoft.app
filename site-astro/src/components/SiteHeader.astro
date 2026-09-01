@@ -112,17 +112,100 @@ const icons = {
       <div class="nav-actions">
         <a class="login-link" href="/login">Login</a>
         <a class="video-action" href="/videos">Videos</a>
-        <a class="button primary nav-cta" href="/subscribe">Sign up</a>
+        <button
+          class="mobile-menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="creditsoftMobileMenu"
+          data-mobile-menu-toggle
+        >
+          Menu
+        </button>
+        <a class="button primary nav-cta" href="/subscribe">Checkout</a>
       </div>
     </div>
   </div>
+
+  <div class="mobile-menu-panel" id="creditsoftMobileMenu" data-mobile-menu hidden>
+    <div class="page-wrap mobile-menu-inner">
+      <div class="mobile-menu-actions" aria-label="Primary mobile actions">
+        <a href="/pricing-plan">Review pricing</a>
+        <a href="/checkout/?plan=professional&billing=monthly&payment=zelle">Buy with Zelle</a>
+        <a href="/checkout/?plan=professional&billing=monthly&payment=cash-app">Buy with Cash App</a>
+      </div>
+
+      <nav class="mobile-menu-links" aria-label="Mobile navigation">
+        {links.map((link) => (
+          link.children ? (
+            <section class="mobile-menu-group">
+              <a class="mobile-menu-parent" href={link.href}>{link.label}</a>
+              <div class="mobile-menu-children">
+                {link.children.map((item) => (
+                  <a href={item.href}>
+                    <strong>{item.label}</strong>
+                    <span>{item.text}</span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : (
+            <a class="mobile-menu-parent" href={link.href}>{link.label}</a>
+          )
+        ))}
+        <a class="mobile-menu-parent" href="/login">Login</a>
+      </nav>
+    </div>
+  </div>
 </header>
+
+<script>
+  (() => {
+    const toggle = document.querySelector("[data-mobile-menu-toggle]");
+    const panel = document.querySelector("[data-mobile-menu]");
+
+    if (!(toggle instanceof HTMLButtonElement) || !(panel instanceof HTMLElement)) {
+      return;
+    }
+
+    const setOpen = (open) => {
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      panel.hidden = !open;
+      document.documentElement.classList.toggle("mobile-menu-is-open", open);
+    };
+
+    toggle.addEventListener("click", () => {
+      setOpen(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    panel.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setOpen(false));
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    });
+
+    document.addEventListener("click", (event) => {
+      const target = event.target;
+
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (!panel.hidden && !panel.contains(target) && !toggle.contains(target)) {
+        setOpen(false);
+      }
+    });
+  })();
+</script>
 
 <style>
   .site-header {
     position: sticky;
     top: 0;
-    z-index: 30;
+    z-index: 90;
     backdrop-filter: blur(16px);
     background: linear-gradient(180deg, rgba(8, 8, 10, 0.92), rgba(8, 8, 10, 0.74));
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -393,11 +476,121 @@ const icons = {
     display: none;
   }
 
+  .mobile-menu-toggle {
+    display: none;
+    min-height: 46px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    padding: 0 16px;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .mobile-menu-toggle[aria-expanded="true"] {
+    background: rgba(241, 194, 122, 0.18);
+    border-color: rgba(241, 194, 122, 0.48);
+    color: var(--accent);
+  }
+
   .nav-cta {
     min-height: 52px;
     padding-inline: 22px;
     border-radius: 16px;
     white-space: nowrap;
+  }
+
+  .mobile-menu-panel {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      radial-gradient(circle at 12% 0%, rgba(91, 214, 149, 0.14), transparent 30%),
+      linear-gradient(180deg, rgba(10, 10, 14, 0.98), rgba(12, 12, 18, 0.98));
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.38);
+  }
+
+  .mobile-menu-panel[hidden] {
+    display: none;
+  }
+
+  .mobile-menu-inner {
+    display: grid;
+    gap: 18px;
+    max-height: calc(100vh - 116px);
+    overflow-y: auto;
+    padding-block: 18px 24px;
+  }
+
+  .mobile-menu-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .mobile-menu-actions a,
+  .mobile-menu-parent {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 14px;
+    font-weight: 900;
+  }
+
+  .mobile-menu-actions a {
+    padding: 0 16px;
+    background: rgba(241, 194, 122, 0.94);
+    color: #0d0d0f;
+  }
+
+  .mobile-menu-actions a:first-child {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .mobile-menu-links {
+    display: grid;
+    gap: 12px;
+  }
+
+  .mobile-menu-group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .mobile-menu-parent {
+    padding: 0 14px;
+    background: rgba(255, 255, 255, 0.055);
+    color: var(--text);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-menu-children {
+    display: grid;
+    gap: 8px;
+  }
+
+  .mobile-menu-children a {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text-soft);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .mobile-menu-children strong {
+    color: var(--text);
+    font-size: 0.96rem;
+  }
+
+  .mobile-menu-children span {
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.45;
   }
 
   @media (max-width: 1120px) {
@@ -429,6 +622,12 @@ const icons = {
       display: inline-flex;
     }
 
+    .mobile-menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .utility-inner {
       justify-content: flex-end;
     }
@@ -442,7 +641,7 @@ const icons = {
 
     .nav-inner {
       min-height: 74px;
-      gap: 12px;
+      gap: 10px;
     }
 
     .brand {
@@ -461,19 +660,33 @@ const icons = {
       border-radius: 14px;
       font-size: 0.94rem;
     }
+
+    .nav-actions {
+      gap: 8px;
+    }
+
+    .mobile-menu-toggle {
+      min-height: 48px;
+      padding-inline: 13px;
+      font-size: 0.94rem;
+    }
   }
 
   @media (max-width: 380px) {
     .brand {
-      flex-basis: 132px;
+      flex-basis: 124px;
     }
 
     .brand img {
-      width: min(100%, 132px);
+      width: min(100%, 124px);
     }
 
     .nav-cta {
-      padding-inline: 12px;
+      padding-inline: 10px;
+    }
+
+    .mobile-menu-toggle {
+      padding-inline: 10px;
     }
   }
 </style>

@@ -66,8 +66,8 @@ const props = withDefaults(defineProps<{
     threadsUsername: null,
     whatsappReady: false,
     eyebrow: 'Content calendar',
-    title: 'Plan Meta content like a real calendar, not a stack of notes.',
-    description: 'The reference you shared uses a true month, week, and day structure, so this lane does too. AI planning keeps the content mix moving while regular meeting views handle consults, reminders, and booking flow.',
+    title: '',
+    description: '',
     settingsHref: '/settings/social',
 });
 
@@ -458,10 +458,10 @@ const goToToday = () => {
             <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div class="space-y-2">
                     <p class="text-[11px] font-medium uppercase tracking-[0.28em] text-stone-500">{{ props.eyebrow }}</p>
-                    <h2 class="text-xl font-semibold tracking-tight text-stone-950 sm:text-[1.8rem]">
+                    <h2 v-if="props.title" class="text-xl font-semibold tracking-tight text-stone-950 sm:text-[1.8rem]">
                         {{ props.title }}
                     </h2>
-                    <p class="max-w-3xl text-sm leading-7 text-stone-600">
+                    <p v-if="props.description" class="max-w-3xl text-sm leading-7 text-stone-600">
                         {{ props.description }}
                     </p>
                 </div>

@@ -30,6 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->validateCsrfTokens(except: [
+            '__creditsoft/crm',
+            '__creditsoft/crm/*',
+        ]);
         $middleware->alias([
             'creditsoft.api' => EnsureCreditsoftApiToken::class,
             'creditsoft.api.ability' => EnsureCreditsoftApiAbility::class,

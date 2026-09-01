@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\AuditEntry;
 use App\Models\BrowserCapture;
 use App\Models\Client;
+use App\Models\ClientBillingProfile;
+use App\Models\ClientPayment;
 use App\Models\ClientProviderAccount;
 use App\Models\MigrationOperatorCapture;
 use App\Models\SopTemplate;
@@ -15,12 +17,16 @@ use App\Services\BrowserCaptureCleanupService;
 use App\Services\BrowserCompanionBundle;
 use App\Services\ClientAssignmentService;
 use App\Services\ClientHealthSignalService;
+use App\Services\ClientProfileSnapshotService;
 use App\Services\ClientScoreTimeline;
 use App\Services\CreditReportComparisonService;
 use App\Services\CreditsoftAiRegistry;
 use App\Services\LicenseStateService;
 use App\Services\OfficeGrowthRuntime;
 use App\Services\SmartCreditCaptureParser;
+use App\Support\ClientName;
+use App\Support\MailingAddress;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -97,6 +103,21 @@ class ClientController extends Controller
                 'outcome' => 'terminated',
             ],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $fields
+     * @return array<string, mixed>
+     */
+    protected function normalizeClientNameFields(array $fields): array
+    {
+        $fields = ClientName::normalizeFields($fields);
+
+        if (array_key_exists('phone', $fields)) {
+            $fields['phone'] = PhoneNumber::normalize($fields['phone']);
+        }
+
+        return $fields;
     }
 
     public function index(
@@ -292,6 +313,7 @@ class ClientController extends Controller
             $query
                 ->orderByRaw("lower(coalesce(last_name, '')) {$direction}")
                 ->orderByRaw("lower(coalesce(first_name, '')) {$direction}")
+                ->orderByRaw("lower(coalesce(middle_name, '')) {$direction}")
                 ->orderBy('clients.id');
 
             return;
@@ -326,6 +348,7 @@ class ClientController extends Controller
         $query
             ->orderByRaw("lower(coalesce(last_name, '')) asc")
             ->orderByRaw("lower(coalesce(first_name, '')) asc")
+            ->orderByRaw("lower(coalesce(middle_name, '')) asc")
             ->orderBy('clients.id');
     }
 
@@ -795,8 +818,10 @@ class ClientController extends Controller
             $query->where(function (Builder $query) use ($like): void {
                 $query
                     ->whereRaw('lower(coalesce(first_name, \'\')) like ?', [$like])
+                    ->orWhereRaw('lower(coalesce(middle_name, \'\')) like ?', [$like])
                     ->orWhereRaw('lower(coalesce(last_name, \'\')) like ?', [$like])
-                    ->orWhereRaw("lower(concat_ws(' ', first_name, last_name)) like ?", [$like])
+                    ->orWhereRaw('lower(coalesce(name_suffix, \'\')) like ?', [$like])
+                    ->orWhereRaw("lower(concat_ws(' ', first_name, middle_name, last_name, name_suffix)) like ?", [$like])
                     ->orWhereRaw('lower(coalesce(email, \'\')) like ?', [$like])
                     ->orWhereRaw('lower(coalesce(secondary_email, \'\')) like ?', [$like])
                     ->orWhereRaw('lower(coalesce(phone, \'\')) like ?', [$like])
@@ -1111,6 +1136,10 @@ class ClientController extends Controller
         $status = Str::lower((string) $client->status);
         $reason = Str::lower((string) data_get($metadata, 'ended_reason', ''));
         $outcome = Str::lower((string) data_get($metadata, 'engagement_outcome', ''));
+        $explicitSourceKind = Str::lower((string) (
+            data_get($metadata, 'crm.source_kind')
+            ?: data_get($metadata, 'source_kind')
+        ));
 
         if (
             in_array($status, ['canceled', 'cancelled'], true)
@@ -1135,6 +1164,15 @@ class ClientController extends Controller
             || data_get($metadata, 'fired_at') !== null
         ) {
             return 'fired';
+        }
+
+        if (
+            $explicitSourceKind === 'client'
+            && in_array($status, ['active', 'active_review', 'intake', 'monitoring'], true)
+            && $reason === ''
+            && $outcome === ''
+        ) {
+            return null;
         }
 
         if (
@@ -1182,8 +1220,17 @@ class ClientController extends Controller
     protected function clientLooksLikeLead(Client $client): bool
     {
         $metadata = $client->metadata ?? [];
+        $status = Str::lower((string) $client->status);
+        $explicitSourceKind = Str::lower((string) (
+            data_get($metadata, 'crm.source_kind')
+            ?: data_get($metadata, 'source_kind')
+        ));
 
-        return Str::lower((string) $client->status) === 'lead'
+        if ($explicitSourceKind === 'client' && $status !== 'lead') {
+            return false;
+        }
+
+        return $status === 'lead'
             || (string) data_get($metadata, 'crm.source_kind', '') === 'lead'
             || (string) data_get($metadata, 'source_kind', '') === 'lead'
             || data_get($metadata, 'imports.disputefox.lists.leads') !== null
@@ -1317,14 +1364,6 @@ class ClientController extends Controller
 
     protected function disputeFoxSourceKind(array $metadata, array $pulse, array $disputeFoxCaptureIndex = []): string
     {
-        if (data_get($pulse, 'lists.leads')) {
-            return 'lead';
-        }
-
-        if (data_get($pulse, 'lists.clients')) {
-            return 'client';
-        }
-
         $explicitSourceKind = (string) (
             data_get($metadata, 'crm.source_kind')
             ?: data_get($metadata, 'source_kind')
@@ -1332,6 +1371,14 @@ class ClientController extends Controller
 
         if (in_array($explicitSourceKind, ['lead', 'client'], true)) {
             return $explicitSourceKind;
+        }
+
+        if (data_get($pulse, 'lists.leads')) {
+            return 'lead';
+        }
+
+        if (data_get($pulse, 'lists.clients')) {
+            return 'client';
         }
 
         $sourceRecordIds = $this->disputeFoxSourceRecordIds($pulse);
@@ -1414,7 +1461,9 @@ class ClientController extends Controller
     ): RedirectResponse {
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'name_suffix' => ['nullable', 'string', 'max:40'],
             'email' => ['nullable', 'email'],
             'phone' => ['nullable', 'string', 'max:40'],
             'current_score' => ['nullable', 'integer', 'min:300', 'max:850'],
@@ -1428,6 +1477,8 @@ class ClientController extends Controller
             'crm_values' => ['nullable', 'array'],
             'return_to_roster' => ['nullable', 'boolean'],
         ]);
+
+        $validated = MailingAddress::normalizeFields($this->normalizeClientNameFields($validated));
 
         try {
             $assignedTo = $assignments->resolveForCreate(
@@ -1453,7 +1504,9 @@ class ClientController extends Controller
 
         $client = Client::create([
             'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
             'last_name' => $validated['last_name'],
+            'name_suffix' => $validated['name_suffix'] ?? null,
             'email' => $validated['email'] ?? null,
             'phone' => $validated['phone'] ?? null,
             'current_score' => $validated['current_score'] ?? null,
@@ -1489,6 +1542,260 @@ class ClientController extends Controller
         }
 
         return redirect()->route('clients.show', $client);
+    }
+
+    public function update(
+        Request $request,
+        Client $client,
+        AuditTrail $auditTrail,
+        ClientProfileSnapshotService $profileSnapshots,
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'name_suffix' => ['nullable', 'string', 'max:40'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'secondary_email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'address_line_1' => ['nullable', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'state' => ['nullable', 'string', 'max:80'],
+            'postal_code' => ['nullable', 'string', 'max:30'],
+            'date_of_birth' => ['nullable', 'date'],
+            'ssn' => ['nullable', 'string', 'max:32'],
+            'current_score' => ['nullable', 'integer', 'min:300', 'max:850'],
+            'goals' => ['nullable', 'string'],
+        ]);
+
+        $profileFields = [
+            'first_name',
+            'middle_name',
+            'last_name',
+            'name_suffix',
+            'email',
+            'secondary_email',
+            'phone',
+            'address_line_1',
+            'address_line_2',
+            'city',
+            'state',
+            'postal_code',
+            'date_of_birth',
+            'current_score',
+            'goals',
+        ];
+        $before = Arr::only($client->toArray(), $profileFields);
+        $previousSsn = trim((string) ($client->ssn ?? ''));
+
+        foreach ($validated as $key => $value) {
+            if (is_string($value)) {
+                $validated[$key] = trim($value) !== '' ? trim($value) : null;
+            }
+        }
+
+        if (array_key_exists('ssn', $validated)) {
+            $ssn = preg_replace('/\D+/', '', (string) ($validated['ssn'] ?? '')) ?? '';
+
+            if ($ssn === '') {
+                unset($validated['ssn']);
+            } elseif (strlen($ssn) < 4) {
+                throw ValidationException::withMessages([
+                    'ssn' => 'Enter at least the last 4 digits.',
+                ]);
+            } else {
+                $validated['ssn'] = $ssn;
+            }
+        }
+
+        if (is_string($validated['state'] ?? null) && strlen((string) $validated['state']) <= 2) {
+            $validated['state'] = Str::upper((string) $validated['state']);
+        }
+
+        $validated = $this->normalizeClientNameFields($validated);
+
+        $client->fill($validated);
+        $client->save();
+
+        $client->refresh();
+        $after = Arr::only($client->toArray(), array_keys($before));
+        $changes = [];
+
+        foreach ($after as $field => $value) {
+            if (($before[$field] ?? null) !== $value) {
+                $changes[$field] = [
+                    'before' => $before[$field] ?? null,
+                    'after' => $value,
+                ];
+            }
+        }
+
+        if (array_key_exists('ssn', $validated)) {
+            $currentSsn = trim((string) ($client->ssn ?? ''));
+            $changes['ssn'] = [
+                'before' => $previousSsn !== '' ? 'ending '.Str::substr($previousSsn, -4) : null,
+                'after' => $currentSsn !== '' ? 'ending '.Str::substr($currentSsn, -4) : null,
+            ];
+        }
+
+        if ($changes !== []) {
+            $auditTrail->record(
+                $request->user(),
+                'client.profile.updated',
+                "Updated personal and contact info for {$client->display_name}.",
+                $client,
+                ['changes' => $changes],
+            );
+
+            $profileSnapshots->recordIfTrackedFieldsChanged(
+                $client,
+                array_keys($changes),
+                'office',
+                [
+                    'updated_by_user_id' => $request->user()?->getKey(),
+                    'updated_by_name' => $request->user()?->name,
+                ],
+                ['changes' => $changes],
+            );
+        }
+
+        return back()->with('success', "{$client->display_name} profile saved.");
+    }
+
+    public function storeManualBilling(
+        Request $request,
+        Client $client,
+        AuditTrail $auditTrail,
+        ClientHealthSignalService $clientHealth,
+    ): RedirectResponse {
+        abort_unless($request->user()?->canManageUsers(), 403);
+
+        $validated = $request->validate([
+            'kind' => ['required', 'string', 'in:cash,zelle,cash_app,check,manual,pro_bono,owner_comp'],
+            'amount' => ['nullable', 'numeric', 'min:0', 'max:1000000'],
+            'currency' => ['nullable', 'string', 'size:3'],
+            'paid_at' => ['nullable', 'date'],
+            'billing_interval' => ['required', 'string', 'in:monthly,annual,lifetime,one_time'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $kind = (string) $validated['kind'];
+        $isComped = in_array($kind, ['pro_bono', 'owner_comp'], true);
+        $amount = $isComped ? 0.0 : (float) ($validated['amount'] ?? 0);
+
+        if (! $isComped && $amount <= 0) {
+            throw ValidationException::withMessages([
+                'amount' => 'Enter the amount paid, or choose Pro bono / Owner comp.',
+            ]);
+        }
+
+        $paidAt = isset($validated['paid_at'])
+            ? Carbon::parse($validated['paid_at'])->startOfDay()
+            : now();
+        $currency = Str::upper((string) ($validated['currency'] ?? 'USD'));
+        $interval = $isComped ? 'lifetime' : (string) $validated['billing_interval'];
+        $kindLabel = match ($kind) {
+            'cash_app' => 'Cash App',
+            'owner_comp' => 'Owner comp',
+            'pro_bono' => 'Pro bono',
+            default => Str::headline($kind),
+        };
+
+        DB::transaction(function () use ($client, $validated, $kind, $isComped, $amount, $paidAt, $currency, $interval, $kindLabel, $request, $auditTrail, $clientHealth): void {
+            $profile = ClientBillingProfile::query()->firstOrNew([
+                'client_id' => $client->getKey(),
+            ]);
+            $profileMetadata = $profile->metadata ?? [];
+            data_set($profileMetadata, 'manual_billing.kind', $kind);
+            data_set($profileMetadata, 'manual_billing.recorded_at', now()->toIso8601String());
+            data_set($profileMetadata, 'manual_billing.recorded_by_user_id', $request->user()?->getKey());
+            data_set($profileMetadata, 'manual_billing.pro_bono', $kind === 'pro_bono');
+            data_set($profileMetadata, 'manual_billing.owner_account', $kind === 'owner_comp');
+            data_set($profileMetadata, 'pro_bono', $kind === 'pro_bono');
+            data_set($profileMetadata, 'owner_account', $kind === 'owner_comp');
+
+            $profile->fill([
+                'status' => 'active',
+                'amount' => $amount,
+                'currency' => $currency,
+                'billing_interval' => $interval,
+                'started_at' => $profile->started_at ?? $paidAt->toDateString(),
+                'last_paid_at' => $paidAt,
+                'next_due_at' => $this->manualBillingNextDueAt($interval, $paidAt, $kind),
+                'gateway_name' => $isComped ? 'internal' : $kind,
+                'notes' => trim((string) ($validated['notes'] ?? '')) ?: "{$kindLabel} billing recorded from the client dossier.",
+                'metadata' => $profileMetadata,
+            ])->save();
+
+            $payment = ClientPayment::query()->create([
+                'client_id' => $client->getKey(),
+                'client_billing_profile_id' => $profile->getKey(),
+                'amount' => $amount,
+                'currency' => $currency,
+                'status' => 'paid',
+                'paid_at' => $paidAt,
+                'gateway_name' => $isComped ? 'internal' : $kind,
+                'reference' => sprintf('manual-%s-%s', $client->cuid ?: $client->getKey(), now()->format('YmdHis')),
+                'notes' => trim((string) ($validated['notes'] ?? '')) ?: "{$kindLabel} billing recorded from the client dossier.",
+                'metadata' => [
+                    'source' => 'manual_client_billing',
+                    'kind' => $kind,
+                    'pro_bono' => $kind === 'pro_bono',
+                    'owner_account' => $kind === 'owner_comp',
+                    'recorded_by_user_id' => $request->user()?->getKey(),
+                    'recorded_at' => now()->toIso8601String(),
+                ],
+            ]);
+
+            $metadata = $client->metadata ?? [];
+            data_set($metadata, 'crm.source_kind', 'client');
+            data_set($metadata, 'source_kind', 'client');
+            data_set($metadata, 'billing.manual_kind', $kind);
+            data_set($metadata, 'billing.last_manual_payment_id', $payment->getKey());
+            data_set($metadata, 'billing.pro_bono', $kind === 'pro_bono');
+            data_set($metadata, 'owner_account', $kind === 'owner_comp');
+            data_forget($metadata, 'ended_at');
+            data_forget($metadata, 'ended_reason');
+            data_forget($metadata, 'engagement_outcome');
+
+            $client->forceFill([
+                'status' => in_array((string) $client->status, ['terminated', 'canceled', 'cancelled', 'fired', 'graduated'], true)
+                    ? 'active_review'
+                    : $client->status,
+                'metadata' => $metadata,
+            ])->save();
+
+            $clientHealth->sync($client->fresh());
+
+            $auditTrail->record(
+                $request->user(),
+                'client.billing.manual_recorded',
+                "Recorded {$kindLabel} billing for {$client->display_name}.",
+                $client,
+                [
+                    'kind' => $kind,
+                    'amount' => $amount,
+                    'currency' => $currency,
+                    'payment_id' => $payment->getKey(),
+                    'billing_profile_id' => $profile->getKey(),
+                ],
+            );
+        });
+
+        return back()->with('success', "{$kindLabel} billing saved for {$client->display_name}.");
+    }
+
+    protected function manualBillingNextDueAt(string $interval, Carbon $paidAt, string $kind): ?Carbon
+    {
+        if (in_array($kind, ['pro_bono', 'owner_comp'], true) || in_array($interval, ['lifetime', 'one_time'], true)) {
+            return null;
+        }
+
+        return match ($interval) {
+            'annual' => $paidAt->copy()->addYear(),
+            default => $paidAt->copy()->addMonth(),
+        };
     }
 
     public function promoteLead(
@@ -1527,9 +1834,53 @@ class ClientController extends Controller
             $client,
         );
 
+        $redirectRoute = $request->string('return_to')->toString() === 'inbox'
+            ? 'inbox.index'
+            : 'clients.index';
+
         return redirect()
-            ->route('clients.index')
+            ->route($redirectRoute)
             ->with('success', "{$client->display_name} moved to clients.");
+    }
+
+    public function reviewLead(
+        Request $request,
+        Client $client,
+        AuditTrail $auditTrail,
+    ): RedirectResponse {
+        if (! $this->clientLooksLikeLead($client)) {
+            throw ValidationException::withMessages([
+                'client' => 'Only leads can be cleared from the inbox this way.',
+            ]);
+        }
+
+        $metadata = $client->metadata ?? [];
+        data_set($metadata, 'inbox.reviewed_at', now()->toIso8601String());
+        data_set($metadata, 'inbox.reviewed_by_user_id', $request->user()?->getKey());
+        data_set($metadata, 'inbox.reviewed_action', 'reviewed');
+
+        $client->forceFill([
+            'metadata' => $metadata,
+        ])->save();
+
+        $auditTrail->record(
+            $request->user(),
+            'client.lead_reviewed',
+            "Marked lead {$client->display_name} reviewed in the inbox.",
+            $client,
+            [
+                'reviewed_at' => data_get($metadata, 'inbox.reviewed_at'),
+            ],
+        );
+
+        $redirectRoute = $request->string('return_to')->toString() === 'inbox'
+            ? 'inbox.index'
+            : 'clients.index';
+        $redirectParameters = $redirectRoute === 'clients.index' ? ['view' => 'leads'] : [];
+
+        return redirect()
+            ->route($redirectRoute, $redirectParameters)
+            ->with('success', "{$client->display_name} marked reviewed.");
     }
 
     public function fireClient(Request $request, Client $client, AuditTrail $auditTrail): RedirectResponse
@@ -1652,7 +2003,7 @@ class ClientController extends Controller
     {
         $client->loadMissing('providerAccounts');
 
-        if ($this->clientImportAudit($client, $this->disputeFoxCaptureSourceIndex())['source_kind'] !== 'lead') {
+        if (! $this->clientLooksLikeLead($client)) {
             throw ValidationException::withMessages([
                 'client' => 'Only leads can be deleted from the roster. Fire clients instead.',
             ]);
@@ -1681,8 +2032,13 @@ class ClientController extends Controller
             'message' => "{$clientName} deleted from Leads.",
         ]);
 
+        $redirectRoute = $request->string('return_to')->toString() === 'inbox'
+            ? 'inbox.index'
+            : 'clients.index';
+        $redirectParameters = $redirectRoute === 'clients.index' ? ['view' => 'leads'] : [];
+
         return redirect()
-            ->route('clients.index', ['view' => 'leads'])
+            ->route($redirectRoute, $redirectParameters)
             ->with('success', "{$clientName} deleted from Leads.");
     }
 
@@ -1710,6 +2066,7 @@ class ClientController extends Controller
             'violations' => fn ($query) => $query->latest()->limit(6),
             'tasks' => fn ($query) => $query->latest('due_at')->limit(6),
             'portalEvents' => fn ($query) => $query->latest('occurred_at')->latest()->limit(8),
+            'profileSnapshots' => fn ($query) => $query->latest('recorded_at')->limit(10),
             'sopRuns.template',
             'browserCaptures' => fn ($query) => $query->latest('imported_at')->limit(5),
             'documents' => fn ($query) => $query->with('reportingCycle')->latest('uploaded_at')->limit(50),
@@ -1722,6 +2079,10 @@ class ClientController extends Controller
             ->first();
         $reviewMetadata = is_array($latestCycle?->review_metadata) ? $latestCycle->review_metadata : [];
         $clientPayload = $client->toArray();
+        $ssn = trim((string) ($client->ssn ?? ''));
+        $clientPayload['date_of_birth'] = optional($client->date_of_birth)?->toDateString();
+        $clientPayload['ssn_last_four'] = $ssn !== '' ? Str::substr($ssn, -4) : null;
+        unset($clientPayload['ssn']);
         $user = $request->user();
         $canViewCustomerDocuments = $user
             && ! $user->isReadOnlyDemo()
@@ -1807,6 +2168,22 @@ class ClientController extends Controller
             'status' => $event->status,
             'occurred_at' => optional($event->occurred_at)?->toIso8601String(),
         ])->values()->all();
+        $clientPayload['profile_snapshots'] = $client->profileSnapshots
+            ->map(fn ($snapshot): array => [
+                'id' => $snapshot->getKey(),
+                'client_cuid' => $snapshot->client_cuid,
+                'source' => $snapshot->source,
+                'source_label' => $snapshot->source_label,
+                'is_current' => $snapshot->is_current,
+                'recorded_at' => optional($snapshot->recorded_at)?->toIso8601String(),
+                'mailing_label' => $snapshot->mailing_label,
+                'mailing_barcode' => $snapshot->mailing_barcode,
+                'mailing_barcode_symbology' => $snapshot->mailing_barcode_symbology,
+                'address_fingerprint' => $snapshot->address_fingerprint,
+                'changed_fields' => $snapshot->changed_fields ?? [],
+            ])
+            ->values()
+            ->all();
 
         return Inertia::render('clients/Show', [
             'client' => $clientPayload,
@@ -1837,6 +2214,7 @@ class ClientController extends Controller
             ],
             'relationship' => [
                 'can_end' => in_array((string) $client->status, ['lead', 'intake', 'active', 'active_review', 'at_risk', 'monitoring'], true),
+                'can_delete_lead' => $this->clientLooksLikeLead($client),
                 'ended_at' => data_get($client->metadata, 'ended_at'),
                 'ended_reason' => data_get($client->metadata, 'ended_reason'),
                 'ended_notes' => data_get($client->metadata, 'ended_notes'),

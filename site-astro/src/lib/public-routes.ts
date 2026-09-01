@@ -10,6 +10,7 @@ export const staticPublicRoutes = [
   "/contact-us",
   "/about-us",
   "/docs",
+  "/resources",
   "/downloads",
   "/releases",
   "/renewal",

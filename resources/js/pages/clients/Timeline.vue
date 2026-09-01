@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import ClientHealthSummary from '@/components/creditsoft/ClientHealthSummary.vue';
 import ClientWorkspaceNav from '@/components/creditsoft/ClientWorkspaceNav.vue';
 import type { ClientHealthSignal } from '@/lib/client-health';
 
-defineProps<{
+const props = defineProps<{
     client: {
         id: number;
+        cuid?: string | null;
         display_name: string;
         status?: string | null;
     };
@@ -22,6 +24,8 @@ defineProps<{
         } | null;
     }>;
 }>();
+
+const clientRouteKey = computed(() => String(props.client.id));
 
 const formatDateTime = (value?: string | null) =>
     value

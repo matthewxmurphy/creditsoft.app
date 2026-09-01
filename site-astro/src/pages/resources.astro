@@ -1,0 +1,274 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+
+const guideSections = [
+  {
+    id: "user-guide",
+    title: "User guide",
+    items: [
+      ["Introduction", "What CreditSoft connects: public website, admin, intranet, CRM, client portal, companion, and office nodes."],
+      ["Office setup", "Installers, update checks, license validation, local router, and the PWA shell."],
+      ["Client work", "Leads, roster, documents, reports, disputes, letters, and portal handoff."],
+    ],
+  },
+  {
+    id: "admin-guide",
+    title: "Admin guide",
+    items: [
+      ["API / Webhooks", "Website leads, portal uploads, companion captures, Meta callbacks, and multi-office sync routes."],
+      ["AI settings", "OpenRouter, Ollama Cloud, and OpenCode Zen provider settings used by the intranet assistant."],
+      ["Updates", "Release feed, installer packages, daily license heartbeat, and office package checks."],
+    ],
+  },
+  {
+    id: "crm-guide",
+    title: "CRM guide",
+    items: [
+      ["CRM bridge", "The CRM is embedded inside the intranet and uses CreditSoft's local API bridge for office workflows."],
+      ["Campaigns", "Lead nurture, onboarding follow-up, dispute reminders, payment nudges, and reactivation messaging."],
+      ["Webhooks", "CRM admin webhooks should point at the intranet API routes, not the generic CRM-only docs."],
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="CreditSoft Resources"
+  description="CreditSoft user guide, admin guide, CRM bridge notes, AI settings, and API/webhook documentation."
+  path="/resources/"
+>
+  <SiteHeader />
+
+  <main>
+    <section class="section resources-hero">
+      <div class="page-wrap resources-hero-grid">
+        <div>
+          <span class="eyebrow">Resources</span>
+          <h1 class="display">CreditSoft user guide and admin docs</h1>
+          <p class="lede">
+            This page keeps CRM documentation, AI settings, webhook routes, installer notes, and operator help from falling into old generic documentation links.
+          </p>
+          <div class="button-row">
+            <a class="button primary" href="#user-guide">User guide</a>
+            <a class="button secondary" href="#admin-guide">Admin guide</a>
+            <a class="button ghost" href="/docs">API docs</a>
+          </div>
+        </div>
+        <aside class="resource-proof panel-soft">
+          <strong>Important lanes</strong>
+          <span>CRM webhooks live in the intranet API bridge.</span>
+          <span>AI provider keys live under the intranet AI settings.</span>
+          <span>Update checks should also validate the office license.</span>
+        </aside>
+      </div>
+    </section>
+
+    <section id="user-guide" class="section resources-section">
+      <div class="page-wrap">
+        <SectionHeading
+          eyebrow="Guide map"
+          title="Start with the thing you are trying to connect."
+          text="The CRM, public site, client portal, companion, and office nodes are different surfaces, but they should all route back through the same CreditSoft intranet."
+        />
+        <div class="resource-grid">
+          {guideSections.map((section) => (
+            <article id={section.id} class="resource-card panel-soft">
+              <h2>{section.title}</h2>
+              <div class="resource-rows">
+                {section.items.map(([title, text]) => (
+                  <div class="resource-row">
+                    <h3>{title}</h3>
+                    <p>{text}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="admin-guide" class="section resources-admin-section">
+      <div class="page-wrap admin-layout panel">
+        <div>
+          <span class="eyebrow">API / Webhooks</span>
+          <h2>Use CreditSoft intranet routes, not generic CRM placeholders.</h2>
+          <p>
+            Website lead forms, portal uploads, browser companion captures, Meta callbacks, and multi-office node events should land on the office API. The CRM admin screen can show those routes, but the intranet owns the keys and sync logic.
+          </p>
+        </div>
+        <div class="admin-route-list">
+          <code>POST /api/v1/clients</code>
+          <code>POST /api/v1/clients/{"{cuid}"}/documents</code>
+          <code>POST /api/v1/browser-companion/intake</code>
+          <code>POST /api/v1/cluster-actions/apply</code>
+          <code>POST /api/v1/cluster-db-events/receive</code>
+          <code>GET /api/v1/meta/callback</code>
+        </div>
+      </div>
+    </section>
+
+    <section id="ai-settings" class="section resources-ai-section">
+      <div class="page-wrap ai-layout">
+        <article class="ai-copy panel-soft">
+          <span class="eyebrow">AI settings</span>
+          <h2>The intranet already has the AI control surface.</h2>
+          <p>
+            The assistant, CTO advice, letters, briefs, report review, and operational suggestions should use the provider selected in the intranet AI settings. CRM-only API keys are not the source of truth.
+          </p>
+        </article>
+        <article class="ai-copy panel-soft">
+          <span class="eyebrow">Documentation</span>
+          <h2>Old docs links should resolve here instead of 404.</h2>
+          <p>
+            Links such as <code>/resources#/user-guide/introduction</code> now land on a real resources page. The hash can still point people into the guide without breaking the server route.
+          </p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .resources-hero {
+    padding-top: 86px;
+    padding-bottom: 58px;
+  }
+
+  .resources-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.46fr);
+    gap: 32px;
+    align-items: end;
+  }
+
+  .resource-proof {
+    display: grid;
+    gap: 14px;
+    padding: 28px;
+  }
+
+  .resource-proof strong {
+    font-size: 1.16rem;
+  }
+
+  .resource-proof span {
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .resources-section {
+    padding-top: 48px;
+  }
+
+  .resource-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .resource-card {
+    padding: 28px;
+  }
+
+  .resource-card h2 {
+    margin: 0 0 20px;
+    font-size: clamp(1.6rem, 2.4vw, 2.25rem);
+    letter-spacing: 0;
+  }
+
+  .resource-rows {
+    display: grid;
+    gap: 16px;
+  }
+
+  .resource-row {
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .resource-row:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .resource-row h3 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+  }
+
+  .resource-row p,
+  .admin-layout p,
+  .ai-copy p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .resources-admin-section {
+    padding-top: 38px;
+  }
+
+  .admin-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(400px, 1.15fr);
+    gap: 28px;
+    align-items: start;
+    padding: 34px;
+  }
+
+  .admin-layout h2,
+  .ai-copy h2 {
+    margin: 14px 0 12px;
+    font-size: clamp(2rem, 3vw, 3rem);
+    line-height: 1.06;
+    letter-spacing: 0;
+  }
+
+  .admin-route-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .admin-route-list code,
+  .ai-copy code {
+    display: block;
+    color: #9fe2ff;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-route-list code {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .resources-ai-section {
+    padding-top: 38px;
+  }
+
+  .ai-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+
+  .ai-copy {
+    padding: 30px;
+  }
+
+  @media (max-width: 980px) {
+    .resources-hero-grid,
+    .resource-grid,
+    .admin-layout,
+    .ai-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

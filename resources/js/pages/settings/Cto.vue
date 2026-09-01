@@ -90,6 +90,11 @@ type PerformanceActionResult = {
     target_label?: string;
     preferred_label?: string;
     preferred_api_base_url?: string;
+    cluster_action_uuid?: string;
+    cluster_node_count?: number;
+    cluster_delivered?: number;
+    cluster_queued?: number;
+    cluster_messages?: string[];
     peer_results?: PerformanceActionResult[];
 };
 
@@ -1404,6 +1409,28 @@ const nodeProbeLabel = (
                             Restart the office Docker services when the node is
                             ready.
                         </p>
+                        <p
+                            v-if="performanceActionResult.cluster_node_count"
+                            class="mt-2 text-xs font-semibold text-emerald-900"
+                        >
+                            Cluster nodes checked:
+                            {{ performanceActionResult.cluster_node_count }}.
+                            Delivered:
+                            {{ performanceActionResult.cluster_delivered ?? 0 }}.
+                            Queued:
+                            {{ performanceActionResult.cluster_queued ?? 0 }}.
+                        </p>
+                        <ul
+                            v-if="performanceActionResult.cluster_messages?.length"
+                            class="mt-2 space-y-1 text-xs text-emerald-900"
+                        >
+                            <li
+                                v-for="message in performanceActionResult.cluster_messages"
+                                :key="message"
+                            >
+                                {{ message }}
+                            </li>
+                        </ul>
                     </div>
                 </div>
 

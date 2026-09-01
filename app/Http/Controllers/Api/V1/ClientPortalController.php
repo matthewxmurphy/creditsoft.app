@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditEntry;
+use App\Models\BrowserCapture;
 use App\Models\CaseBrief;
 use App\Models\Client;
 use App\Models\ClientDocument;
@@ -21,6 +22,7 @@ use App\Models\ViolationCandidate;
 use App\Services\AuditTrail;
 use App\Services\BrowserCaptureIntake;
 use App\Services\ClientAssignmentService;
+use App\Services\ClientProfileSnapshotService;
 use App\Services\ClientScoreTimeline;
 use App\Services\CreditReportComparisonService;
 use App\Services\DisputeFoxDocumentInboxService;
@@ -28,6 +30,9 @@ use App\Services\InstallerState;
 use App\Services\LeadCaptureGuard;
 use App\Services\OfficeGrowthRuntime;
 use App\Services\ViolationLegalReviewService;
+use App\Support\ClientName;
+use App\Support\MailingAddress;
+use App\Support\PhoneNumber;
 use Carbon\CarbonInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,13 +48,27 @@ use Illuminate\Validation\ValidationException;
 
 class ClientPortalController extends Controller
 {
-    public function store(Request $request, AuditTrail $auditTrail, OfficeGrowthRuntime $growth, LeadCaptureGuard $leadGuard): JsonResponse
+    public function store(
+        Request $request,
+        AuditTrail $auditTrail,
+        OfficeGrowthRuntime $growth,
+        LeadCaptureGuard $leadGuard,
+        ClientProfileSnapshotService $profileSnapshots,
+    ): JsonResponse
     {
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'name_suffix' => ['nullable', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],
+            'address_line_1' => ['nullable', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:120'],
+            'state' => ['nullable', 'string', 'max:80'],
+            'postal_code' => ['nullable', 'string', 'max:30'],
+            'date_of_birth' => ['nullable', 'date'],
             'current_score' => ['nullable', 'integer', 'min:300', 'max:850'],
             'status' => ['nullable', 'string', 'max:50'],
             'goals' => ['nullable', 'string'],
@@ -61,6 +80,7 @@ class ClientPortalController extends Controller
         ]);
 
         $metadata = $this->mergeMetadata([], $validated, $growth);
+        $validated = MailingAddress::normalizeFields($this->normalizeClientNameFields($validated));
         $mailDomain = null;
 
         if (config('creditsoft.lead_capture.require_mx', true) && filled($validated['email'] ?? null)) {
@@ -101,9 +121,17 @@ class ClientPortalController extends Controller
         $client = Client::query()->create([
             'cuid' => 'c_'.Str::lower(Str::random(10)),
             'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
             'last_name' => $validated['last_name'],
+            'name_suffix' => $validated['name_suffix'] ?? null,
             'email' => $validated['email'] ?? null,
             'phone' => $validated['phone'] ?? null,
+            'address_line_1' => $validated['address_line_1'] ?? null,
+            'address_line_2' => $validated['address_line_2'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'state' => isset($validated['state']) ? $this->normalizedCompanionState($validated['state']) : null,
+            'postal_code' => $validated['postal_code'] ?? null,
+            'date_of_birth' => $validated['date_of_birth'] ?? null,
             'current_score' => $validated['current_score'] ?? null,
             'status' => $validated['status'] ?? 'lead',
             'goals' => $validated['goals'] ?? null,
@@ -124,6 +152,18 @@ class ClientPortalController extends Controller
             ],
         );
 
+        $profileSnapshots->record(
+            $client,
+            'partner_api',
+            ClientProfileSnapshotService::TRACKED_FIELDS,
+            [
+                'external_reference' => $validated['external_reference'] ?? null,
+                'crm_confirmed' => true,
+                'mail_domain' => $mailDomain,
+                'turnstile_verified' => ! $turnstile['skipped'],
+            ],
+        );
+
         return response()->json([
             'data' => $this->serializeClient($client),
             'meta' => [
@@ -137,6 +177,7 @@ class ClientPortalController extends Controller
     {
         $client = $this->resolveClient($clientCuid);
         $client->loadMissing('assignedUser');
+        $client->setRelation('profileSnapshots', $client->profileSnapshots()->limit(10)->get());
 
         return response()->json([
             'data' => $this->serializeClient($client),
@@ -308,6 +349,7 @@ class ClientPortalController extends Controller
             'provider_key' => ['nullable', 'string', 'max:80'],
             'page_url' => ['nullable', 'string', 'max:2048'],
             'page_title' => ['nullable', 'string', 'max:255'],
+            'client_cuid' => ['nullable', 'string', 'max:80'],
             'exclude_provider_account_id' => ['nullable', 'integer'],
             'exclude_provider_account_ids' => ['nullable', 'array'],
             'exclude_provider_account_ids.*' => ['integer'],
@@ -322,10 +364,11 @@ class ClientPortalController extends Controller
             'page_title' => $validated['page_title'] ?? null,
         ]);
         $actorId = $request->user()?->getKey();
-        $includeCredentials = $request->attributes->get('creditsoft_api_token_type') === 'user';
+        $includeCredentials = in_array($request->attributes->get('creditsoft_api_token_type'), ['user', 'legacy'], true);
         $workerId = $this->normalizeCompanionWorkerId($validated['worker_id'] ?? null);
         $forceUpdate = (bool) ($validated['force_update'] ?? false);
         $queueScope = $this->normalizeCompanionQueueScope($validated['queue_scope'] ?? null);
+        $preferredClientCuid = trim((string) ($validated['client_cuid'] ?? ''));
         $excludedProviderAccountIds = collect($validated['exclude_provider_account_ids'] ?? [])
             ->push($validated['exclude_provider_account_id'] ?? null)
             ->map(fn ($id): int => (int) $id)
@@ -341,6 +384,7 @@ class ClientPortalController extends Controller
             $forceUpdate,
             $queueScope,
             $excludedProviderAccountIds,
+            $preferredClientCuid !== '' ? $preferredClientCuid : null,
         );
         /** @var ClientProviderAccount|null $providerAccount */
         $providerAccount = $claim['provider_account'];
@@ -353,10 +397,12 @@ class ClientPortalController extends Controller
                 'provider_key' => $providerKey ?? data_get($providerAccount, 'provider_key'),
                 'available_count' => $claim['available_count'],
                 'assigned_available_count' => $claim['assigned_available_count'],
+                'preferred_client_available_count' => $claim['preferred_client_available_count'] ?? 0,
                 'scope' => $queueScope === 'reactivation' ? 'reactivation_sweep' : ($actorId ? 'user_priority' : 'office'),
                 'queue_scope' => $queueScope,
                 'worker_id' => $workerId,
                 'force_update' => $forceUpdate,
+                'preferred_client_cuid' => $preferredClientCuid ?: null,
                 'features' => [
                     'client_sync' => true,
                     'disputefox_credentials' => true,
@@ -763,15 +809,29 @@ class ClientPortalController extends Controller
         ];
     }
 
-    public function update(Request $request, string $clientCuid, AuditTrail $auditTrail, OfficeGrowthRuntime $growth): JsonResponse
+    public function update(
+        Request $request,
+        string $clientCuid,
+        AuditTrail $auditTrail,
+        OfficeGrowthRuntime $growth,
+        ClientProfileSnapshotService $profileSnapshots,
+    ): JsonResponse
     {
         $client = $this->resolveClient($clientCuid);
 
         $validated = $request->validate([
             'first_name' => ['sometimes', 'string', 'max:255'],
+            'middle_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'last_name' => ['sometimes', 'string', 'max:255'],
+            'name_suffix' => ['sometimes', 'nullable', 'string', 'max:40'],
             'email' => ['sometimes', 'nullable', 'email', 'max:255'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:40'],
+            'address_line_1' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'address_line_2' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'city' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'state' => ['sometimes', 'nullable', 'string', 'max:80'],
+            'postal_code' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'date_of_birth' => ['sometimes', 'nullable', 'date'],
             'current_score' => ['sometimes', 'nullable', 'integer', 'min:300', 'max:850'],
             'status' => ['sometimes', 'string', 'max:50'],
             'goals' => ['sometimes', 'nullable', 'string'],
@@ -783,16 +843,31 @@ class ClientPortalController extends Controller
 
         $before = Arr::only($client->toArray(), [
             'first_name',
+            'middle_name',
             'last_name',
+            'name_suffix',
             'email',
             'phone',
+            'address_line_1',
+            'address_line_2',
+            'city',
+            'state',
+            'postal_code',
+            'date_of_birth',
             'current_score',
             'status',
             'goals',
             'metadata',
         ]);
 
-        $client->fill(Arr::except($validated, ['metadata', 'external_reference', 'affiliate_key', 'crm_values']));
+        $fillable = Arr::except($validated, ['metadata', 'external_reference', 'affiliate_key', 'crm_values']);
+        $fillable = MailingAddress::normalizeFields($this->normalizeClientNameFields($fillable));
+
+        if (array_key_exists('state', $fillable) && is_string($fillable['state'])) {
+            $fillable['state'] = $this->normalizedCompanionState($fillable['state']);
+        }
+
+        $client->fill($fillable);
 
         if (
             array_key_exists('metadata', $validated)
@@ -808,9 +883,17 @@ class ClientPortalController extends Controller
 
         $after = Arr::only($client->toArray(), [
             'first_name',
+            'middle_name',
             'last_name',
+            'name_suffix',
             'email',
             'phone',
+            'address_line_1',
+            'address_line_2',
+            'city',
+            'state',
+            'postal_code',
+            'date_of_birth',
             'current_score',
             'status',
             'goals',
@@ -838,6 +921,17 @@ class ClientPortalController extends Controller
                     'source' => 'partner_api',
                     'changes' => $changes,
                 ],
+            );
+
+            $profileSnapshots->recordIfTrackedFieldsChanged(
+                $client,
+                array_keys($changes),
+                'client_portal',
+                [
+                    'source' => 'client_portal',
+                    'request_ip' => $request->ip(),
+                ],
+                ['changes' => $changes],
             );
         }
 
@@ -1394,6 +1488,7 @@ class ClientPortalController extends Controller
                     'file_name' => $document->file_name,
                     'mime_type' => $document->mime_type,
                     'file_size' => $document->file_size,
+                    'quality' => data_get($document->metadata, 'portal_capture.quality'),
                     'uploaded_at' => optional($document->uploaded_at)?->toIso8601String(),
                     'reporting_cycle' => $document->reportingCycle?->cycle_label,
                 ])->values(),
@@ -1410,11 +1505,17 @@ class ClientPortalController extends Controller
             'category' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'portal_visible' => ['nullable', 'boolean'],
+            'document_quality' => ['nullable'],
             'document_file' => ['required', 'file', 'max:20480'],
         ]);
 
         /** @var UploadedFile $documentFile */
         $documentFile = $request->file('document_file');
+        $portalCapture = $this->buildPortalDocumentCaptureMetadata(
+            $documentFile,
+            $validated,
+            $request->input('document_quality'),
+        );
         $stored = $this->storeClientDocumentFile($client, $documentFile);
 
         $document = $client->documents()->create([
@@ -1430,6 +1531,7 @@ class ClientPortalController extends Controller
             'portal_visible' => (bool) ($validated['portal_visible'] ?? true),
             'metadata' => [
                 'source' => 'partner_api',
+                'portal_capture' => $portalCapture,
             ],
             'uploaded_at' => now(),
         ]);
@@ -1444,6 +1546,8 @@ class ClientPortalController extends Controller
                 'client_cuid' => $client->cuid,
                 'reporting_cycle_id' => $validated['reporting_cycle_id'] ?? null,
                 'portal_visible' => $document->portal_visible,
+                'quality_status' => data_get($portalCapture, 'quality.status'),
+                'quality_score' => data_get($portalCapture, 'quality.score'),
             ],
         );
 
@@ -1457,6 +1561,7 @@ class ClientPortalController extends Controller
                 'mime_type' => $document->mime_type,
                 'file_size' => $document->file_size,
                 'portal_visible' => $document->portal_visible,
+                'quality' => data_get($document->metadata, 'portal_capture.quality'),
                 'uploaded_at' => optional($document->uploaded_at)?->toIso8601String(),
             ],
             'meta' => $this->officeResponseMeta($growth),
@@ -1468,8 +1573,7 @@ class ClientPortalController extends Controller
         AuditTrail $auditTrail,
         OfficeGrowthRuntime $growth,
         DisputeFoxDocumentInboxService $disputeFoxDocumentInbox,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $validated = $request->validate([
             'client_cuid' => ['required', 'string', 'max:255'],
             'document' => ['nullable', 'array'],
@@ -1564,6 +1668,40 @@ class ClientPortalController extends Controller
             ],
             'meta' => $this->officeResponseMeta($growth),
         ], $result['created'] ? 201 : 200);
+    }
+
+    public function reconcileCompanionDisputeFoxDocuments(
+        Request $request,
+        OfficeGrowthRuntime $growth,
+        DisputeFoxDocumentInboxService $disputeFoxDocumentInbox,
+    ): JsonResponse {
+        $validated = $request->validate([
+            'client_cuid' => ['nullable', 'string', 'max:255'],
+            'delete_source' => ['nullable', 'boolean'],
+            'keep_source' => ['nullable', 'boolean'],
+        ]);
+
+        $clientCuid = trim((string) ($validated['client_cuid'] ?? ''));
+        $client = $clientCuid !== '' ? $this->resolveClient($clientCuid) : null;
+        $deleteSource = (bool) ($validated['delete_source'] ?? false);
+
+        if (array_key_exists('keep_source', $validated)) {
+            $deleteSource = ! (bool) $validated['keep_source'];
+        }
+
+        $stats = $disputeFoxDocumentInbox->reconcile(
+            client: $client,
+            deleteSource: $deleteSource,
+            pruneTinyPreviews: (bool) config('creditsoft.disputefox_document_inbox_prune_tiny_previews', true),
+        );
+
+        return response()->json([
+            'data' => [
+                'client_cuid' => $client?->cuid,
+                ...$stats,
+            ],
+            'meta' => $this->officeResponseMeta($growth),
+        ]);
     }
 
     public function browserCaptures(string $clientCuid): JsonResponse
@@ -1682,6 +1820,7 @@ class ClientPortalController extends Controller
             'crm_values' => ['nullable', 'array'],
             'create_client_if_missing' => ['nullable', 'boolean'],
             'provider_key' => ['nullable', 'string', 'max:80'],
+            'provider_account_id' => ['nullable', 'integer', 'exists:client_provider_accounts,id'],
             'reporting_cycle_id' => ['nullable', 'integer'],
             'reporting_cycle_label' => ['nullable', 'string', 'max:255'],
             'cycle_label' => ['nullable', 'string', 'max:255'],
@@ -1691,6 +1830,8 @@ class ClientPortalController extends Controller
             'page_url' => ['nullable', 'string', 'max:2048'],
             'html' => ['nullable', 'string'],
             'dom_html' => ['nullable', 'string'],
+            'provider_capture_step' => ['nullable', 'string', 'max:80'],
+            'provider_capture_run_complete' => ['nullable', 'boolean'],
             'capture_file' => ['nullable', 'file', 'max:10240', 'extensions:json,html,htm,txt,mhtml,webarchive'],
             'operator_note' => ['nullable', 'string'],
             'selection_text' => ['nullable', 'string'],
@@ -1761,11 +1902,14 @@ class ClientPortalController extends Controller
             ],
         );
 
-        $this->touchProviderAccountImport(
-            client: $client,
-            capture: $capture,
-            workerId: $this->normalizeCompanionWorkerId($validated['worker_id'] ?? null),
-        );
+        if ($this->shouldTouchProviderAccountImport($capture, $validated)) {
+            $this->touchProviderAccountImport(
+                client: $client,
+                capture: $capture,
+                workerId: $this->normalizeCompanionWorkerId($validated['worker_id'] ?? null),
+                providerAccountId: (int) ($validated['provider_account_id'] ?? 0) ?: null,
+            );
+        }
 
         return response()->json([
             'data' => [
@@ -1807,8 +1951,8 @@ class ClientPortalController extends Controller
         AuditTrail $auditTrail,
         OfficeGrowthRuntime $growth,
         ClientAssignmentService $assignments,
-    ): JsonResponse
-    {
+        ClientProfileSnapshotService $profileSnapshots,
+    ): JsonResponse {
         $validated = $request->validate([
             'client_cuid' => ['nullable', 'string', 'max:255'],
             'client_profile' => ['required', 'array'],
@@ -1829,6 +1973,16 @@ class ClientPortalController extends Controller
         ]);
 
         $profile = $this->normalizedCompanionClientProfile((array) $validated['client_profile']);
+
+        if (
+            $profile['list_records'] !== []
+            && (
+                $profile['page_kind'] === 'record-list'
+                || $this->companionRecordListKind($validated, $profile) !== 'business_list'
+            )
+        ) {
+            return $this->syncCompanionRecordList($validated, $profile, $request, $auditTrail, $growth, $assignments);
+        }
 
         if ($profile['first_name'] === '' && $profile['last_name'] === '' && $profile['email'] === '') {
             if ($profile['list_records'] !== []) {
@@ -1899,14 +2053,16 @@ class ClientPortalController extends Controller
 
         $client->fill([
             'first_name' => $profile['first_name'] !== '' ? $profile['first_name'] : $client->first_name,
+            'middle_name' => $profile['middle_name'] !== '' ? $profile['middle_name'] : $client->middle_name,
             'last_name' => $profile['last_name'] !== '' ? $profile['last_name'] : $client->last_name,
+            'name_suffix' => $profile['name_suffix'] !== '' ? $profile['name_suffix'] : $client->name_suffix,
             'email' => $profile['email'] !== '' ? Str::lower($profile['email']) : $client->email,
             'secondary_email' => $profile['secondary_email'] !== '' ? Str::lower($profile['secondary_email']) : $client->secondary_email,
             'phone' => $profile['phone'] !== '' ? $profile['phone'] : $client->phone,
             'address_line_1' => $profile['address_line_1'] !== '' ? $profile['address_line_1'] : $client->address_line_1,
             'address_line_2' => $profile['address_line_2'] !== '' ? $profile['address_line_2'] : $client->address_line_2,
             'city' => $profile['city'] !== '' ? $profile['city'] : $client->city,
-            'state' => $profile['state'] !== '' ? $this->normalizedCompanionState($profile['state']) : $client->state,
+            'state' => filled($profile['state'] ?? null) ? $this->normalizedCompanionState($profile['state']) : $client->state,
             'postal_code' => $profile['postal_code'] !== '' ? $profile['postal_code'] : $client->postal_code,
             'date_of_birth' => $profile['date_of_birth'] ?? $client->date_of_birth,
             'ssn' => $profile['ssn'] !== '' ? $profile['ssn'] : $client->ssn,
@@ -1977,6 +2133,22 @@ class ClientPortalController extends Controller
                 'documents' => $documentStats,
                 'provider_accounts' => $providerStats,
                 'history' => $historyStats,
+            ],
+        );
+
+        $profileSnapshots->recordIfTrackedFieldsChanged(
+            $client,
+            $changedFields,
+            'browser_companion',
+            [
+                'source_system' => $sourceSystem,
+                'page_url' => $validated['page_url'] ?? null,
+                'worker_id' => $this->normalizeCompanionWorkerId($validated['worker_id'] ?? null),
+            ],
+            [
+                'changed_fields' => $changedFields,
+                'source_record_id' => $profile['source_record_id'] !== '' ? $profile['source_record_id'] : null,
+                'source_record_int_id' => $profile['source_record_int_id'] !== '' ? $profile['source_record_int_id'] : null,
             ],
         );
 
@@ -2637,7 +2809,9 @@ class ClientPortalController extends Controller
         $client = Client::query()->create([
             'cuid' => 'c_'.Str::lower(Str::random(10)),
             'first_name' => $firstName,
+            'middle_name' => trim((string) ($nameParts['middle_name'] ?? '')) ?: null,
             'last_name' => $lastName,
+            'name_suffix' => trim((string) ($nameParts['name_suffix'] ?? '')) ?: null,
             'email' => $email !== '' ? $email : null,
             'status' => 'lead',
             'metadata' => $this->mergeMetadata([
@@ -2724,29 +2898,60 @@ class ClientPortalController extends Controller
 
     protected function parseClientName(?string $value): array
     {
-        $value = trim((string) $value);
+        $value = Str::squish((string) $value);
 
         if ($value === '') {
             return [
                 'first_name' => '',
+                'middle_name' => '',
                 'last_name' => '',
+                'name_suffix' => '',
             ];
         }
 
         $parts = preg_split('/\s+/', $value) ?: [];
         $firstName = array_shift($parts) ?: '';
-        $lastName = implode(' ', $parts);
+        $suffix = '';
 
-        return [
+        if ($parts !== []) {
+            $lastPart = trim((string) end($parts));
+            $normalizedSuffix = Str::of($lastPart)->lower()->replaceMatches('/[^a-z0-9]/', '')->value();
+
+            if (in_array($normalizedSuffix, ['jr', 'sr', 'ii', 'iii', 'iv', 'v'], true)) {
+                $suffix = array_pop($parts) ?: '';
+            }
+        }
+
+        $lastName = $parts !== [] ? (array_pop($parts) ?: '') : '';
+        $middleName = implode(' ', $parts);
+
+        return ClientName::normalizeFields([
             'first_name' => trim($firstName),
+            'middle_name' => trim($middleName),
             'last_name' => trim($lastName),
-        ];
+            'name_suffix' => trim($suffix),
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $fields
+     * @return array<string, mixed>
+     */
+    protected function normalizeClientNameFields(array $fields): array
+    {
+        $fields = ClientName::normalizeFields($fields);
+
+        if (array_key_exists('phone', $fields)) {
+            $fields['phone'] = PhoneNumber::normalize($fields['phone']);
+        }
+
+        return $fields;
     }
 
     /**
      * @param  array<string, mixed>  $clientProfile
      * @return array{
-     *     full_name:string,first_name:string,last_name:string,email:string,secondary_email:string,phone:string,
+     *     full_name:string,first_name:string,middle_name:string,last_name:string,name_suffix:string,email:string,secondary_email:string,phone:string,
      *     address_line_1:string,address_line_2:string,city:string,state:string,postal_code:string,
      *     date_of_birth:?Carbon,ssn:string,status:string,assigned_to:string,source_record_id:string,source_record_int_id:string,
      *     page_kind:string,list_records:list<array<string, mixed>>,documents:list<array<string, mixed>>,
@@ -2759,13 +2964,15 @@ class ClientPortalController extends Controller
         $fullName = trim((string) ($fields['full_name'] ?? ''));
         $nameParts = $this->parseClientName($fullName);
 
-        return [
+        $profile = [
             'full_name' => $fullName,
             'first_name' => trim((string) ($fields['first_name'] ?? $nameParts['first_name'] ?? '')),
+            'middle_name' => trim((string) ($fields['middle_name'] ?? $fields['middle'] ?? $nameParts['middle_name'] ?? '')),
             'last_name' => trim((string) ($fields['last_name'] ?? $nameParts['last_name'] ?? '')),
+            'name_suffix' => trim((string) ($fields['name_suffix'] ?? $fields['suffix'] ?? $nameParts['name_suffix'] ?? '')),
             'email' => trim((string) ($fields['email'] ?? '')),
             'secondary_email' => trim((string) ($fields['secondary_email'] ?? '')),
-            'phone' => trim((string) ($fields['phone'] ?? '')),
+            'phone' => PhoneNumber::normalize($fields['phone'] ?? '') ?? '',
             'address_line_1' => trim((string) ($fields['address_line_1'] ?? '')),
             'address_line_2' => trim((string) ($fields['address_line_2'] ?? '')),
             'city' => trim((string) ($fields['city'] ?? '')),
@@ -2783,6 +2990,8 @@ class ClientPortalController extends Controller
             'confidence' => max(0.0, min(1.0, (float) ($clientProfile['confidence'] ?? 0))),
             'raw_fields' => array_values(array_filter((array) ($clientProfile['raw_fields'] ?? []), 'is_array')),
         ];
+
+        return MailingAddress::normalizeFields($this->normalizeClientNameFields($profile));
     }
 
     /**
@@ -2954,9 +3163,9 @@ class ClientPortalController extends Controller
         return 'intake';
     }
 
-    protected function normalizedCompanionState(string $value): string
+    protected function normalizedCompanionState(mixed $value): string
     {
-        $value = trim($value);
+        $value = trim((string) $value);
 
         return strlen($value) <= 3 ? Str::upper($value) : $value;
     }
@@ -3369,8 +3578,7 @@ class ClientPortalController extends Controller
         array $validated,
         string $sourceSystem,
         ClientAssignmentService $assignments,
-    ): array
-    {
+    ): array {
         $nameEmail = $this->pulseNameAndEmail($values, $listKind);
         $nameParts = $this->parseClientName($nameEmail['name']);
         $email = Str::lower($nameEmail['email']);
@@ -4349,6 +4557,218 @@ class ClientPortalController extends Controller
     }
 
     /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function buildPortalDocumentCaptureMetadata(UploadedFile $file, array $payload, mixed $qualityInput): array
+    {
+        $clientReview = $this->normalizePortalDocumentQualityInput($qualityInput);
+        $serverReview = $this->inspectPortalDocumentImage($file, $payload);
+        $warnings = collect([
+            ...(array) data_get($clientReview, 'warnings', []),
+            ...(array) data_get($serverReview, 'warnings', []),
+        ])
+            ->filter(fn ($warning): bool => is_array($warning))
+            ->unique(fn (array $warning): string => (string) ($warning['code'] ?? $warning['message'] ?? json_encode($warning)))
+            ->values()
+            ->all();
+
+        $scores = collect([
+            data_get($clientReview, 'score'),
+            data_get($serverReview, 'score'),
+        ])
+            ->filter(fn ($score): bool => is_numeric($score))
+            ->map(fn ($score): int => max(0, min(100, (int) round((float) $score))))
+            ->values();
+
+        $score = $scores->isNotEmpty()
+            ? (int) $scores->min()
+            : ($warnings === [] ? 100 : 72);
+        $status = $score < 82 || $warnings !== []
+            ? 'retake_recommended'
+            : 'accepted';
+
+        if ((string) data_get($clientReview, 'status') === 'accepted' && $warnings === [] && $score >= 82) {
+            $status = 'accepted';
+        }
+
+        return [
+            'source' => 'client_portal',
+            'reviewed_at' => now()->toIso8601String(),
+            'document_type' => $this->detectPortalDocumentType($payload, $file),
+            'quality' => [
+                'status' => $status,
+                'score' => $score,
+                'warnings' => $warnings,
+            ],
+            'client_review' => $clientReview ?: null,
+            'server_review' => $serverReview,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function normalizePortalDocumentQualityInput(mixed $qualityInput): array
+    {
+        if (is_string($qualityInput)) {
+            $decoded = json_decode($qualityInput, true);
+            $qualityInput = is_array($decoded) ? $decoded : [];
+        }
+
+        if (! is_array($qualityInput)) {
+            return [];
+        }
+
+        $warnings = collect(data_get($qualityInput, 'warnings', []))
+            ->filter(fn ($warning): bool => is_array($warning) || is_string($warning))
+            ->map(function ($warning): array {
+                if (is_string($warning)) {
+                    return [
+                        'code' => Str::slug($warning, '_'),
+                        'message' => Str::limit($warning, 240, ''),
+                    ];
+                }
+
+                return [
+                    'code' => Str::limit((string) ($warning['code'] ?? 'client_warning'), 80, ''),
+                    'message' => Str::limit((string) ($warning['message'] ?? $warning['label'] ?? 'Review this upload before filing.'), 240, ''),
+                ];
+            })
+            ->values()
+            ->all();
+        $score = data_get($qualityInput, 'score');
+        $dimensions = data_get($qualityInput, 'dimensions');
+
+        return array_filter([
+            'status' => Str::limit((string) data_get($qualityInput, 'status', ''), 80, '') ?: null,
+            'score' => is_numeric($score) ? max(0, min(100, (int) round((float) $score))) : null,
+            'warnings' => $warnings,
+            'dimensions' => is_array($dimensions) ? [
+                'width' => (int) data_get($dimensions, 'width', 0),
+                'height' => (int) data_get($dimensions, 'height', 0),
+            ] : null,
+            'orientation' => Str::limit((string) data_get($qualityInput, 'orientation', ''), 40, '') ?: null,
+            'document_frame_ratio' => is_numeric(data_get($qualityInput, 'document_frame_ratio'))
+                ? round((float) data_get($qualityInput, 'document_frame_ratio'), 3)
+                : null,
+            'reviewed_at' => Str::limit((string) data_get($qualityInput, 'reviewed_at', ''), 80, '') ?: null,
+        ], fn ($value): bool => $value !== null && $value !== [] && $value !== '');
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function inspectPortalDocumentImage(UploadedFile $file, array $payload): array
+    {
+        $path = $file->getRealPath();
+        $mimeType = Str::lower((string) $file->getMimeType());
+        $documentType = $this->detectPortalDocumentType($payload, $file);
+        $warnings = [];
+        $score = 100;
+
+        if ($path === false || ! Str::startsWith($mimeType, 'image/')) {
+            return [
+                'status' => 'not_image',
+                'mime_type' => $mimeType ?: null,
+                'score' => null,
+                'warnings' => [],
+            ];
+        }
+
+        $size = @getimagesize($path);
+        $width = (int) ($size[0] ?? 0);
+        $height = (int) ($size[1] ?? 0);
+        $ratio = $height > 0 ? $width / $height : null;
+        $isCardDocument = in_array($documentType, ['driver_license', 'identity_card', 'social_security_card'], true);
+
+        if ($width <= 0 || $height <= 0) {
+            $warnings[] = [
+                'code' => 'image_dimensions_missing',
+                'message' => 'We could not read the image dimensions, so staff should review this upload before mailing.',
+            ];
+            $score -= 20;
+        } else {
+            if ($isCardDocument && $width < $height) {
+                $warnings[] = [
+                    'code' => 'turn_phone_sideways',
+                    'message' => 'Turn the phone sideways and retake the photo so the card fills the wide frame.',
+                ];
+                $score -= 22;
+            }
+
+            if (max($width, $height) < 1400 || min($width, $height) < 700) {
+                $warnings[] = [
+                    'code' => 'move_closer',
+                    'message' => 'Move closer. The document may be too small for printing or review.',
+                ];
+                $score -= 18;
+            }
+
+            if ($isCardDocument && $ratio !== null && ($ratio < 1.25 || $ratio > 2.25)) {
+                $warnings[] = [
+                    'code' => 'align_card_with_guide',
+                    'message' => 'Align the card with the on-screen guide and crop out extra background.',
+                ];
+                $score -= 15;
+            }
+        }
+
+        if ((int) $file->getSize() > 0 && (int) $file->getSize() < 120000) {
+            $warnings[] = [
+                'code' => 'file_too_small',
+                'message' => 'This image file is small. Retake if the document text is not crisp.',
+            ];
+            $score -= 12;
+        }
+
+        return [
+            'status' => $warnings === [] ? 'accepted' : 'retake_recommended',
+            'mime_type' => $mimeType ?: null,
+            'dimensions' => [
+                'width' => $width,
+                'height' => $height,
+            ],
+            'orientation' => $width > $height ? 'landscape' : ($height > $width ? 'portrait' : 'square'),
+            'aspect_ratio' => $ratio !== null ? round($ratio, 3) : null,
+            'score' => max(0, min(100, $score)),
+            'warnings' => $warnings,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function detectPortalDocumentType(array $payload, UploadedFile $file): string
+    {
+        $text = Str::lower(implode(' ', array_filter([
+            $payload['title'] ?? null,
+            $payload['category'] ?? null,
+            $payload['notes'] ?? null,
+            $file->getClientOriginalName(),
+        ])));
+
+        if (Str::contains($text, ['driver', 'drivers license', 'driver license', 'license', 'photo id', 'identity card'])) {
+            return 'driver_license';
+        }
+
+        if (Str::contains($text, ['social security', 'ssn', 'w2', 'w-2'])) {
+            return 'social_security_card';
+        }
+
+        if (Str::contains($text, ['proof of address', 'proof_of_address', 'utility bill', 'bank statement', 'lease'])) {
+            return 'proof_of_address';
+        }
+
+        if (Str::contains($text, ['identity', 'passport', 'id card', 'identification'])) {
+            return 'identity_card';
+        }
+
+        return 'supporting_document';
+    }
+
+    /**
      * @return array{file_name:string,file_path:string,mime_type:?string,file_size:int}
      */
     protected function storeClientDocumentFile(Client $client, UploadedFile $file): array
@@ -4380,13 +4800,38 @@ class ClientPortalController extends Controller
             'cuid' => $client->cuid,
             'display_name' => $client->display_name,
             'first_name' => $client->first_name,
+            'middle_name' => $client->middle_name,
             'last_name' => $client->last_name,
+            'name_suffix' => $client->name_suffix,
             'status' => $client->status,
             'current_score' => $client->current_score,
             'email' => $client->email,
+            'secondary_email' => $client->secondary_email,
             'phone' => $client->phone,
+            'address_line_1' => $client->address_line_1,
+            'address_line_2' => $client->address_line_2,
+            'city' => $client->city,
+            'state' => $client->state,
+            'postal_code' => $client->postal_code,
+            'date_of_birth' => optional($client->date_of_birth)?->toDateString(),
+            'ssn_last_four' => filled($client->ssn) ? Str::substr(preg_replace('/\D+/', '', (string) $client->ssn) ?: '', -4) : null,
             'goals' => $client->goals,
             'assigned_user' => $client->assignedUser?->name,
+            'profile_snapshots' => $client->relationLoaded('profileSnapshots')
+                ? $client->profileSnapshots->map(fn ($snapshot): array => [
+                    'id' => $snapshot->getKey(),
+                    'client_cuid' => $snapshot->client_cuid,
+                    'source' => $snapshot->source,
+                    'source_label' => $snapshot->source_label,
+                    'is_current' => $snapshot->is_current,
+                    'recorded_at' => optional($snapshot->recorded_at)?->toIso8601String(),
+                    'mailing_label' => $snapshot->mailing_label,
+                    'mailing_barcode' => $snapshot->mailing_barcode,
+                    'mailing_barcode_symbology' => $snapshot->mailing_barcode_symbology,
+                    'address_fingerprint' => $snapshot->address_fingerprint,
+                    'changed_fields' => $snapshot->changed_fields ?? [],
+                ])->values()->all()
+                : [],
             'metadata' => $client->metadata ?? [],
             'created_at' => optional($client->created_at)?->toIso8601String(),
             'updated_at' => optional($client->updated_at)?->toIso8601String(),
@@ -4637,8 +5082,7 @@ class ClientPortalController extends Controller
         ?int $excludeProviderAccountId = null,
         string $queueScope = 'active',
         array $excludeProviderAccountIds = [],
-    )
-    {
+    ) {
         $queueScope = $this->normalizeCompanionQueueScope($queueScope);
         $excludedProviderAccountIds = collect($excludeProviderAccountIds)
             ->push($excludeProviderAccountId)
@@ -4722,13 +5166,17 @@ class ClientPortalController extends Controller
      */
     protected function companionRunnableClientStatuses(): array
     {
-        return ['active', 'active_review', 'at_risk', 'monitoring'];
+        return ['intake', 'active', 'active_review', 'at_risk', 'monitoring'];
     }
 
     protected function companionLeadClientPredicateSql(): string
     {
-        return implode(' or ', [
-            "lower(coalesce(clients.status, '')) = 'lead'",
+        $runnableStatusSql = 'lower(coalesce(clients.status, \'\')) in ('
+            .collect($this->companionRunnableClientStatuses())
+                ->map(fn (string $status): string => "'".str_replace("'", "''", Str::lower($status))."'")
+                ->implode(', ')
+            .')';
+        $metadataLeadSql = implode(' or ', [
             "coalesce(clients.metadata::jsonb #>> '{crm,source_kind}', '') = 'lead'",
             "coalesce(clients.metadata::jsonb #>> '{source_kind}', '') = 'lead'",
             "(clients.metadata::jsonb #> '{imports,disputefox,lists,leads}') is not null",
@@ -4738,6 +5186,11 @@ class ClientPortalController extends Controller
                 and (clients.metadata::jsonb #> '{imports,disputefox,lists,leads}') is null
                 and clients.metadata::text ilike '%Lead Status%'
             )",
+        ]);
+
+        return implode(' or ', [
+            "lower(coalesce(clients.status, '')) = 'lead'",
+            "(not ({$runnableStatusSql}) and ({$metadataLeadSql}))",
         ]);
     }
 
@@ -4842,7 +5295,7 @@ class ClientPortalController extends Controller
         return $providerAccount;
     }
 
-    protected function touchProviderAccountImport(Client $client, mixed $capture, ?string $workerId = null): void
+    protected function touchProviderAccountImport(Client $client, mixed $capture, ?string $workerId = null, ?int $providerAccountId = null): void
     {
         $providerKey = trim((string) (
             data_get($capture, 'metadata.provider_key')
@@ -4862,6 +5315,15 @@ class ClientPortalController extends Controller
             }
         }
 
+        /** @var ClientProviderAccount|null $providerAccount */
+        $providerAccount = $providerAccountId
+            ? $client->providerAccounts()->whereKey($providerAccountId)->first()
+            : null;
+
+        if ($providerAccount && $providerKey === '') {
+            $providerKey = (string) $providerAccount->provider_key;
+        }
+
         if ($providerKey === '') {
             return;
         }
@@ -4871,10 +5333,12 @@ class ClientPortalController extends Controller
             ->firstWhere('key', $normalizedKey)['label']
             ?? Str::headline(str_replace('_', ' ', $normalizedKey));
 
-        /** @var ClientProviderAccount $providerAccount */
-        $providerAccount = $client->providerAccounts()->firstOrNew([
-            'provider_key' => $normalizedKey,
-        ]);
+        if (! $providerAccount || $providerAccount->provider_key !== $normalizedKey) {
+            /** @var ClientProviderAccount $providerAccount */
+            $providerAccount = $client->providerAccounts()->firstOrNew([
+                'provider_key' => $normalizedKey,
+            ]);
+        }
 
         $providerAccount->fill([
             'provider_label' => $providerAccount->provider_label ?: $label,
@@ -4891,6 +5355,35 @@ class ClientPortalController extends Controller
     }
 
     /**
+     * @param  array<string, mixed>  $validated
+     */
+    protected function shouldTouchProviderAccountImport(BrowserCapture $capture, array $validated): bool
+    {
+        $providerKey = Str::slug((string) (
+            $validated['provider_key']
+            ?? data_get($capture->metadata, 'provider_key')
+            ?? data_get($capture->metadata, 'provider_capture.provider')
+            ?? ''
+        ), '_');
+        $providerAccountId = (int) ($validated['provider_account_id'] ?? 0);
+
+        if (array_key_exists('provider_capture_run_complete', $validated)) {
+            return (bool) $validated['provider_capture_run_complete'];
+        }
+
+        if ($providerAccountId > 0 && $providerKey === 'smartcredit') {
+            $profile = (string) data_get($capture->metadata, 'import_profile', '');
+            $title = Str::lower((string) $capture->page_title);
+            $url = Str::lower((string) $capture->page_url);
+
+            return $profile === 'score_tracker'
+                && (str_contains($title, 'score tracker') || str_contains($url, 'score-tracker'));
+        }
+
+        return true;
+    }
+
+    /**
      * @return array{provider_account:?ClientProviderAccount,available_count:int,assigned_available_count:int}
      */
     protected function claimNextCompanionProviderAccount(
@@ -4901,9 +5394,11 @@ class ClientPortalController extends Controller
         bool $forceUpdate = false,
         string $queueScope = 'active',
         array $excludeProviderAccountIds = [],
+        ?string $preferredClientCuid = null,
     ): array {
         $workerId = $this->normalizeCompanionWorkerId($workerId);
         $queueScope = $this->normalizeCompanionQueueScope($queueScope);
+        $preferredClientCuid = trim((string) $preferredClientCuid);
         $excludedProviderAccountIds = collect($excludeProviderAccountIds)
             ->push($excludeProviderAccountId)
             ->map(fn ($id): int => (int) $id)
@@ -4912,7 +5407,7 @@ class ClientPortalController extends Controller
             ->values()
             ->all();
 
-        return DB::transaction(function () use ($providerKey, $actorId, $workerId, $excludedProviderAccountIds, $forceUpdate, $queueScope): array {
+        return DB::transaction(function () use ($providerKey, $actorId, $workerId, $excludedProviderAccountIds, $forceUpdate, $queueScope, $preferredClientCuid): array {
             $candidates = $this->companionProviderAccountQuery($providerKey, $actorId, null, $queueScope, $excludedProviderAccountIds)
                 ->lockForUpdate()
                 ->get();
@@ -4922,7 +5417,9 @@ class ClientPortalController extends Controller
                 ->values();
 
             /** @var ClientProviderAccount|null $providerAccount */
-            $providerAccount = $ready->first();
+            $providerAccount = $preferredClientCuid !== ''
+                ? ($ready->first(fn (ClientProviderAccount $candidate): bool => (string) $candidate->client?->cuid === $preferredClientCuid) ?? $ready->first())
+                : $ready->first();
 
             if ($providerAccount) {
                 $metadata = $providerAccount->metadata ?? [];
@@ -4945,6 +5442,9 @@ class ClientPortalController extends Controller
                 'assigned_available_count' => $actorId
                     ? $ready->filter(fn (ClientProviderAccount $candidate) => (int) $candidate->client?->assigned_to === (int) $actorId)->count()
                     : 0,
+                'preferred_client_available_count' => $preferredClientCuid !== ''
+                    ? $ready->filter(fn (ClientProviderAccount $candidate): bool => (string) $candidate->client?->cuid === $preferredClientCuid)->count()
+                    : 0,
             ];
         }, 3);
     }
@@ -4955,6 +5455,10 @@ class ClientPortalController extends Controller
         $credentialHealth = $this->providerCredentialHealth($providerAccount);
 
         if ($credentialHealth['blocked'] || $this->companionProviderAccountHasInvalidCredentials($providerAccount)) {
+            return false;
+        }
+
+        if (! $providerAccount->hasStoredPassword()) {
             return false;
         }
 

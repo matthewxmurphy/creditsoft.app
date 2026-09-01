@@ -1,0 +1,662 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+
+const currentBuild = {
+  version: "2026.4.28.6",
+  published: "April 28, 2026",
+  officeDownload: "https://update.creditsoft.app/downloads/creditsoft-office-v2026.4.28.6.zip",
+  companionDownload: "https://update.creditsoft.app/downloads/creditsoft-browser-companion.zip",
+  intranetClientDownload:
+    "https://update.creditsoft.app/downloads/creditsoft-intranet-client-installer-v2026.5.6.4.zip",
+};
+
+const dashboardSections = [
+  {
+    label: "Payment history",
+    text: "Zelle, Cash App, checkout references, receipt numbers, memo emails, and staff-entered payment records belong on the customer timeline.",
+  },
+  {
+    label: "Billing and balances",
+    text: "Plan, renewal cadence, paid amount, open balance, next due date, and server-node add-ons should stay visible together.",
+  },
+  {
+    label: "Downloads",
+    text: "The latest office package, browser companion, and intranet client downloads should sit beside the matching license state.",
+  },
+  {
+    label: "License key history",
+    text: "Current key, issued date, renewal events, node approvals, rechecks, grace windows, and revoked keys should read like a ledger.",
+  },
+];
+---
+
+<BaseLayout
+  title="CreditSoft Account Dashboard"
+  description="CreditSoft account dashboard for payment history, billing balances, download links, license keys, API license code, and account updates."
+  path="/account"
+  robots="noindex, nofollow"
+  showChat={false}
+>
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main class="customer-dashboard-page">
+    <section class="section dashboard-hero-section">
+      <div class="page-wrap dashboard-hero">
+        <div class="dashboard-hero-copy">
+          <span class="eyebrow">CreditSoft account</span>
+          <h1>One account surface for purchase history, license access, and downloads.</h1>
+          <p>
+            This is the Astro account dashboard for CreditSoft purchasers. It is
+            separate from the credit-repair client portal that offices use with
+            their customers, and it keeps checkout, billing, downloads, license
+            keys, and API license code in one branded lane.
+          </p>
+        </div>
+
+        <aside class="lookup-card" aria-label="Dashboard lookup">
+          <p class="lookup-label">Account lookup</p>
+          <label>
+            <span>Account email</span>
+            <input id="dashboardEmail" type="email" placeholder="you@company.com" autocomplete="email" />
+          </label>
+          <label>
+            <span>Checkout or receipt reference</span>
+            <input id="dashboardReference" type="text" placeholder="CSCO-20260430-ABC123" />
+          </label>
+          <a id="dashboardLookupLink" class="button primary" href="/account/">Open dashboard</a>
+          <p>
+            For real account changes, the source of truth is the CreditSoft
+            account/license record. This page should never expose a full license
+            key or API license code from email alone.
+          </p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section dashboard-map-section">
+      <div class="page-wrap dashboard-map">
+        {dashboardSections.map((section) => (
+          <article class="map-card">
+            <span>{section.label}</span>
+            <p>{section.text}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="section dashboard-workspace-section">
+      <div class="page-wrap dashboard-workspace">
+        <section class="account-panel panel" aria-labelledby="account-heading">
+          <div class="panel-heading">
+            <span class="eyebrow">Account info</span>
+            <h2 id="account-heading">Update the CreditSoft account without splitting the source of truth.</h2>
+            <p>
+              Account email, office name, phone, payer identity, and billing contact
+              should flow back to the CreditSoft account that owns the license.
+            </p>
+          </div>
+
+          <form class="account-form">
+            <label>
+              <span>Office / company</span>
+              <input type="text" placeholder="Credit repair office name" />
+            </label>
+            <label>
+              <span>Billing contact</span>
+              <input type="text" placeholder="Name of billing contact" />
+            </label>
+            <label>
+              <span>Account email</span>
+              <input data-account-email type="email" placeholder="billing@company.com" />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input type="tel" placeholder="(555) 555-5555" />
+            </label>
+            <label class="form-wide">
+              <span>Account update note</span>
+              <textarea placeholder="Address change, payer change, billing contact, license owner, or receipt number to attach."></textarea>
+            </label>
+            <div class="form-wide action-note">
+              <strong>Account updates belong on the CreditSoft account/license record.</strong>
+              <span>This Astro page keeps purchasers on-brand without confusing them with the office's own repair-client portal.</span>
+            </div>
+          </form>
+        </section>
+
+        <aside class="status-column">
+          <section class="balance-card panel-soft" aria-labelledby="balance-heading">
+            <span>Billing and balances</span>
+            <h2 id="balance-heading">$0.00 balance after match</h2>
+            <dl>
+              <div>
+                <dt>Current plan</dt>
+                <dd>Enterprise / Enterprise Pro</dd>
+              </div>
+              <div>
+                <dt>Billing cadence</dt>
+                <dd>Monthly, annual, or 10-year license</dd>
+              </div>
+              <div>
+              <dt>Payment matching</dt>
+              <dd>Zelle memo, Cash App note, checkout reference, receipt number</dd>
+            </div>
+            <div>
+              <dt>API license code</dt>
+              <dd>Used by api.creditsoft.app and update/license verification</dd>
+            </div>
+            <div>
+              <dt>Server nodes</dt>
+              <dd>$39.95 list, $29.95 monthly sale per node</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="download-card panel-soft" aria-labelledby="downloads-heading">
+            <span>Downloads</span>
+            <h2 id="downloads-heading">Current build {currentBuild.version}</h2>
+            <p>Published {currentBuild.published}. License state decides which package should be visible after the customer is matched.</p>
+            <div class="download-links">
+              <a href={currentBuild.officeDownload}>Download office package</a>
+              <a href={currentBuild.companionDownload}>Download browser companion</a>
+              <a href={currentBuild.intranetClientDownload}>Download intranet client</a>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section ledger-section">
+      <div class="page-wrap ledger-grid">
+        <article class="ledger-panel panel-soft">
+          <div class="panel-heading compact">
+            <span class="eyebrow">Payment history</span>
+            <h2>Zelle and Cash App belong in the same customer ledger.</h2>
+          </div>
+          <div class="ledger-table" role="table" aria-label="Payment history fields">
+            <div role="row">
+              <span role="columnheader">Date</span>
+              <span role="columnheader">Method</span>
+              <span role="columnheader">Reference</span>
+              <span role="columnheader">Amount</span>
+              <span role="columnheader">Status</span>
+            </div>
+            <div role="row">
+              <span role="cell">Checkout date</span>
+              <span role="cell">Zelle or Cash App</span>
+              <span id="paymentReferenceCell" role="cell">Waiting on reference</span>
+              <span role="cell">Matched amount</span>
+              <span role="cell">Pending intranet match</span>
+            </div>
+            <div role="row">
+              <span role="cell">Receipt date</span>
+              <span role="cell">Square/Cash App mail</span>
+              <span role="cell">Receipt or payment ID</span>
+              <span role="cell">Paid amount</span>
+              <span role="cell">Ready for license issue</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="ledger-panel panel-soft">
+          <div class="panel-heading compact">
+            <span class="eyebrow">License key history</span>
+            <h2>The account should show the active key, API license code, and every license event.</h2>
+          </div>
+          <div class="key-ledger">
+            <div>
+              <span>Current license key</span>
+              <strong>Shown after verified checkout/payment match</strong>
+              <p>Never reveal a full key from only an email address.</p>
+            </div>
+            <div>
+              <span>API license code</span>
+              <strong>Used for api.creditsoft.app license verification</strong>
+              <p>The API lane should validate the license code and update entitlement state, not act like an office repair-client portal.</p>
+            </div>
+            <div>
+              <span>Key history</span>
+              <strong>Issued, renewed, rechecked, node-approved, revoked</strong>
+              <p>The intranet license ledger should show who changed it and when.</p>
+            </div>
+            <div>
+              <span>Access state</span>
+              <strong>Active, grace, locked, suspended, or pending</strong>
+              <p>Balance due and renewal instructions should sit next to the key.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+
+  <script is:inline>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get("email") || "";
+      const reference = params.get("reference") || params.get("checkout") || "";
+      const emailInput = document.getElementById("dashboardEmail");
+      const referenceInput = document.getElementById("dashboardReference");
+      const lookupLink = document.getElementById("dashboardLookupLink");
+      const accountEmailInputs = document.querySelectorAll("[data-account-email]");
+      const paymentReferenceCell = document.getElementById("paymentReferenceCell");
+
+      if (emailInput) emailInput.value = email;
+      if (referenceInput) referenceInput.value = reference;
+      accountEmailInputs.forEach((input) => {
+        input.value = email;
+      });
+      if (paymentReferenceCell && reference) {
+        paymentReferenceCell.textContent = reference;
+      }
+
+      const updateLookupHref = () => {
+        if (!lookupLink) return;
+        const next = new URL("/account/", window.location.origin);
+        const nextEmail = emailInput?.value?.trim() || "";
+        const nextReference = referenceInput?.value?.trim() || "";
+
+        if (nextEmail) next.searchParams.set("email", nextEmail);
+        if (nextReference) next.searchParams.set("reference", nextReference);
+
+        lookupLink.href = next.pathname + next.search;
+      };
+
+      emailInput?.addEventListener("input", updateLookupHref);
+      referenceInput?.addEventListener("input", updateLookupHref);
+      updateLookupHref();
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .customer-dashboard-page {
+    background:
+      radial-gradient(circle at 8% 0%, rgba(91, 214, 149, 0.14), transparent 30%),
+      radial-gradient(circle at 92% 10%, rgba(241, 194, 122, 0.16), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 24%);
+  }
+
+  .dashboard-hero-section {
+    padding-top: 74px;
+    padding-bottom: 34px;
+  }
+
+  .dashboard-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 0.42fr);
+    gap: 22px;
+    align-items: stretch;
+  }
+
+  .dashboard-hero-copy,
+  .lookup-card,
+  .map-card,
+  .account-panel,
+  .balance-card,
+  .download-card,
+  .ledger-panel {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dashboard-hero-copy {
+    min-height: 420px;
+    border-radius: 34px;
+    padding: clamp(28px, 5vw, 56px);
+    background:
+      linear-gradient(135deg, rgba(10, 18, 32, 0.98), rgba(13, 17, 27, 0.94)),
+      radial-gradient(circle at 20% 16%, rgba(91, 214, 149, 0.22), transparent 34%);
+    box-shadow: var(--shadow);
+  }
+
+  .dashboard-hero-copy h1 {
+    max-width: 940px;
+    margin: 20px 0 0;
+    font-size: clamp(2.75rem, 6vw, 5.8rem);
+    line-height: 0.92;
+    letter-spacing: -0.06em;
+  }
+
+  .dashboard-hero-copy p {
+    max-width: 780px;
+    margin: 22px 0 0;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 1.06rem;
+    line-height: 1.78;
+  }
+
+  .lookup-card {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    border-radius: 30px;
+    padding: 24px;
+    background: rgba(20, 20, 27, 0.88);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .lookup-label,
+  .map-card span,
+  .balance-card > span,
+  .download-card > span,
+  .key-ledger span {
+    margin: 0;
+    color: var(--accent);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .lookup-card label,
+  .account-form label {
+    display: grid;
+    gap: 8px;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  .lookup-card input,
+  .account-form input,
+  .account-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.055);
+    color: var(--text);
+    padding: 0 14px;
+    outline: none;
+  }
+
+  .account-form textarea {
+    min-height: 118px;
+    padding-top: 12px;
+    resize: vertical;
+  }
+
+  .lookup-card p:last-child {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.65;
+  }
+
+  .dashboard-map-section,
+  .dashboard-workspace-section,
+  .ledger-section {
+    padding-top: 30px;
+  }
+
+  .dashboard-map {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .map-card {
+    min-height: 168px;
+    border-radius: 24px;
+    padding: 22px;
+    background: rgba(255, 255, 255, 0.045);
+  }
+
+  .map-card p {
+    margin: 18px 0 0;
+    color: var(--muted);
+    line-height: 1.68;
+  }
+
+  .dashboard-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(330px, 0.62fr);
+    gap: 22px;
+    align-items: start;
+  }
+
+  .account-panel,
+  .balance-card,
+  .download-card,
+  .ledger-panel {
+    padding: 26px;
+  }
+
+  .panel-heading h2 {
+    margin: 16px 0 0;
+    font-size: clamp(2rem, 3.7vw, 3.6rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+  }
+
+  .panel-heading p {
+    max-width: 780px;
+    margin: 16px 0 0;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .panel-heading.compact h2 {
+    font-size: clamp(1.7rem, 2.6vw, 2.7rem);
+  }
+
+  .account-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 26px;
+  }
+
+  .form-wide {
+    grid-column: 1 / -1;
+  }
+
+  .action-note {
+    display: grid;
+    gap: 6px;
+    border: 1px solid rgba(91, 214, 149, 0.18);
+    border-radius: 20px;
+    padding: 18px;
+    background: rgba(91, 214, 149, 0.06);
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  .action-note span {
+    color: var(--muted);
+  }
+
+  .status-column {
+    display: grid;
+    gap: 18px;
+  }
+
+  .balance-card h2,
+  .download-card h2 {
+    margin: 12px 0 0;
+    font-size: clamp(1.6rem, 3vw, 2.55rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .balance-card dl {
+    display: grid;
+    gap: 12px;
+    margin: 24px 0 0;
+  }
+
+  .balance-card dl div {
+    display: grid;
+    gap: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    padding-top: 12px;
+  }
+
+  .balance-card dt {
+    color: var(--muted-soft);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .balance-card dd {
+    margin: 0;
+    color: var(--text-soft);
+    line-height: 1.55;
+  }
+
+  .download-card p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .download-links {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .download-links a {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    padding-top: 12px;
+    color: var(--text-soft);
+    font-weight: 800;
+  }
+
+  .download-links a::after {
+    content: "Download";
+    color: var(--accent-alt);
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .ledger-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(330px, 0.88fr);
+    gap: 22px;
+  }
+
+  .ledger-table {
+    display: grid;
+    margin-top: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+  }
+
+  .ledger-table [role="row"] {
+    display: grid;
+    grid-template-columns: 0.75fr 0.85fr 1.15fr 0.75fr 0.9fr;
+  }
+
+  .ledger-table [role="row"] + [role="row"] {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .ledger-table span {
+    min-width: 0;
+    padding: 14px;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .ledger-table [role="columnheader"] {
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .key-ledger {
+    display: grid;
+    gap: 14px;
+    margin-top: 22px;
+  }
+
+  .key-ledger div {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 20px;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .key-ledger strong {
+    display: block;
+    margin-top: 9px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .key-ledger p {
+    margin: 8px 0 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 1080px) {
+    .dashboard-hero,
+    .dashboard-workspace,
+    .ledger-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .dashboard-map {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .dashboard-hero-section {
+      padding-top: 42px;
+    }
+
+    .dashboard-hero-copy {
+      min-height: auto;
+      border-radius: 26px;
+    }
+
+    .dashboard-map,
+    .account-form {
+      grid-template-columns: 1fr;
+    }
+
+    .ledger-table {
+      overflow-x: auto;
+    }
+
+    .ledger-table [role="row"] {
+      min-width: 760px;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .customer-dashboard-page .page-wrap {
+      width: min(100% - 28px, var(--max-width));
+    }
+
+    .lookup-card,
+    .account-panel,
+    .balance-card,
+    .download-card,
+    .ledger-panel {
+      padding: 20px;
+      border-radius: 24px;
+    }
+  }
+</style>

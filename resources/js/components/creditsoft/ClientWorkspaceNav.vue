@@ -47,7 +47,7 @@ const clientPanelHref = (clientId: number, panel: string, hash: string) => {
 
 <template>
     <div
-        class="flex min-w-0 flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        class="relative z-[120] flex min-w-0 flex-col gap-3 overflow-visible md:flex-row md:items-center md:justify-between"
     >
         <ClientRolodexNav :client-id="clientId" class="md:flex-1" />
 
@@ -68,7 +68,7 @@ const clientPanelHref = (clientId: number, panel: string, hash: string) => {
 
                 <DropdownMenuContent
                     align="end"
-                    class="w-72 rounded-2xl border border-stone-200 bg-white p-2 shadow-xl"
+                    class="z-[240] w-72 rounded-2xl border border-stone-200 bg-white p-2 shadow-xl"
                 >
                     <DropdownMenuItem
                         :as-child="true"

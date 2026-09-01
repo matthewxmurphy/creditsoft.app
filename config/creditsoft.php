@@ -287,7 +287,7 @@ return [
             [
                 'key' => 'smartcredit',
                 'label' => 'SmartCredit',
-                'description' => '3-bureau reports, score tracker, and archive imports.',
+                'description' => '3-bureau reports, score tracker, and provider report updates.',
                 'companion_start_url' => 'https://www.smartcredit.com/member/credit-report/smart-3b/',
                 'companion_logout_url' => 'https://www.smartcredit.com/logout',
             ],
@@ -318,7 +318,7 @@ return [
             [
                 'key' => 'myscoreiq',
                 'label' => 'MyScoreIQ',
-                'description' => 'MyScoreIQ monitoring or archive imports.',
+                'description' => 'MyScoreIQ monitoring and provider report updates.',
                 'companion_start_url' => 'https://www.myscoreiq.com/',
             ],
             [
@@ -365,6 +365,10 @@ return [
     'api' => [
         'enabled' => filter_var(env('CREDITSOFT_API_ENABLED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
         'token' => env('CREDITSOFT_API_TOKEN'),
+        'legacy_token_abilities' => array_values(array_filter(array_map(
+            static fn (string $ability): string => trim($ability),
+            explode(',', (string) env('CREDITSOFT_API_LEGACY_TOKEN_ABILITIES', 'browser_companion,intranet_client'))
+        ))),
         'public_base_url' => env('CREDITSOFT_API_PUBLIC_BASE_URL', ''),
         'docs_path' => env('CREDITSOFT_API_DOCS_PATH', base_path('creditsoft/openapi.yaml')),
         'docs_hosts' => array_values(array_filter(array_map(
@@ -382,7 +386,7 @@ return [
         ],
         'browser_companion' => [
             'claim_ttl_minutes' => (int) env('CREDITSOFT_BROWSER_COMPANION_CLAIM_TTL_MINUTES', 20),
-            'default_import_interval_hours' => (int) env('CREDITSOFT_BROWSER_COMPANION_DEFAULT_IMPORT_INTERVAL_HOURS', 168),
+            'default_import_interval_hours' => (int) env('CREDITSOFT_BROWSER_COMPANION_DEFAULT_IMPORT_INTERVAL_HOURS', 24),
             'minimum_import_interval_hours' => (int) env('CREDITSOFT_BROWSER_COMPANION_MIN_IMPORT_INTERVAL_HOURS', 24),
             'maximum_import_interval_hours' => (int) env('CREDITSOFT_BROWSER_COMPANION_MAX_IMPORT_INTERVAL_HOURS', 720),
         ],
@@ -392,6 +396,17 @@ return [
             'enabled' => filter_var(env('CREDITSOFT_CRM_ENABLED', false), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? false,
             'base_url' => env('CREDITSOFT_CRM_BASE_URL', ''),
             'api_key' => env('CREDITSOFT_CRM_API_KEY', ''),
+            'owner_email' => env('CREDITSOFT_CRM_OWNER_EMAIL', 'admin@localhost.local'),
+            'owner_display_email' => env('CREDITSOFT_CRM_OWNER_DISPLAY_EMAIL', 'admin@127.0.0.1'),
+            'owner_name' => env('CREDITSOFT_CRM_OWNER_NAME', 'Local Admin'),
+            'automation' => [
+                'enabled' => filter_var(env('CREDITSOFT_CRM_AUTOMATION_ENABLED', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
+                'webhook_secret' => env('CREDITSOFT_CRM_WEBHOOK_SECRET', ''),
+                'use_ai' => filter_var(env('CREDITSOFT_CRM_AUTOMATION_USE_AI', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
+                'create_tasks' => filter_var(env('CREDITSOFT_CRM_AUTOMATION_CREATE_TASKS', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
+                'create_notes' => filter_var(env('CREDITSOFT_CRM_AUTOMATION_CREATE_NOTES', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
+                'queue_outbound_drafts' => filter_var(env('CREDITSOFT_CRM_AUTOMATION_QUEUE_OUTBOUND_DRAFTS', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
+            ],
             'image' => env('CRM_IMAGE', 'creditsoft/crm-sidecar:local'),
             'base_image' => env('CRM_BASE_IMAGE', 'update.creditsoft.app/creditsoft/crm-sidecar:latest'),
             'database' => [
@@ -546,11 +561,15 @@ return [
         'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.28.10')),
         'channel' => env('CREDITSOFT_UPDATE_CHANNEL', 'stable'),
         'release_timezone' => env('CREDITSOFT_RELEASE_TIMEZONE', 'America/Los_Angeles'),
-        'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://updates.creditsoft.app/api/update-feed'),
+        'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://update.creditsoft.app/api/update-feed'),
         'fallback_feed_url' => env('CREDITSOFT_UPDATE_FEED_FALLBACK_URL', ''),
         'cache_minutes' => (int) env('CREDITSOFT_UPDATE_FEED_CACHE_MINUTES', 15),
         'browser_companion_download_url' => env('CREDITSOFT_BROWSER_COMPANION_DOWNLOAD_URL', ''),
         'intranet_client_download_url' => env('CREDITSOFT_INTRANET_CLIENT_DOWNLOAD_URL', ''),
+        'intranet_client_api_bases' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('CREDITSOFT_INTRANET_CLIENT_API_BASES', ''))
+        ))),
     ],
     'browser_capture_path' => env('CREDITSOFT_BROWSER_CAPTURE_PATH', storage_path('app/private/browser-captures')),
     'document_path' => env('CREDITSOFT_DOCUMENT_PATH', storage_path('app/private/client-documents')),

@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Api\V1\ApiIndexController;
 use App\Http\Controllers\Api\V1\AutomationDiscoveryController;
+use App\Http\Controllers\Api\V1\ClusterActionController;
 use App\Http\Controllers\Api\V1\ClusterApiKeyController;
 use App\Http\Controllers\Api\V1\ClusterBackupController;
 use App\Http\Controllers\Api\V1\ClusterCtoActionController;
 use App\Http\Controllers\Api\V1\ClusterDatabaseSyncController;
 use App\Http\Controllers\Api\V1\ClusterLicenseController;
 use App\Http\Controllers\Api\V1\ClientPortalController;
+use App\Http\Controllers\Api\V1\CrmAutomationWebhookController;
 use App\Http\Controllers\Api\V1\MigrationOperatorController;
 use App\Http\Controllers\Api\V1\OfficeImpactStatsController;
 use App\Http\Controllers\Api\V1\IntranetClientHandshakeController;
@@ -25,9 +27,11 @@ Route::prefix('v1')->group(function (): void {
     Route::get('meta/data-deletion/{confirmationCode}', [SocialController::class, 'showPublicMetaDataDeletionStatus'])->name('api.v1.social.meta.data-deletion.status');
     Route::post('cluster-backups/receive', [ClusterBackupController::class, 'store'])->name('api.v1.cluster-backups.receive');
     Route::post('cluster-api-keys/receive', [ClusterApiKeyController::class, 'store'])->name('api.v1.cluster-api-keys.receive');
+    Route::post('cluster-actions/apply', [ClusterActionController::class, 'store'])->name('api.v1.cluster-actions.apply');
     Route::post('cluster-db-events/receive', [ClusterDatabaseSyncController::class, 'store'])->name('api.v1.cluster-db-events.receive');
     Route::post('cluster-license/receive', [ClusterLicenseController::class, 'store'])->name('api.v1.cluster-license.receive');
     Route::post('cluster-cto-actions/apply', [ClusterCtoActionController::class, 'store'])->name('api.v1.cluster-cto-actions.apply');
+    Route::post('crm/twenty/webhook', CrmAutomationWebhookController::class)->name('api.v1.crm.twenty.webhook');
 
     Route::middleware('creditsoft.api')->group(function (): void {
         Route::get('office-stats', OfficeImpactStatsController::class)->name('api.v1.office-stats');
@@ -52,6 +56,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('browser-companion/intake', [ClientPortalController::class, 'storeCompanionCapture'])->name('api.v1.browser-companion.intake');
             Route::post('browser-companion/client-sync', [ClientPortalController::class, 'syncCompanionClientProfile'])->name('api.v1.browser-companion.client-sync');
             Route::post('browser-companion/client-document', [ClientPortalController::class, 'storeCompanionClientDocument'])->name('api.v1.browser-companion.client-document');
+            Route::post('browser-companion/disputefox-documents/reconcile', [ClientPortalController::class, 'reconcileCompanionDisputeFoxDocuments'])->name('api.v1.browser-companion.disputefox-documents.reconcile');
             Route::post('browser-companion/automation-discovery', [AutomationDiscoveryController::class, 'store'])->name('api.v1.browser-companion.automation-discovery');
         });
         Route::get('clients/search', [ClientPortalController::class, 'search'])->name('api.v1.clients.search');

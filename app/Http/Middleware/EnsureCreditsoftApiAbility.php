@@ -14,6 +14,10 @@ class EnsureCreditsoftApiAbility
     {
         $tokenType = $request->attributes->get('creditsoft_api_token_type');
 
+        if ($tokenType === 'legacy' && $this->legacyTokenAllows($ability)) {
+            return $next($request);
+        }
+
         if ($tokenType !== 'user') {
             return $this->forbidden('This endpoint requires a personal CreditSoft API key.');
         }
@@ -34,6 +38,18 @@ class EnsureCreditsoftApiAbility
         }
 
         return $next($request);
+    }
+
+    protected function legacyTokenAllows(string $ability): bool
+    {
+        $allowed = config('creditsoft.api.legacy_token_abilities', [
+            'browser_companion',
+            'intranet_client',
+        ]);
+
+        return collect((array) $allowed)
+            ->filter(fn ($entry) => is_string($entry) && trim($entry) !== '')
+            ->contains($ability);
     }
 
     protected function forbidden(string $message): JsonResponse

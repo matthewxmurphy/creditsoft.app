@@ -7,17 +7,18 @@ import { loadThemePage } from "../lib/preview-content";
 const theme = await loadThemePage();
 ---
 
-<BaseLayout title="Contact CreditSoft" description="Contact CreditSoft about the Metro2-first public site, CRM, portal, and office-node rollout.">
+<BaseLayout title="Contact CreditSoft" description="Contact CreditSoft about CreditSoft setup, migration, managed websites, and office rollout questions.">
   <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
 
   <main>
     <section class="section page-hero">
       <div class="page-wrap section-shell">
         <span class="eyebrow">Contact us</span>
-        <h1 class="display">The intake page can look premium and still gather the right office details.</h1>
+        <h1 class="display">Talk to CreditSoft before checkout if the rollout needs a human plan.</h1>
         <p class="lede">
-          This page keeps the cleaner Astro shell while pointing people into the real
-          two-step qualification flow instead of dropping them onto a dead waitlist card.
+          Use this lane for migration, multi-office, managed website, or lease questions.
+          If you already know the plan, start checkout from pricing and pay with the
+          checkout reference in the Zelle memo or Cash App note.
         </p>
       </div>
     </section>
@@ -25,29 +26,31 @@ const theme = await loadThemePage();
     <section class="section">
       <div class="page-wrap simple-grid two">
         <article class="info-card panel">
-          <h3>What we ask next</h3>
+          <h3>What helps us route it</h3>
           <ul>
-            <li>How many active clients they have</li>
-            <li>Which monitoring system they use</li>
-            <li>What software or outsourcing lane they rely on now</li>
-            <li>How they take payments and whether they already have a merchant</li>
-            <li>Whether their current website is working for them</li>
+            <li>How many active clients the office manages</li>
+            <li>Which monitoring system or report source is in use</li>
+            <li>Whether migration, outsourcing, or a managed website is part of the rollout</li>
+            <li>Who should own the CreditSoft account dashboard and license email</li>
+            <li>Whether the office wants monthly, annual, lease, or 10-year terms</li>
           </ul>
           <div class="button-row">
-            <a class="button primary" href="https://creditsoft.app/subscribe">Open live intake</a>
+            <a class="button primary" href="mailto:hello@creditsoft.app">Email CreditSoft</a>
+            <a class="button secondary" href="/pricing-plan">Choose a plan</a>
           </div>
         </article>
 
         <article class="info-card panel-soft">
-          <h3>Contact lane</h3>
+          <h3>Checkout lane</h3>
           <p>
-            Until the Astro deployment is wired to production intake, the live intake stays on the current main site so the form
-            continues writing real lead data while we evaluate the visual replacement.
+            Checkout creates a trackable CreditSoft reference first. After that, the
+            payment screen shows Cash App and Zelle instructions with the exact note
+            needed to match payment history, customer info, and license access.
           </p>
           <div class="stacked-links">
-            <a href="mailto:hello@creditsoft.app">hello@creditsoft.app</a>
-            <a href="https://creditsoft.app/subscribe">Start the two-step form</a>
-            <a href="/pricing-plan">Review plans first</a>
+            <a href="/pricing-plan">Review plans</a>
+            <a href="/checkout/?plan=professional&amp;billing=monthly&amp;payment=zelle">Start Enterprise checkout</a>
+            <a href="/checkout/?plan=enterprise&amp;billing=monthly&amp;payment=zelle">Start Enterprise Pro checkout</a>
           </div>
         </article>
       </div>

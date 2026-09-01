@@ -2,10 +2,12 @@
 
 Portable package for:
 
-- office checkout via Zelle QR
-- payment matching with payer email/phone
-- office renewal lane
-- staging before the DNS cutover for `updates.creditsoft.app`
+- public update-feed JSON
+- date-versioned office update packages
+- browser companion and intranet client installer packages
+- machine-facing install/update recovery paths
+
+This is not a customer checkout, payment, or renewal site. Customer-facing checkout and renewal pages belong on `www.creditsoft.app`; license validation belongs on `api.creditsoft.app`.
 
 Intended remote staging paths:
 

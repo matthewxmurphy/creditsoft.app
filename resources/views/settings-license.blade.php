@@ -922,9 +922,9 @@
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M5 3h14v12H5z"></path></svg>
                             <span>Try browser companion download</span>
                         </a>
-                        <a href="https://updates.creditsoft.app/renew.php" class="icon-action">
+                        <a href="https://www.creditsoft.app/renewal/" class="icon-action">
                             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8"></path><path d="M8 12h8"></path><path d="M8 17h5"></path><path d="M5 3h14v18H5z"></path></svg>
-                            <span>Open renewal payment page</span>
+                            <span>Open renewal page</span>
                         </a>
                     </div>
                     <p class="form-note">If the office is unlicensed or the browser companion is not included in the current plan, the companion lane will send you back here with the exact reason.</p>

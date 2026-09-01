@@ -33,7 +33,9 @@ import {
     clientHealthTextClass,
 } from '@/lib/client-health';
 import type { ClientHealthSignal } from '@/lib/client-health';
+import { normalizeClientNameForm } from '@/lib/client-name';
 import { formatNumber } from '@/lib/creditsoft';
+import { formatUsPhone } from '@/lib/phone';
 
 const props = defineProps<{
     clients: Array<{
@@ -265,7 +267,9 @@ const defaultCrmValues = Object.fromEntries(
 
 const form = useForm({
     first_name: '',
+    middle_name: '',
     last_name: '',
+    name_suffix: '',
     email: '',
     phone: '',
     current_score: '',
@@ -798,7 +802,9 @@ const selectedCountLabel = computed(() =>
 const resetAddClientForm = () => {
     form.reset(
         'first_name',
+        'middle_name',
         'last_name',
+        'name_suffix',
         'email',
         'phone',
         'current_score',
@@ -1159,6 +1165,9 @@ const submit = () => {
 };
 
 const maybeAutoSaveClient = () => {
+    normalizeClientNameForm(form);
+    form.phone = formatUsPhone(form.phone);
+
     if (addClientReadyToAutoSave.value && !addClientSaved.value) {
         submit();
     }
@@ -1225,10 +1234,15 @@ const updateAddClientDialogOpen = (open: boolean) => {
                 </DialogHeader>
 
                 <form class="space-y-3" @submit.prevent="submit">
-                    <div class="grid gap-2 sm:grid-cols-2">
+                    <div class="grid gap-2 sm:grid-cols-4">
                         <Input
                             v-model="form.first_name"
                             placeholder="First name"
+                            @blur="maybeAutoSaveClient"
+                        />
+                        <Input
+                            v-model="form.middle_name"
+                            placeholder="Middle"
                             @blur="maybeAutoSaveClient"
                         />
                         <Input
@@ -1236,6 +1250,14 @@ const updateAddClientDialogOpen = (open: boolean) => {
                             placeholder="Last name"
                             @blur="maybeAutoSaveClient"
                         />
+                        <Input
+                            v-model="form.name_suffix"
+                            placeholder="Suffix"
+                            @blur="maybeAutoSaveClient"
+                        />
+                    </div>
+
+                    <div class="grid gap-2 sm:grid-cols-2">
                         <Input
                             v-model="form.email"
                             placeholder="Email"
@@ -1955,7 +1977,9 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         type="button"
                                         class="inline-flex items-center gap-1 font-semibold transition"
                                         :class="sortHeaderClass('person')"
-                                        :aria-label="sortLabel('person', 'person')"
+                                        :aria-label="
+                                            sortLabel('person', 'person')
+                                        "
                                         @click="setRosterSort('person')"
                                     >
                                         <span>Person</span>
@@ -1972,7 +1996,9 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         type="button"
                                         class="inline-flex items-center gap-1 font-semibold transition"
                                         :class="sortHeaderClass('status')"
-                                        :aria-label="sortLabel('status', 'status')"
+                                        :aria-label="
+                                            sortLabel('status', 'status')
+                                        "
                                         @click="setRosterSort('status')"
                                     >
                                         <span>Status</span>
@@ -1989,7 +2015,12 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         type="button"
                                         class="inline-flex items-center gap-1 font-semibold transition"
                                         :class="sortHeaderClass('provider')"
-                                        :aria-label="sortLabel('provider', 'provider count')"
+                                        :aria-label="
+                                            sortLabel(
+                                                'provider',
+                                                'provider count',
+                                            )
+                                        "
                                         @click="setRosterSort('provider')"
                                     >
                                         <span>Provider</span>
@@ -2024,7 +2055,9 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         type="button"
                                         class="inline-flex items-center gap-1 font-semibold transition"
                                         :class="sortHeaderClass('score')"
-                                        :aria-label="sortLabel('score', 'score')"
+                                        :aria-label="
+                                            sortLabel('score', 'score')
+                                        "
                                         @click="setRosterSort('score')"
                                     >
                                         <span>Score</span>
@@ -2041,7 +2074,9 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         type="button"
                                         class="inline-flex items-center gap-1 font-semibold transition"
                                         :class="sortHeaderClass('owner')"
-                                        :aria-label="sortLabel('owner', 'owner')"
+                                        :aria-label="
+                                            sortLabel('owner', 'owner')
+                                        "
                                         @click="setRosterSort('owner')"
                                     >
                                         <span>Owner</span>
@@ -2058,7 +2093,9 @@ const updateAddClientDialogOpen = (open: boolean) => {
                                         type="button"
                                         class="inline-flex items-center gap-1 font-semibold transition"
                                         :class="sortHeaderClass('cycle')"
-                                        :aria-label="sortLabel('cycle', 'cycle')"
+                                        :aria-label="
+                                            sortLabel('cycle', 'cycle')
+                                        "
                                         @click="setRosterSort('cycle')"
                                     >
                                         <span>Cycle</span>

@@ -8,6 +8,8 @@ use App\Models\ManagedLetterTemplate;
 use App\Models\MigrationOperatorCapture;
 use App\Services\AuditTrail;
 use App\Services\MigrationOperatorLetterTemplateImporter;
+use App\Support\ClientName;
+use App\Support\PhoneNumber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -346,11 +348,11 @@ class MigrationOperatorController extends Controller
         [$firstFromFull, $lastFromFull] = $this->splitName($fullName);
 
         return [
-            'first_name' => $this->clean($fields['first_name'] ?? $firstFromFull),
-            'last_name' => $this->clean($fields['last_name'] ?? $lastFromFull),
+            'first_name' => ClientName::normalizePart($fields['first_name'] ?? $firstFromFull) ?? '',
+            'last_name' => ClientName::normalizePart($fields['last_name'] ?? $lastFromFull) ?? '',
             'email' => $this->clean($fields['email'] ?? ''),
             'secondary_email' => $this->clean($fields['secondary_email'] ?? ''),
-            'phone' => $this->clean($fields['phone'] ?? ''),
+            'phone' => PhoneNumber::normalize($fields['phone'] ?? '') ?? '',
             'address_line_1' => $this->clean($fields['address_line_1'] ?? ''),
             'address_line_2' => $this->clean($fields['address_line_2'] ?? ''),
             'city' => $this->clean($fields['city'] ?? ''),

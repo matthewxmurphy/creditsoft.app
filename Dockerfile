@@ -38,6 +38,11 @@ RUN apt-get update \
         rsync \
         unzip \
     && docker-php-ext-install intl pdo_pgsql pdo_sqlite zip \
+    && { \
+        echo 'memory_limit=512M'; \
+        echo 'realpath_cache_size=64M'; \
+        echo 'realpath_cache_ttl=600'; \
+    } > /usr/local/etc/php/conf.d/zz-creditsoft-runtime.ini \
     && rm -rf /var/lib/apt/lists/*
 
 FROM php-base AS frontend

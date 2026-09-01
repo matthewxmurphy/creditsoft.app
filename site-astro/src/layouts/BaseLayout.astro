@@ -9,6 +9,7 @@ const {
   path = Astro.url.pathname,
   image = "/og-image.png",
   robots = "index, follow",
+  showChat = true,
 } = Astro.props;
 
 const siteUrl = "https://www.creditsoft.app";
@@ -102,7 +103,7 @@ const metaPixelId = import.meta.env.PUBLIC_META_PIXEL_ID || "1407768341366840";
     <div class="site-shell">
       <slot />
     </div>
-    <ConsentAndChat />
+    <ConsentAndChat showChat={showChat} />
     <ImageLightbox />
   </body>
 </html>

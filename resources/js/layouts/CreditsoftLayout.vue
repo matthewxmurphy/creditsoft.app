@@ -121,6 +121,13 @@ type SharedProps = {
             download_url?: string | null;
             package_path?: string | null;
             renewal_url?: string | null;
+            browser_companion?: {
+                label?: string | null;
+                latest_version?: string | null;
+                download_url?: string | null;
+                renewal_url?: string | null;
+            };
+            browser_companion_url?: string | null;
         };
         ai: {
             defaultProvider: string;
@@ -204,7 +211,9 @@ const currentPath = computed(() => page.url.split('?')[0]);
 const currentSearchParams = computed(() => {
     const queryIndex = page.url.indexOf('?');
 
-    return new URLSearchParams(queryIndex >= 0 ? page.url.slice(queryIndex) : '');
+    return new URLSearchParams(
+        queryIndex >= 0 ? page.url.slice(queryIndex) : '',
+    );
 });
 const client = computed(() => page.props.client);
 const clientName = computed(() => {
@@ -314,6 +323,9 @@ const browserCompanionRailTitle = computed(
             ? 'Download browser companion'
             : 'Upgrade to use the browser companion'),
 );
+const browserCompanionDownloadHref = computed(
+    () => '/browser-companion/download',
+);
 const updateGuidance = computed(() => {
     if (!updates.value?.update_available) {
         return null;
@@ -336,7 +348,8 @@ const updateStatusLabel = computed(() => {
     return 'Latest';
 });
 const updateBannerVisible = computed(
-    () => Boolean(currentUser.value) && Boolean(updates.value?.update_available),
+    () =>
+        Boolean(currentUser.value) && Boolean(updates.value?.update_available),
 );
 const updateBannerTitle = computed(() =>
     updates.value?.update_required
@@ -386,7 +399,7 @@ const leftRail = computed<RailItem[]>(() => [
         href: '/clients',
         icon: faUsers,
         badge: page.props.creditsoft.badges.clients ?? 0,
-        badgeDescription: 'customers',
+        badgeDescription: 'intake items needing review',
         children: [
             {
                 label: 'Clients',
@@ -470,7 +483,7 @@ const leftRail = computed<RailItem[]>(() => [
         href: '/inbox',
         icon: faInbox,
         badge: page.props.creditsoft.badges.inbox ?? 0,
-        badgeDescription: 'active reminders',
+        badgeDescription: 'inbox items',
     },
     {
         label: 'Tasks',
@@ -556,10 +569,19 @@ const clientWorkspaceLinks = computed(() => {
 
     return [
         { label: 'Overview', ...withStage(`/clients/${client.value.id}`) },
-        { label: 'Compare', ...withStage(`/clients/${client.value.id}/compare`) },
-        { label: 'Compliance', ...withStage(`/clients/${client.value.id}/violations`) },
+        {
+            label: 'Compare',
+            ...withStage(`/clients/${client.value.id}/compare`),
+        },
+        {
+            label: 'Compliance',
+            ...withStage(`/clients/${client.value.id}/violations`),
+        },
         { label: 'Notes', ...withStage(`/clients/${client.value.id}/notes`) },
-        { label: 'Letters', ...withStage(`/clients/${client.value.id}/letters`) },
+        {
+            label: 'Letters',
+            ...withStage(`/clients/${client.value.id}/letters`),
+        },
         { label: 'Briefs', ...withStage(`/clients/${client.value.id}/briefs`) },
         { label: 'Audit', ...withStage(`/clients/${client.value.id}/audit`) },
     ];
@@ -596,12 +618,14 @@ type FooterConnectorBrand =
     | 'tailscale'
     | 'ngrok'
     | 'wasabi'
+    | 'syncthing'
     | 'dropbox'
     | 'google_drive';
 const footerConnectorBrands: FooterConnectorBrand[] = [
     'tailscale',
     'ngrok',
     'wasabi',
+    'syncthing',
     'dropbox',
     'google_drive',
 ];
@@ -703,8 +727,9 @@ const mobileRailIconStyle = {
     height: '16px',
 };
 const collapsedRailBadgeClass =
-    '!absolute top-[8px] right-0 !z-30 translate-x-[62%] min-h-[20px] min-w-[28px] px-[6px] text-[11px]';
-const expandedRailBadgeClass = 'relative z-20 ml-auto min-h-[19px] min-w-[19px] px-[5px] text-[11px]';
+    '!absolute top-[8px] right-0 !z-30 translate-x-[62%] min-h-[20px] min-w-[34px] px-[6px] text-[11px]';
+const expandedRailBadgeClass =
+    'relative z-20 ml-auto min-h-[19px] min-w-[24px] px-[6px] text-[11px]';
 const inactiveRailButtonClass =
     'text-stone-300 hover:bg-stone-900/45 hover:text-stone-50';
 const activeRailButtonClass = () => [
@@ -763,7 +788,7 @@ const railBadgeText = (badge = 0) => {
         return null;
     }
 
-    return Number(badge) > 99 ? '99+' : String(badge);
+    return Number(badge) > 999 ? '999+' : String(badge);
 };
 const reloadConfig = () => {
     router.post('/internal/config/reload', {}, { preserveScroll: true });
@@ -1185,7 +1210,10 @@ const formatDateTime = (value?: string | null) =>
         : 'Never';
 
 const footerConnectorMeta = (brand: FooterConnectorBrand) => {
-    const enabled = connectivity.value[brand].enabled;
+    const enabled =
+        brand === 'syncthing'
+            ? Boolean(storageHealth.value.cluster.enabled)
+            : connectivity.value[brand].enabled;
 
     switch (brand) {
         case 'tailscale':
@@ -1213,6 +1241,14 @@ const footerConnectorMeta = (brand: FooterConnectorBrand) => {
                 detail: enabled
                     ? 'Archive backups can move off this machine into the Wasabi lane.'
                     : 'Wasabi archive backup is not configured yet.',
+            };
+        case 'syncthing':
+            return {
+                label: 'Syncthing',
+                enabled,
+                detail: enabled
+                    ? `${storageHealth.value.cluster.peer_count} peer office ${storageHealth.value.cluster.peer_count === 1 ? 'is' : 'are'} ready for local sync or replica handoff.`
+                    : 'Peer-to-peer folder sync is not configured yet. Syncthing can mirror selected backup folders without making a cloud service the middleman.',
             };
         case 'dropbox':
             return {
@@ -1257,7 +1293,7 @@ const footerTooltipAlign = (index: number) => {
     >
         <div class="flex h-full flex-col lg:flex-row">
             <aside
-                class="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:justify-between lg:self-start lg:overflow-visible lg:border-r lg:border-amber-400/55 lg:bg-stone-950 lg:px-2 lg:py-3 lg:transition-[width] lg:duration-100"
+                class="hidden lg:sticky lg:top-0 lg:z-[950] lg:flex lg:h-screen lg:shrink-0 lg:flex-col lg:justify-between lg:self-start lg:overflow-visible lg:border-r lg:border-amber-400/55 lg:bg-stone-950 lg:px-2 lg:py-3 lg:transition-[width] lg:duration-100"
                 :class="railExpanded ? 'lg:w-[214px]' : 'lg:w-[64px]'"
                 :style="railStyle"
             >
@@ -1288,14 +1324,10 @@ const footerTooltipAlign = (index: number) => {
                                 : 'w-11 justify-center'
                         "
                         :aria-label="
-                            railExpanded
-                                ? 'Collapse rail'
-                                : 'Show rail labels'
+                            railExpanded ? 'Collapse rail' : 'Show rail labels'
                         "
                         :title="
-                            railExpanded
-                                ? 'Collapse rail'
-                                : 'Show rail labels'
+                            railExpanded ? 'Collapse rail' : 'Show rail labels'
                         "
                         @click="toggleRailExpanded"
                     >
@@ -1376,7 +1408,7 @@ const footerTooltipAlign = (index: number) => {
                                 </Link>
 
                                 <div
-                                    class="invisible absolute top-0 left-full z-50 w-[23rem] pl-3 opacity-0 transition duration-100 group-focus-within/rail-menu:visible group-focus-within/rail-menu:opacity-100 group-hover/rail-menu:visible group-hover/rail-menu:opacity-100"
+                                    class="invisible absolute top-0 left-full z-[1000] w-[23rem] pl-3 opacity-0 transition duration-100 group-focus-within/rail-menu:visible group-focus-within/rail-menu:opacity-100 group-hover/rail-menu:visible group-hover/rail-menu:opacity-100"
                                     role="menu"
                                     :aria-label="`${item.label} shortcuts`"
                                 >
@@ -1611,7 +1643,7 @@ const footerTooltipAlign = (index: number) => {
                     </TooltipProvider>
                     <a
                         v-if="browserCompanionEnabled"
-                        href="/browser-companion/download"
+                        :href="browserCompanionDownloadHref"
                         :class="railItemClass(false)"
                         :aria-label="browserCompanionRailLabel"
                         :title="browserCompanionRailTitle"
@@ -1628,7 +1660,7 @@ const footerTooltipAlign = (index: number) => {
                     </a>
                     <a
                         v-else-if="browserCompanionRailVisible"
-                        href="/browser-companion/download"
+                        :href="browserCompanionDownloadHref"
                         :class="[railItemClass(false), '!text-amber-200']"
                         :aria-label="browserCompanionRailLabel"
                         :title="browserCompanionRailTitle"
@@ -1773,9 +1805,7 @@ const footerTooltipAlign = (index: number) => {
                                         >
                                             <Link
                                                 :href="
-                                                    clientStageHref(
-                                                        stage.value,
-                                                    )
+                                                    clientStageHref(stage.value)
                                                 "
                                                 class="flex w-full items-center justify-between gap-3 text-sm"
                                             >
@@ -2070,7 +2100,7 @@ const footerTooltipAlign = (index: number) => {
                             </Link>
                             <a
                                 v-if="browserCompanionEnabled"
-                                href="/browser-companion/download"
+                                :href="browserCompanionDownloadHref"
                                 class="inline-flex h-9 items-center gap-2 rounded-md border border-white/35 px-3 text-xs font-semibold tracking-[0.18em] text-white uppercase transition hover:bg-white/10"
                             >
                                 <FontAwesomeIcon :icon="faPuzzlePiece" />
@@ -2119,8 +2149,8 @@ const footerTooltipAlign = (index: number) => {
                         isCrmPage
                             ? 'overflow-hidden p-0'
                             : isSettingsPage
-                            ? 'overflow-y-auto px-4 pt-2 pb-5 md:px-6 md:pt-3 md:pb-6'
-                            : 'overflow-y-auto px-4 py-5 md:px-6 md:py-6'
+                              ? 'overflow-y-auto px-4 pt-2 pb-5 md:px-6 md:pt-3 md:pb-6'
+                              : 'overflow-y-auto px-4 py-5 md:px-6 md:py-6'
                     "
                 >
                     <slot />
@@ -2484,7 +2514,7 @@ const footerTooltipAlign = (index: number) => {
                                 <TooltipTrigger as-child>
                                     <button
                                         type="button"
-                                        class="flex h-8 shrink-0 items-center gap-1.5 rounded-full px-1.5 transition hover:bg-stone-100"
+                                        class="flex h-8 shrink-0 items-center gap-1.5 px-1 text-stone-700 transition hover:text-stone-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
                                     >
                                         <ConnectivityBrandMark
                                             :brand="brand"
@@ -2680,7 +2710,7 @@ const footerTooltipAlign = (index: number) => {
                         <span>{{ item.label }}</span>
                         <span
                             v-if="railBadgeText(item.badge)"
-                            class="absolute top-1 right-2 inline-flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full px-[4px] text-[10px] leading-none font-bold shadow-sm"
+                            class="absolute top-1 right-2 inline-flex min-h-[18px] min-w-[26px] items-center justify-center rounded-full px-[5px] text-[10px] leading-none font-bold shadow-sm"
                             :class="badgeTone(item.badge)"
                         >
                             {{ railBadgeText(item.badge) }}

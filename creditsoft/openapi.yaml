@@ -16,6 +16,168 @@ components:
       scheme: bearer
       bearerFormat: CreditSoftToken
   schemas:
+    OfficeStats:
+      type: object
+      description: Aggregate-only office statistics. This response intentionally excludes customer names, emails, phone numbers, street addresses, notes, documents, attachments, date of birth, and SSNs.
+      additionalProperties: true
+      properties:
+        clients_served:
+          type: integer
+        active_clients:
+          type: integer
+        debt_removed:
+          type: number
+        negative_items_removed:
+          type: integer
+        average_score_lift:
+          type: integer
+        client_age:
+          type: object
+          additionalProperties: true
+          properties:
+            oldest_client_age_days:
+              type: integer
+            oldest_client_age_months:
+              type: number
+            oldest_active_client_age_days:
+              type: integer
+            average_current_age_months:
+              type: number
+        lifecycle:
+          type: object
+          additionalProperties: true
+          properties:
+            clients_served:
+              type: integer
+            active_clients:
+              type: integer
+            ended_clients:
+              type: integer
+            ended_rate_percent:
+              type: number
+            outcome_mix:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+        geography:
+          type: object
+          additionalProperties: true
+          properties:
+            business_location:
+              type: object
+              additionalProperties: true
+              properties:
+                configured:
+                  type: boolean
+                city:
+                  type:
+                    - string
+                    - 'null'
+                state:
+                  type:
+                    - string
+                    - 'null'
+                label:
+                  type:
+                    - string
+                    - 'null'
+            states_represented:
+              type: integer
+            unknown_state_clients:
+              type: integer
+            cities_represented:
+              type: integer
+            unknown_city_clients:
+              type: integer
+            states:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            top_states:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            cities:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            top_cities:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            customer_city_vs_business_location:
+              type: object
+              additionalProperties: true
+              properties:
+                business_location_configured:
+                  type: boolean
+                same_city_clients:
+                  type: integer
+                same_city_percent:
+                  type: number
+                same_state_clients:
+                  type: integer
+                same_state_percent:
+                  type: number
+                outside_business_state_clients:
+                  type: integer
+                outside_business_state_percent:
+                  type: number
+                unknown_city_clients:
+                  type: integer
+                unknown_state_clients:
+                  type: integer
+        seasonality:
+          type: object
+          additionalProperties: true
+          properties:
+            started_by_month:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            ended_by_month:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+            peak_start_months:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+        forecast:
+          type: object
+          additionalProperties: true
+          properties:
+            last_90_day_starts:
+              type: integer
+            previous_90_day_starts:
+              type: integer
+            new_client_velocity_label:
+              type: string
+              enum:
+                - up
+                - down
+                - flat
+            expected_starts_next_90_days:
+              type: integer
+        privacy:
+          type: object
+          additionalProperties: true
+          properties:
+            contains_customer_identifiers:
+              type: boolean
+              const: false
+            fields_excluded:
+              type: array
+              items:
+                type: string
     ClientCreate:
       type: object
       required:
@@ -30,6 +192,16 @@ components:
           type: string
           format: email
         phone:
+          type: string
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postal_code:
           type: string
         current_score:
           type: integer
@@ -156,6 +328,48 @@ components:
           type:
             - boolean
             - "null"
+        document_quality:
+          type:
+            - object
+            - "null"
+          description: Optional client-side capture review generated by the portal before upload.
+          additionalProperties: true
+          properties:
+            status:
+              type: string
+              enum:
+                - accepted
+                - retake_recommended
+            score:
+              type: integer
+              minimum: 0
+              maximum: 100
+            warnings:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+            dimensions:
+              type: object
+              additionalProperties: false
+              properties:
+                width:
+                  type: integer
+                  minimum: 0
+                height:
+                  type: integer
+                  minimum: 0
+            orientation:
+              type: string
+            document_frame_ratio:
+              type:
+                - number
+                - "null"
         document_file:
           type: string
           format: binary
@@ -300,6 +514,22 @@ paths:
       responses:
         "200":
           description: API overview
+  /office-stats:
+    get:
+      summary: Read aggregate-only office impact, lifecycle, geography, and seasonality statistics
+      description: Returns counts and trends for impact cards, installer telemetry, and prediction modeling without person-level customer records.
+      responses:
+        "200":
+          description: Aggregate office statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    $ref: '#/components/schemas/OfficeStats'
   /client/handshake:
     get:
       summary: Return the staff intranet client handshake
@@ -309,6 +539,33 @@ paths:
           description: Intranet client handshake
         "403":
           description: Personal intranet client API key required
+  /crm/twenty/webhook:
+    post:
+      summary: Receive Twenty CRM webhooks and queue CreditSoft campaign intelligence
+      description: Accepts a Twenty webhook payload, matches it to a CreditSoft client when possible, then records an automation decision with tasks, notes, and outbound draft signals.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: X-CreditSoft-CRM-Webhook-Secret
+          required: false
+          schema:
+            type: string
+          description: Optional dedicated CRM webhook secret. A bearer CreditSoft API key can also be used.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Automation event processed
+        "202":
+          description: Automation event accepted and processed
+        "401":
+          description: Webhook secret or API key required
   /clients:
     post:
       summary: Create a local lead/client record

@@ -190,8 +190,8 @@
             <div class="panel-shell">
                 <div>
                     <p class="eyebrow">CreditSoft Offline</p>
-                    <h1>Your local office app is temporarily unavailable.</h1>
-                    <p>Press reconnect first. If the office still does not come back, contact CreditSoft support and tell them which page you were trying to open.</p>
+                    <h1 id="offlineTitle">This device cannot reach the office.</h1>
+                    <p id="offlineIntro">Press reconnect first. If the office still does not come back, restart the local CreditSoft router or check the private network connection for this staff device.</p>
 
                     <div class="meta">
                         <p class="meta-label">Requested page</p>
@@ -202,19 +202,18 @@
                 <div>
                     <div class="actions">
                         <button id="retryButton" class="button" type="button">Reconnect now</button>
-                        <button id="copyCommandButton" class="link-button" type="button">Copy restart command</button>
-                        <a class="link-button" href="/tools/restart-creditsoft.sh" download>Download restart helper</a>
+                        <button id="copyCommandButton" class="link-button" type="button">Copy repair command</button>
                         <a class="link-button" href="https://creditsoft.app/" target="_blank" rel="noreferrer">Contact CreditSoft</a>
                     </div>
                     <p id="status" class="status"></p>
-                    <p class="support-note">If reconnect keeps failing, support may need the host machine turned back on or the local Laravel service restarted.</p>
+                    <p id="supportNote" class="support-note">If reconnect keeps failing, make sure the office server is on and the staff device is connected to the approved private network.</p>
                 </div>
 
                 <div class="command-block">
                     <div>
-                        <p class="command-label">Terminal restart</p>
-                        <p class="hint">Open Terminal, paste this command, then press Return. Or download the helper and run <strong><code>sh restart-creditsoft.sh</code></strong>. After the local service starts, come back here and press <strong>Reconnect now</strong>.</p>
-                        <p class="hint" style="margin-top: 0.7rem;">If the page shell still comes back blank after a restart or system update, run <strong><code id="recoveryCommandInline"></code></strong> once, then start the service again. That is a recovery step, not the normal boot command.</p>
+                        <p id="commandLabel" class="command-label">Router restart</p>
+                        <p id="commandHint" class="hint">Open PowerShell, paste this command, then press Enter. After the router starts, come back here and press <strong>Reconnect now</strong>.</p>
+                        <p id="secondaryHint" class="hint" style="margin-top: 0.7rem;">If Tailscale is required, confirm it says connected before restarting CreditSoft.</p>
                     </div>
                     <p id="restartCommand" class="command-text"></p>
                 </div>
@@ -225,16 +224,56 @@
             const copyCommandButton = document.getElementById('copyCommandButton');
             const statusNode = document.getElementById('status');
             const targetPathNode = document.getElementById('targetPath');
+            const offlineTitleNode = document.getElementById('offlineTitle');
+            const offlineIntroNode = document.getElementById('offlineIntro');
+            const supportNoteNode = document.getElementById('supportNote');
+            const commandLabelNode = document.getElementById('commandLabel');
+            const commandHintNode = document.getElementById('commandHint');
+            const secondaryHintNode = document.getElementById('secondaryHint');
             const restartCommandNode = document.getElementById('restartCommand');
-            const recoveryCommandInlineNode = document.getElementById('recoveryCommandInline');
             const currentUrl = window.location.href;
             const healthUrl = `${window.location.origin}/up`;
-            const restartCommand = 'cd \"/Users/mmurphy/Code/CreditSoft\" && php -d opcache.enable_cli=1 -d opcache.memory_consumption=256 -d opcache.interned_strings_buffer=32 -d opcache.max_accelerated_files=50000 -d opcache.validate_timestamps=1 -d opcache.revalidate_freq=0 -d opcache.file_update_protection=0 -d realpath_cache_size=64M -d realpath_cache_ttl=600 -S 127.0.0.1:8001 -t public';
-            const recoveryCommand = 'cd \"/Users/mmurphy/Code/CreditSoft\" && php artisan optimize:clear && php artisan optimize';
+            const userAgent = window.navigator.userAgent || '';
+            const isWindows = /Windows/i.test(userAgent);
+            const isMac = /Macintosh|Mac OS X/i.test(userAgent);
+            const isLoopback = ['127.0.0.1', 'localhost', '[::1]'].includes(window.location.hostname);
+            const windowsCommand = [
+                '$ErrorActionPreference = "Stop"',
+                '$runner = Join-Path $env:LOCALAPPDATA "CreditSoft\\IntranetClient\\Start-CreditSoftIntranetClient.ps1"',
+                'if (-not (Test-Path $runner)) { throw "CreditSoft Intranet Client is not installed for this Windows user." }',
+                'Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -and $_.CommandLine -match "creditsoft-intranet-client\\.mjs" } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }',
+                'pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File $runner',
+            ].join('\n');
+            const macCommand = [
+                'router="$HOME/Library/Application Support/CreditSoft/IntranetClient/Start-CreditSoftIntranetClient.sh"',
+                'if [ -x "$router" ]; then "$router"; else open "http://127.0.0.1:8877/dashboard?source=intranet-client"; fi',
+            ].join('\n');
+            const genericCommand = 'Reconnect the device to the approved office network, then reopen CreditSoft or restart the CreditSoft Intranet Client router.';
+            const restartCommand = isWindows ? windowsCommand : (isMac ? macCommand : genericCommand);
 
             targetPathNode.textContent = `${window.location.pathname}${window.location.search}${window.location.hash}`;
             restartCommandNode.textContent = restartCommand;
-            recoveryCommandInlineNode.textContent = recoveryCommand;
+
+            if (isWindows) {
+                offlineTitleNode.textContent = isLoopback
+                    ? 'The Windows router is not responding.'
+                    : 'This Windows device cannot reach the office.';
+                offlineIntroNode.textContent = isLoopback
+                    ? 'The installed CreditSoft Intranet Client router is stopped or pointed at an offline office lane. Restart the router, then reconnect.'
+                    : 'The private office server is not reachable from this Windows device. Confirm Tailscale or the approved network is connected, then reconnect.';
+                supportNoteNode.textContent = 'For Windows staff devices, this page should never ask for macOS Terminal or PHP commands.';
+                commandLabelNode.textContent = 'PowerShell router restart';
+                commandHintNode.innerHTML = 'Open PowerShell, paste this command, then press <strong>Enter</strong>. Keep the window open if it prints an error.';
+                secondaryHintNode.textContent = 'If Tailscale is required, confirm the Tailscale tray icon says connected and the correct tailnet is selected.';
+            } else if (isMac) {
+                offlineTitleNode.textContent = isLoopback
+                    ? 'The local CreditSoft router is not responding.'
+                    : 'This Mac cannot reach the office.';
+                offlineIntroNode.textContent = 'Press reconnect first. If this is a staff Mac, restart the CreditSoft Intranet Client router instead of running developer PHP commands.';
+                commandLabelNode.textContent = 'Mac router restart';
+                commandHintNode.innerHTML = 'Open Terminal, paste this command, then press <strong>Return</strong>.';
+                secondaryHintNode.textContent = 'If this Mac is the actual office server host, contact the office owner before restarting server services.';
+            }
 
             const setStatus = (message, tone = 'default') => {
                 statusNode.textContent = message;
@@ -287,7 +326,7 @@
             copyCommandButton.addEventListener('click', async () => {
                 try {
                     await navigator.clipboard.writeText(restartCommand);
-                    setStatus('Restart command copied. Paste it into Terminal and press Return.');
+                    setStatus(isWindows ? 'Repair command copied. Paste it into PowerShell and press Enter.' : 'Repair command copied. Paste it into Terminal and press Return.');
                 } catch (_error) {
                     setStatus('Could not copy automatically. Select the command below and copy it manually.', 'error');
                 }

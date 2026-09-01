@@ -46,6 +46,10 @@ class DisputeFoxDocumentInboxService
         $usedPaths = [];
 
         foreach ($documents as $document) {
+            if ($this->documentHasAttachedTinyPreview($document)) {
+                $stats['pruned_tiny_previews'] += $this->quarantineAttachedTinyPreview($document);
+            }
+
             if (! $this->documentNeedsFile($document)) {
                 if ($deleteSource) {
                     $match = $this->matchDocument($document, $files, $usedPaths);
@@ -81,7 +85,7 @@ class DisputeFoxDocumentInboxService
         }
 
         if ($deleteSource && $pruneTinyPreviews) {
-            $stats['pruned_tiny_previews'] = $this->pruneTinyPreviewFiles($files, $usedPaths);
+            $stats['pruned_tiny_previews'] += $this->pruneTinyPreviewFiles($files, $usedPaths);
         }
 
         return $stats;
@@ -158,7 +162,7 @@ class DisputeFoxDocumentInboxService
                     'extension' => $extension,
                     'size' => $size,
                     'mtime' => (int) $file->getMTime(),
-                    'tiny_preview' => $size > 0 && $size < 8192 && in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true),
+                    'tiny_preview' => $this->isTinyPreviewInboxFile($extension, $size, $name),
                 ];
             }
         }
@@ -199,7 +203,87 @@ class DisputeFoxDocumentInboxService
     {
         $path = (string) $document->file_path;
 
-        return $path === '' || ! File::exists($path) || (int) ($document->file_size ?? 0) < 1;
+        return $path === ''
+            || ! File::exists($path)
+            || (int) ($document->file_size ?? 0) < 1
+            || $this->documentHasAttachedTinyPreview($document);
+    }
+
+    protected function isTinyPreviewInboxFile(string $extension, int $size, string $name): bool
+    {
+        if ($size <= 0 || $size > 65536 || ! in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            return false;
+        }
+
+        if ($size < 8192) {
+            return true;
+        }
+
+        $stem = pathinfo($name, PATHINFO_FILENAME);
+
+        return preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i', $stem) === 1
+            || Str::contains($this->normalizeFileKey($name), ['preview', 'thumbnail', 'thumb']);
+    }
+
+    protected function documentHasAttachedTinyPreview(ClientDocument $document): bool
+    {
+        $path = (string) $document->file_path;
+
+        if ($path === '' || ! File::exists($path)) {
+            return false;
+        }
+
+        $extension = Str::lower(pathinfo($path, PATHINFO_EXTENSION));
+        $size = (int) (File::size($path) ?: 0);
+
+        if ($size <= 0 || $size > 65536 || ! in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            return false;
+        }
+
+        $dimensions = @getimagesize($path);
+
+        if (is_array($dimensions) && (int) ($dimensions[0] ?? 0) <= 200 && (int) ($dimensions[1] ?? 0) <= 200) {
+            return true;
+        }
+
+        $metadataText = Str::lower(json_encode($document->metadata ?? [], JSON_UNESCAPED_SLASHES) ?: '');
+
+        return Str::contains($metadataText, [
+            '/static-resources/client_documents/',
+            'document?method=clientdocument',
+            'clientdocument',
+            'preview',
+        ]);
+    }
+
+    protected function quarantineAttachedTinyPreview(ClientDocument $document): int
+    {
+        $path = (string) $document->file_path;
+
+        if ($path === '' || ! File::exists($path)) {
+            return 0;
+        }
+
+        $quarantineDirectory = dirname($path).DIRECTORY_SEPARATOR.'tiny-preview-quarantine';
+        File::ensureDirectoryExists($quarantineDirectory);
+
+        $quarantinePath = $this->uniquePath($quarantineDirectory, basename($path));
+
+        File::move($path, $quarantinePath);
+
+        $metadata = $document->metadata ?? [];
+        data_set($metadata, 'imports.disputefox.document.has_file', false);
+        data_set($metadata, 'imports.disputefox.document.tiny_preview_quarantined_at', now()->toIso8601String());
+        data_set($metadata, 'imports.disputefox.document.quarantined_preview_file', $quarantinePath);
+
+        $document->forceFill([
+            'file_path' => '',
+            'file_size' => 0,
+            'portal_visible' => false,
+            'metadata' => $metadata,
+        ])->save();
+
+        return 1;
     }
 
     /**

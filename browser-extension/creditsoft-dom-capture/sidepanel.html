@@ -183,9 +183,9 @@
       border: 0;
       background: transparent;
       color: var(--ink);
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -197,7 +197,7 @@
 
     .icon-button:hover {
       transform: translateY(-1px);
-      background: rgba(31, 26, 23, 0.06);
+      background: transparent;
     }
 
     .body {
@@ -310,11 +310,76 @@
       padding: 11px 14px;
     }
 
+    .danger {
+      background: rgba(180, 35, 24, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(180, 35, 24, 0.24);
+      padding: 9px 14px;
+      min-height: 36px;
+    }
+
     .ghost {
       background: transparent;
       color: var(--muted);
       border: 1px solid rgba(31, 26, 23, 0.1);
       padding: 11px 14px;
+    }
+
+    button[data-icon-class],
+    button.primary[data-icon-class],
+    button.secondary[data-icon-class],
+    button.danger[data-icon-class],
+    button.ghost[data-icon-class] {
+      display: inline-flex;
+      width: 30px;
+      height: 30px;
+      min-width: 30px;
+      min-height: 30px;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: rgba(31, 26, 23, 0.72);
+      box-shadow: none;
+    }
+
+    button[data-icon-class]:hover,
+    button.primary[data-icon-class]:hover,
+    button.secondary[data-icon-class]:hover,
+    button.danger[data-icon-class]:hover,
+    button.ghost[data-icon-class]:hover {
+      color: var(--accent-ink);
+      background: transparent;
+      box-shadow: none;
+    }
+
+    button.danger[data-icon-class] {
+      color: rgba(180, 35, 24, 0.82);
+    }
+
+    button[data-icon-class]:focus-visible {
+      outline: 2px solid rgba(245, 178, 35, 0.78);
+      outline-offset: 3px;
+    }
+
+    button[data-icon-class] i {
+      display: inline-flex;
+      width: 18px;
+      height: 18px;
+      align-items: center;
+      justify-content: center;
+      color: currentColor;
+      font-style: normal;
+      line-height: 1;
+    }
+
+    button[data-icon-class] i svg {
+      display: block;
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
     }
 
     .results,
@@ -425,25 +490,14 @@
     }
 
     .import-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
       gap: 8px;
     }
 
     .import-grid .secondary {
-      width: 100%;
-      min-height: 34px;
-      padding: 9px 10px;
-      font-size: 11px;
-      border-radius: 14px;
-    }
-
-    .field-label {
-      margin: 0;
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
+      width: 30px;
     }
 
     details {
@@ -470,11 +524,6 @@
       gap: 8px;
       justify-content: flex-start;
       align-items: center;
-    }
-
-    .actions .primary {
-      min-width: 84px;
-      padding-inline: 18px;
     }
 
     .status {
@@ -586,16 +635,20 @@
             <img src="creditsoft-wordmark.png" alt="CreditSoft">
           </button>
           <div id="integrationMenu" class="integration-menu" hidden>
+            <button id="openProviderUpdate" class="integration-menu-item" type="button">
+              <span>Provider report updates</span>
+              <small>Pull fresh reports from SmartCredit, IdentityIQ, Credit Karma, and queued provider accounts.</small>
+            </button>
             <button id="openDisputeFoxImport" class="integration-menu-item" type="button">
               <span>DisputeFox migration</span>
               <small>Import legacy CRM clients, leads, invoices, workflows, and saved documents.</small>
             </button>
-            <p class="integration-menu-note">Import is for old CRM data. Update is for fresh reports from providers like SmartCredit and IdentityIQ.</p>
+            <p class="integration-menu-note">SmartCredit lives in provider updates. DisputeFox is only for old CRM migration.</p>
           </div>
         </div>
         <div class="header-actions">
           <span id="pairedDot" class="paired-dot" aria-label="CreditSoft API key status" role="status"></span>
-          <button id="openSettings" class="icon-button" type="button" aria-label="Open extension settings">⚙</button>
+          <button id="openSettings" class="icon-button" type="button" aria-label="Open extension settings" title="Open extension settings" data-icon-class="fa-solid fa-gear" data-label="Open extension settings"></button>
         </div>
       </div>
 
@@ -611,7 +664,8 @@
           <div id="nextClientCard" class="selected" hidden></div>
 
           <section class="actions">
-            <button id="goCapture" class="primary" type="button" disabled>Update</button>
+            <button id="goCapture" class="primary" type="button" disabled aria-label="Run the next provider update or the active DisputeFox action" title="Run the next provider update or the active DisputeFox action" data-icon-class="fa-solid fa-play" data-label="Run companion update"></button>
+            <button id="stopRunnerButton" class="danger" type="button" disabled aria-label="Stop the current companion run" title="Stop the current companion run" data-icon-class="fa-solid fa-stop" data-label="Stop companion run"></button>
           </section>
         </section>
 
@@ -627,18 +681,19 @@
             <input id="disputefoxUsername" type="text" placeholder="DisputeFox username" autocomplete="username">
             <input id="disputefoxPassword" type="password" placeholder="DisputeFox password" autocomplete="current-password">
             <div class="import-grid" aria-label="DisputeFox list import actions">
-              <button id="importDisputeFoxAll" class="secondary" type="button">Import all lists</button>
-              <button id="importDisputeFoxClients" class="secondary" type="button">Clients</button>
-              <button id="importDisputeFoxLeads" class="secondary" type="button">Leads</button>
-              <button id="importDisputeFoxInvoices" class="secondary" type="button">Invoices</button>
-              <button id="importDisputeFoxAffiliates" class="secondary" type="button">Affiliates</button>
-              <button id="importDisputeFoxAutomation" class="secondary" type="button">Automation</button>
+              <button id="importDisputeFoxAll" class="secondary" type="button" aria-label="Import every DisputeFox list lane" title="Import every DisputeFox list lane" data-icon-class="fa-solid fa-file-import" data-label="Import every DisputeFox list lane"></button>
+              <button id="importDisputeFoxClients" class="secondary" type="button" aria-label="Import the DisputeFox clients list" title="Import the DisputeFox clients list" data-icon-class="fa-solid fa-users" data-label="Import DisputeFox clients"></button>
+              <button id="importDisputeFoxLeads" class="secondary" type="button" aria-label="Import the DisputeFox leads list" title="Import the DisputeFox leads list" data-icon-class="fa-solid fa-user-plus" data-label="Import DisputeFox leads"></button>
+              <button id="importDisputeFoxInvoices" class="secondary" type="button" aria-label="Import DisputeFox invoices and payment rows" title="Import DisputeFox invoices and payment rows" data-icon-class="fa-solid fa-receipt" data-label="Import DisputeFox invoices"></button>
+              <button id="importDisputeFoxAffiliates" class="secondary" type="button" aria-label="Import affiliate and referral sources" title="Import affiliate and referral sources" data-icon-class="fa-regular fa-handshake" data-label="Import affiliate and referral sources"></button>
+              <button id="importDisputeFoxAutomation" class="secondary" type="button" aria-label="Import AutoFox workflow discovery" title="Import AutoFox workflow discovery" data-icon-class="fa-solid fa-wand-magic-sparkles" data-label="Import AutoFox workflow discovery"></button>
             </div>
             <div class="credential-actions">
-              <button id="saveDisputeFoxCredentials" class="secondary" type="button">Save locally</button>
-              <button id="processPulseProfiles" class="secondary" type="button">Profile details</button>
-              <button id="syncDisputeFoxProfile" class="secondary" type="button">Current page</button>
-              <button id="closeDisputeFoxImport" class="ghost" type="button">Done</button>
+              <button id="saveDisputeFoxCredentials" class="secondary" type="button" aria-label="Save DisputeFox credentials in this browser only" title="Save DisputeFox credentials in this browser only" data-icon-class="fa-regular fa-floppy-disk" data-label="Save DisputeFox credentials"></button>
+              <button id="processPulseProfiles" class="secondary" type="button" aria-label="Walk profiles and import fields plus documents" title="Walk profiles and import fields plus documents" data-icon-class="fa-regular fa-file-lines" data-label="Import profile fields and documents"></button>
+              <button id="processPulseFiles" class="secondary" type="button" aria-label="Download and reattach DisputeFox files for imported profiles" title="Download and reattach DisputeFox files for imported profiles" data-icon-class="fa-regular fa-folder" data-label="Download DisputeFox files"></button>
+              <button id="syncDisputeFoxProfile" class="secondary" type="button" aria-label="Sync the current DisputeFox profile page" title="Sync the current DisputeFox profile page" data-icon-class="fa-solid fa-rotate" data-label="Sync current DisputeFox profile"></button>
+              <button id="closeDisputeFoxImport" class="ghost" type="button" aria-label="Close DisputeFox migration mode" title="Close DisputeFox migration mode" data-icon-class="fa-solid fa-right-from-bracket" data-label="Close DisputeFox migration mode"></button>
             </div>
           </div>
         </section>
@@ -657,6 +712,7 @@
       </div>
     </section>
   </main>
+  <script src="fontawesome-lite.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

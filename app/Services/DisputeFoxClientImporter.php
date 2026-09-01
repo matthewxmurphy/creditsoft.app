@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Models\Client;
 use App\Models\User;
+use App\Support\ClientName;
+use App\Support\MailingAddress;
+use App\Support\PhoneNumber;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -43,8 +46,8 @@ class DisputeFoxClientImporter
         $sourceFile = $file->getClientOriginalName() ?: 'disputefox-export.xlsx';
 
         foreach (array_values($rows) as $rowIndex => $row) {
-            $firstName = $this->clean($row['first_name'] ?? null);
-            $lastName = $this->clean($row['last_name'] ?? null);
+            $firstName = ClientName::normalizePart($row['first_name'] ?? null) ?? '';
+            $lastName = ClientName::normalizePart($row['last_name'] ?? null) ?? '';
 
             if ($firstName === '' && $lastName === '') {
                 $skipped++;
@@ -61,7 +64,19 @@ class DisputeFoxClientImporter
             $city = $this->clean($row['city'] ?? null);
             $state = $this->normalizedState($this->clean($row['state'] ?? null));
             $postalCode = $this->clean($row['postal_code'] ?? null);
-            $phone = $this->clean($row['phone'] ?? null);
+            $addressFields = MailingAddress::normalizeFields([
+                'address_line_1' => $addressLine1,
+                'address_line_2' => $addressLine2,
+                'city' => $city,
+                'state' => $state,
+                'postal_code' => $postalCode,
+            ]);
+            $addressLine1 = (string) ($addressFields['address_line_1'] ?? '');
+            $addressLine2 = (string) ($addressFields['address_line_2'] ?? '');
+            $city = (string) ($addressFields['city'] ?? '');
+            $state = $this->normalizedState((string) ($addressFields['state'] ?? ''));
+            $postalCode = (string) ($addressFields['postal_code'] ?? '');
+            $phone = PhoneNumber::normalize($row['phone'] ?? null) ?? '';
             $secondaryEmail = Str::lower($this->clean($row['secondary_email'] ?? null));
             $dateOfBirth = $this->parseDateOfBirth($this->clean($row['date_of_birth'] ?? null));
             $ssn = $this->normalizedSsn($this->clean($row['ssn'] ?? null));

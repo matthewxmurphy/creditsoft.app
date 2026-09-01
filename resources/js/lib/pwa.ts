@@ -20,6 +20,9 @@ const state = reactive({
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 let initialized = false;
+let reloadingForNewServiceWorker = false;
+
+const serviceWorkerVersion = '20260505-11';
 
 const isLocalInstallHost = () => {
     if (typeof window === 'undefined') {
@@ -54,7 +57,17 @@ export const initializePwa = () => {
 
     state.supported = true;
 
-    navigator.serviceWorker.register('/sw.js?v=4', { updateViaCache: 'none' })
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloadingForNewServiceWorker || sessionStorage.getItem('creditsoft-sw-version') === serviceWorkerVersion) {
+            return;
+        }
+
+        reloadingForNewServiceWorker = true;
+        sessionStorage.setItem('creditsoft-sw-version', serviceWorkerVersion);
+        window.location.reload();
+    });
+
+    navigator.serviceWorker.register('/sw.js?v=14', { updateViaCache: 'none' })
         .then((registration) => {
             registration.update().catch(() => undefined);
         })

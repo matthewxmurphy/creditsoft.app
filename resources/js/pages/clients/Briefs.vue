@@ -13,6 +13,7 @@ import { formatDate } from '@/lib/creditsoft';
 const props = defineProps<{
     client: {
         id: number;
+        cuid?: string | null;
         display_name: string;
         status?: string | null;
     };
@@ -84,9 +85,10 @@ const aiForm = useForm({
 });
 
 const aiBadge = computed(() => props.aiTask?.label ?? 'AI brief lane');
+const clientRouteKey = computed(() => String(props.client.id));
 
 const submit = () => {
-    form.post(`/clients/${props.client.id}/briefs`, {
+    form.post(`/clients/${clientRouteKey.value}/briefs`, {
         preserveScroll: true,
         onSuccess: () => form.reset('title', 'content'),
     });
@@ -99,7 +101,7 @@ const generateAiDraft = () => {
         return;
     }
 
-    aiForm.post(`/clients/${props.client.id}/briefs/ai-draft`, {
+    aiForm.post(`/clients/${clientRouteKey.value}/briefs/ai-draft`, {
         preserveScroll: true,
         onSuccess: () => aiForm.reset('operator_focus'),
     });

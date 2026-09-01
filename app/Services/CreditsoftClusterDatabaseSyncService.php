@@ -12,8 +12,11 @@ use App\Models\Client;
 use App\Models\ClientBillingProfile;
 use App\Models\ClientDocument;
 use App\Models\ClientPayment;
+use App\Models\ClientProfileSnapshot;
 use App\Models\ClientProviderAccount;
 use App\Models\ClusterDatabaseSyncOutbox;
+use App\Models\ClusterDatabaseTombstone;
+use App\Models\CrmAutomationEvent;
 use App\Models\EmployeeActivitySample;
 use App\Models\EmployeeProfile;
 use App\Models\EmployeeReview;
@@ -38,6 +41,8 @@ use App\Models\User;
 use App\Models\UserApiKey;
 use App\Models\ViolationCandidate;
 use App\Models\ZellePaymentMessage;
+use App\Support\ClientName;
+use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Arr;
@@ -66,7 +71,9 @@ class CreditsoftClusterDatabaseSyncService
         ClientBillingProfile::class,
         ClientDocument::class,
         ClientPayment::class,
+        ClientProfileSnapshot::class,
         ClientProviderAccount::class,
+        CrmAutomationEvent::class,
         EmployeeActivitySample::class,
         EmployeeProfile::class,
         EmployeeReview::class,
@@ -145,6 +152,17 @@ class CreditsoftClusterDatabaseSyncService
         $eventUuid = (string) Str::uuid();
         $payload = $this->payloadForModel($model, $operation, $eventUuid, $sharedSecret);
 
+        if ($payload['operation'] === 'delete') {
+            $this->rememberTombstone(
+                $payload['model_type'],
+                $payload['table_name'],
+                $payload['record_key'],
+                $this->payloadOccurredAt($payload) ?? now(),
+                $payload['event_uuid'],
+                $payload['source_node'],
+            );
+        }
+
         foreach ($peers as $peer) {
             ClusterDatabaseSyncOutbox::query()->updateOrCreate(
                 [
@@ -201,7 +219,31 @@ class CreditsoftClusterDatabaseSyncService
         $queued = 0;
 
         foreach ($queuedSyncs as $sync) {
-            $payload = (array) $sync->payload;
+            try {
+                $payload = (array) $sync->payload;
+            } catch (Throwable $exception) {
+                $queued++;
+                $attempts = ((int) $sync->attempts) + 1;
+                $sync->forceFill([
+                    'status' => 'queued',
+                    'attempts' => $attempts,
+                    'last_error' => $this->shortError('Could not decrypt queued database sync payload: '.$exception->getMessage()),
+                    'next_attempt_at' => now()->addDay(),
+                ])->save();
+
+                $results[] = [
+                    'label' => $sync->peer_label,
+                    'base_url' => $sync->peer_base_url,
+                    'table_name' => $sync->table_name,
+                    'record_key' => $sync->record_key,
+                    'operation' => $sync->operation,
+                    'status' => 'queued',
+                    'message' => 'Could not decrypt queued database sync payload; moved behind newer events.',
+                ];
+
+                continue;
+            }
+
             $delivery = $this->deliverPayloadToPeer($sync->peer_base_url, $payload);
             $attempts = ((int) $sync->attempts) + 1;
 
@@ -307,7 +349,15 @@ class CreditsoftClusterDatabaseSyncService
             $existing = DB::table($table)->where($primaryKey, $recordKey)->first();
 
             if ($operation === 'delete') {
-                return $this->applyRemoteDelete($table, $primaryKey, $recordKey, $attributes, $existing);
+                return $this->applyRemoteDelete($payload, $modelType, $table, $primaryKey, $recordKey, $attributes, $existing);
+            }
+
+            if ($this->upsertBlockedByTombstone($table, $recordKey, $attributes, $payload)) {
+                return [
+                    'status' => 'skipped_deleted',
+                    'table_name' => $table,
+                    'record_key' => $recordKey,
+                ];
             }
 
             if ($existing && $this->incomingIsStale($existing, $attributes)) {
@@ -317,6 +367,8 @@ class CreditsoftClusterDatabaseSyncService
                     'record_key' => $recordKey,
                 ];
             }
+
+            $this->forgetTombstone($table, $recordKey);
 
             $attributes = $this->prepareAttributesForWrite($modelType, $attributes, $existing);
 
@@ -346,6 +398,14 @@ class CreditsoftClusterDatabaseSyncService
      */
     protected function prepareAttributesForWrite(string $modelType, array $attributes, mixed $existing): array
     {
+        if ($modelType === Client::class) {
+            $attributes = ClientName::normalizeFields($attributes);
+
+            if (array_key_exists('phone', $attributes)) {
+                $attributes['phone'] = PhoneNumber::normalize($attributes['phone']);
+            }
+        }
+
         if ($modelType !== ClientDocument::class) {
             return $attributes;
         }
@@ -371,8 +431,25 @@ class CreditsoftClusterDatabaseSyncService
      * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>
      */
-    protected function applyRemoteDelete(string $table, string $primaryKey, string $recordKey, array $attributes, mixed $existing): array
+    protected function applyRemoteDelete(
+        array $payload,
+        string $modelType,
+        string $table,
+        string $primaryKey,
+        string $recordKey,
+        array $attributes,
+        mixed $existing,
+    ): array
     {
+        $this->rememberTombstone(
+            $modelType,
+            $table,
+            $recordKey,
+            $this->incomingMutationTimestamp($attributes, $payload) ?? now(),
+            (string) ($payload['event_uuid'] ?? ''),
+            (string) ($payload['source_node'] ?? ''),
+        );
+
         if (! $existing) {
             return [
                 'status' => 'already_missing',
@@ -406,6 +483,72 @@ class CreditsoftClusterDatabaseSyncService
             'table_name' => $table,
             'record_key' => $recordKey,
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @param  array<string, mixed>  $payload
+     */
+    protected function upsertBlockedByTombstone(string $table, string $recordKey, array $attributes, array $payload): bool
+    {
+        if (! Schema::hasTable('cluster_database_tombstones')) {
+            return false;
+        }
+
+        $tombstone = ClusterDatabaseTombstone::query()
+            ->where('table_name', $table)
+            ->where('record_key', $recordKey)
+            ->first();
+
+        if (! $tombstone) {
+            return false;
+        }
+
+        $incomingAt = $this->incomingMutationTimestamp($attributes, $payload);
+
+        if ($incomingAt === null) {
+            return true;
+        }
+
+        return $incomingAt->lessThanOrEqualTo($tombstone->deleted_at);
+    }
+
+    protected function forgetTombstone(string $table, string $recordKey): void
+    {
+        if (! Schema::hasTable('cluster_database_tombstones')) {
+            return;
+        }
+
+        ClusterDatabaseTombstone::query()
+            ->where('table_name', $table)
+            ->where('record_key', $recordKey)
+            ->delete();
+    }
+
+    protected function rememberTombstone(
+        string $modelType,
+        string $table,
+        string $recordKey,
+        Carbon $deletedAt,
+        string $eventUuid = '',
+        string $sourceNode = '',
+    ): void {
+        if (! Schema::hasTable('cluster_database_tombstones')) {
+            return;
+        }
+
+        ClusterDatabaseTombstone::query()->updateOrCreate(
+            [
+                'table_name' => $table,
+                'record_key' => $recordKey,
+            ],
+            [
+                'event_uuid' => $eventUuid !== '' ? $eventUuid : null,
+                'source_node' => $sourceNode !== '' ? $sourceNode : null,
+                'model_type' => $modelType,
+                'deleted_at' => $deletedAt,
+            ],
+        );
     }
 
     /**
@@ -589,6 +732,25 @@ class CreditsoftClusterDatabaseSyncService
         return $incomingUpdatedAt !== null
             && $existingUpdatedAt !== null
             && $existingUpdatedAt->greaterThan($incomingUpdatedAt);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @param  array<string, mixed>  $payload
+     */
+    protected function incomingMutationTimestamp(array $attributes, array $payload): ?Carbon
+    {
+        return $this->parseTimestamp($attributes['updated_at'] ?? null)
+            ?? $this->parseTimestamp($attributes['deleted_at'] ?? null)
+            ?? $this->payloadOccurredAt($payload);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    protected function payloadOccurredAt(array $payload): ?Carbon
+    {
+        return $this->parseTimestamp($payload['occurred_at'] ?? null);
     }
 
     protected function parseTimestamp(mixed $value): ?Carbon

@@ -94,6 +94,12 @@ Preferred deploy:
 cd /opt/aiether/aietherpanel && scripts/deploy-public-website.sh --via mmurphy@100.80.51.78 --target mmurphy@100.126.221.83 --source /Users/mmurphy/Code/CreditSoft/web --domain creditsoft.app
 ```
 
+After a static/Astro deploy, restore the shared PHP support files used by `admin.creditsoft.app`:
+
+```bash
+/Users/mmurphy/Desktop/CreditSoft/scripts/restore-live-admin-support.sh
+```
+
 Direct SCP proof:
 
 ```bash

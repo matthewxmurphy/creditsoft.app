@@ -10,6 +10,7 @@ const props = defineProps<{
 }>();
 
 const crmProxyPrefix = '/__creditsoft/crm';
+const localRouterPort = '8877';
 
 const frameSrc = computed(() => {
     if (typeof window === 'undefined') {
@@ -19,10 +20,18 @@ const frameSrc = computed(() => {
     try {
         const launch = new URL(props.launchUrl);
         const current = window.location;
-        const isLocalRouter = ['127.0.0.1', 'localhost'].includes(current.hostname);
+        const localRouterPorts = new Set(['', '80', localRouterPort]);
+        const isLocalRouter = ['127.0.0.1', 'localhost'].includes(current.hostname)
+            && localRouterPorts.has(current.port);
+        const isDirectOfficeServer = ['127.0.0.1', 'localhost'].includes(current.hostname)
+            && current.port === '8001';
 
         if (isLocalRouter && launch.origin !== current.origin) {
             return `${crmProxyPrefix}${launch.pathname}${launch.search}${launch.hash}`;
+        }
+
+        if (isDirectOfficeServer && launch.origin !== current.origin) {
+            return `${current.protocol}//${current.hostname}:${localRouterPort}${crmProxyPrefix}${launch.pathname}${launch.search}${launch.hash}`;
         }
     } catch {
         return props.launchUrl;

@@ -11,9 +11,13 @@ const API_OVERVIEW_PATH = '/api/v1';
 const API_ENDPOINT_PATH = '/api/v1/browser-companion/intake';
 const API_CLIENT_SYNC_PATH = '/api/v1/browser-companion/client-sync';
 const API_CLIENT_DOCUMENT_PATH = '/api/v1/browser-companion/client-document';
+const API_DISPUTEFOX_DOCUMENT_RECONCILE_PATH = '/api/v1/browser-companion/disputefox-documents/reconcile';
 const CLIENT_PICKER_PATH = '/api/v1/clients/picker?limit=24';
 const DISPUTEFOX_LOGIN_URL = 'https://pulse.disputeprocess.com/jsp/client/login.jsp?cdn/';
+const DISPUTEFOX_TINY_PREVIEW_IMAGE_MAX_BYTES = 65536;
 const LOCAL_API_CANDIDATES = [
+    'http://127.0.0.1:8877',
+    'http://localhost:8877',
     'http://127.0.0.1',
     'http://localhost',
     'http://127.0.0.1:8001',
@@ -40,6 +44,7 @@ const elements = {
     disputefoxUsername: document.getElementById('disputefoxUsername'),
     disputefoxPassword: document.getElementById('disputefoxPassword'),
     saveDisputeFoxCredentials: document.getElementById('saveDisputeFoxCredentials'),
+    syncDisputeFoxFiles: document.getElementById('syncDisputeFoxFiles'),
     syncDisputeFoxProfile: document.getElementById('syncDisputeFoxProfile'),
 };
 
@@ -63,6 +68,34 @@ function currentCycleLabel() {
 
 function toText(value) {
     return typeof value === 'string' ? value : '';
+}
+
+function setButtonLabel(button, label) {
+    if (!button) {
+        return;
+    }
+
+    const text = String(label ?? '').trim();
+    const iconClass = String(button.dataset.iconClass || '').replace(/[^a-z0-9 -]/gi, '').trim();
+    button.dataset.label = text;
+    button.setAttribute('aria-label', text || button.getAttribute('aria-label') || 'CreditSoft action');
+    button.title = text || button.title || 'CreditSoft action';
+
+    if (!iconClass) {
+        button.textContent = text;
+
+        return;
+    }
+
+    button.innerHTML = `<i class="${iconClass}" aria-hidden="true"></i>`;
+    window.creditsoftRenderFontAwesome?.(button);
+}
+
+function syncButtonLabels() {
+    document.querySelectorAll('button[data-icon-class]').forEach((button) => {
+        const label = button.dataset.label || button.textContent.trim();
+        setButtonLabel(button, label);
+    });
 }
 
 function maskToken(token) {
@@ -299,6 +332,10 @@ function syncFeatureVisibility() {
 
     if (elements.syncDisputeFoxProfile) {
         elements.syncDisputeFoxProfile.disabled = !enabled || connectionState !== 'ready';
+    }
+
+    if (elements.syncDisputeFoxFiles) {
+        elements.syncDisputeFoxFiles.disabled = !enabled || connectionState !== 'ready';
     }
 }
 
@@ -1225,23 +1262,172 @@ function safePulseDocumentFilename(documentRecord, response) {
     return candidate || 'pulse-document';
 }
 
+class TinyPulsePreviewError extends Error {
+    constructor(message = 'Pulse returned a tiny preview image instead of the actual document.') {
+        super(message);
+        this.name = 'TinyPulsePreviewError';
+    }
+}
+
+function isTinyPulsePreviewError(error) {
+    return error?.name === 'TinyPulsePreviewError';
+}
+
+function fileExtensionFromName(value = '') {
+    return String(value || '')
+        .split(/[?#]/)[0]
+        .split(/[\\/]/)
+        .pop()
+        ?.split('.')
+        .pop()
+        ?.toLowerCase() || '';
+}
+
+function pulseDocumentLooksLikeTinyPreview(documentRecord, filePayload = {}) {
+    const fileName = filePayload.fileName
+        || filePayload.filename
+        || documentRecord?.file_name
+        || safePulseDocumentFilename(documentRecord, null);
+    const mimeType = String(filePayload.mimeType || documentRecord?.mime_type || '').toLowerCase();
+    const extension = fileExtensionFromName(fileName);
+    const size = Number(
+        filePayload.size
+        || filePayload.fileSize
+        || filePayload.bytesReceived
+        || filePayload.blob?.size
+        || documentRecord?.file_size
+        || 0,
+    ) || 0;
+    const isImage = mimeType.startsWith('image/')
+        || ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(extension);
+
+    if (!isImage || size <= 0 || size > DISPUTEFOX_TINY_PREVIEW_IMAGE_MAX_BYTES) {
+        return false;
+    }
+
+    if (size < 8192) {
+        return true;
+    }
+
+    const sourceText = [
+        documentRecord?.download_url,
+        documentRecord?.preview_url,
+        documentRecord?.source_path,
+        documentRecord?.source,
+        fileName,
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return sourceText.includes('/static-resources/client_documents/')
+        || sourceText.includes('method=clientdocument')
+        || sourceText.includes('documentpreview')
+        || sourceText.includes('preview');
+}
+
+function removeChromeDownloadFile(downloadId) {
+    if (!downloadId || !chrome?.downloads?.removeFile) {
+        return Promise.resolve();
+    }
+
+    return new Promise((resolve) => {
+        chrome.downloads.removeFile(downloadId, () => {
+            chrome.downloads.erase?.({ id: downloadId }, () => resolve());
+            if (!chrome.downloads.erase) {
+                resolve();
+            }
+        });
+    });
+}
+
 async function downloadPulseDocumentToInbox(documentRecord) {
     const url = documentRecord?.download_url || documentRecord?.preview_url || '';
 
     if (!url || !chrome?.downloads?.download) {
-        return false;
+        return { downloaded: false, skipped: false };
     }
 
     const filename = `CreditSoft DisputeFox/${safePulseDocumentFilename(documentRecord, null)}`;
 
-    await chrome.downloads.download({
+    const downloadId = await chrome.downloads.download({
         url,
         filename,
         conflictAction: 'uniquify',
         saveAs: false,
     });
 
-    return true;
+    const result = await waitForChromeDownload(downloadId);
+
+    if (!result.completed) {
+        return { downloaded: false, skipped: false };
+    }
+
+    const item = result.item || {};
+
+    if (pulseDocumentLooksLikeTinyPreview(documentRecord, {
+        fileName: item.filename || filename,
+        fileSize: item.fileSize,
+        bytesReceived: item.bytesReceived,
+    })) {
+        await removeChromeDownloadFile(downloadId);
+
+        return { downloaded: false, skipped: true };
+    }
+
+    return { downloaded: true, skipped: false };
+}
+
+function waitForChromeDownload(downloadId, timeoutMs = 120000) {
+    if (!downloadId || !chrome?.downloads?.onChanged) {
+        return Promise.resolve({ completed: true, item: null });
+    }
+
+    return new Promise((resolve) => {
+        let settled = false;
+        let timer = null;
+        const resolveWith = (ok, item = null) => {
+            if (settled) {
+                return;
+            }
+
+            settled = true;
+            if (timer) {
+                clearTimeout(timer);
+            }
+            chrome.downloads.onChanged.removeListener(listener);
+            resolve({ completed: Boolean(ok), item });
+        };
+        const finish = (ok) => {
+            if (chrome?.downloads?.search) {
+                chrome.downloads.search({ id: downloadId }, (items) => resolveWith(ok, items?.[0] || null));
+
+                return;
+            }
+
+            resolveWith(ok);
+        };
+        const listener = (delta) => {
+            if (delta.id !== downloadId) {
+                return;
+            }
+
+            if (delta.error?.current || delta.state?.current === 'interrupted') {
+                finish(false);
+            } else if (delta.state?.current === 'complete') {
+                finish(true);
+            }
+        };
+        timer = setTimeout(() => finish(false), timeoutMs);
+
+        chrome.downloads.onChanged.addListener(listener);
+        chrome.downloads.search?.({ id: downloadId }, (items) => {
+            const state = items?.[0]?.state;
+
+            if (state === 'complete') {
+                finish(true);
+            } else if (state === 'interrupted') {
+                finish(false);
+            }
+        });
+    });
 }
 
 async function fetchPulseDocumentFile(documentRecord) {
@@ -1267,11 +1453,17 @@ async function fetchPulseDocumentFile(documentRecord) {
         throw new Error('Pulse returned a page instead of the document file. Open the document drawer and try again.');
     }
 
-    return {
+    const filePayload = {
         blob,
         fileName: safePulseDocumentFilename(documentRecord, response),
         mimeType: contentType || blob.type || 'application/octet-stream',
     };
+
+    if (pulseDocumentLooksLikeTinyPreview(documentRecord, filePayload)) {
+        throw new TinyPulsePreviewError();
+    }
+
+    return filePayload;
 }
 
 async function postClientDocument(clientCuid, documentRecord, filePayload, settings, capture) {
@@ -1328,12 +1520,20 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
         attempted: records.length,
         uploaded: 0,
         downloaded: 0,
+        local_attached: 0,
+        skipped: 0,
         failed: 0,
         last_error: '',
     };
 
     for (const documentRecord of records) {
         try {
+            if (pulseDocumentLooksLikeTinyPreview(documentRecord)) {
+                stats.skipped++;
+
+                continue;
+            }
+
             const filePayload = await fetchPulseDocumentFile(documentRecord);
             await postClientDocument(clientCuid, {
                 ...documentRecord,
@@ -1343,8 +1543,18 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
             }, filePayload, settings, capture);
             stats.uploaded++;
         } catch (error) {
+            const tinyPreviewError = isTinyPulsePreviewError(error);
+
             try {
-                if (await downloadPulseDocumentToInbox(documentRecord)) {
+                const downloadResult = await downloadPulseDocumentToInbox(documentRecord);
+
+                if (downloadResult.skipped) {
+                    stats.skipped++;
+
+                    continue;
+                }
+
+                if (downloadResult.downloaded) {
                     stats.downloaded++;
 
                     continue;
@@ -1353,12 +1563,53 @@ async function uploadPulseDocumentsForClient(documents, clientCuid, settings, ca
                 stats.last_error = downloadError instanceof Error ? downloadError.message : '';
             }
 
+            if (tinyPreviewError) {
+                stats.skipped++;
+
+                continue;
+            }
+
             stats.failed++;
             stats.last_error = stats.last_error || (error instanceof Error ? error.message : 'Could not import a Pulse document.');
         }
     }
 
+    if (stats.downloaded > 0) {
+        try {
+            const reconcile = await reconcileLocalDisputeFoxDocuments(settings, clientCuid);
+            stats.local_attached = Number(reconcile?.data?.attached || 0);
+        } catch (error) {
+            stats.last_error = error instanceof Error ? error.message : 'CreditSoft could not reconcile downloaded DisputeFox files yet.';
+        }
+    }
+
     return stats;
+}
+
+async function reconcileLocalDisputeFoxDocuments(settings, clientCuid = '') {
+    const apiBaseUrl = await resolveApiBaseUrl(settings);
+    const endpoint = `${apiBaseUrl}${API_DISPUTEFOX_DOCUMENT_RECONCILE_PATH}`;
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            Authorization: `Bearer ${settings.office_token}`,
+            'X-CreditSoft-Token': settings.office_token,
+        },
+        body: JSON.stringify({
+            client_cuid: clientCuid || null,
+            keep_source: true,
+        }),
+    });
+    const parsed = await parseJsonResponse(response);
+
+    if (!response.ok) {
+        throw new Error(apiErrorMessage(parsed, response.status, 'CreditSoft could not reconcile downloaded DisputeFox files.'));
+    }
+
+    return parsed;
 }
 
 async function syncDisputeFoxRecordList(capture = null) {
@@ -1422,7 +1673,8 @@ async function syncDisputeFoxRecordList(capture = null) {
     return result;
 }
 
-async function syncDisputeFoxProfile() {
+async function syncDisputeFoxProfile(options = {}) {
+    const filesOnly = Boolean(options.filesOnly);
     const credentials = readCredentialSettings();
     await chrome.storage.local.set(credentials);
     settingsCache = {
@@ -1446,7 +1698,7 @@ async function syncDisputeFoxProfile() {
         if (!verified) return;
     }
 
-    setStatus('Reading DisputeFox profile fields...');
+    setStatus(filesOnly ? 'Reading DisputeFox file records...' : 'Reading DisputeFox profile fields...');
     const capture = await captureActiveTab();
     const profile = capture.structured_customer || {};
     const fields = profile.fields || {};
@@ -1496,8 +1748,9 @@ async function syncDisputeFoxProfile() {
         setStatus(`Found ${documents.length} Pulse document records. Importing files when Pulse allows it...`, 'info');
         const uploadStats = await uploadPulseDocumentsForClient(documents, client.cuid, settings, capture);
 
-        if (uploadStats.uploaded > 0) {
-            documentMessage = ` Imported ${uploadStats.uploaded} file${uploadStats.uploaded === 1 ? '' : 's'}.`;
+        if (uploadStats.uploaded > 0 || uploadStats.local_attached > 0) {
+            const imported = uploadStats.uploaded + uploadStats.local_attached;
+            documentMessage = ` Imported ${imported} file${imported === 1 ? '' : 's'}.`;
         } else if (uploadStats.downloaded > 0) {
             documentMessage = ` Downloaded ${uploadStats.downloaded} file${uploadStats.downloaded === 1 ? '' : 's'} for the CreditSoft inbox.`;
         } else if (Number(syncedDocuments.total || 0) > 0) {
@@ -1507,7 +1760,7 @@ async function syncDisputeFoxProfile() {
         documentMessage = ` Recorded ${syncedDocuments.total} document record${Number(syncedDocuments.total) === 1 ? '' : 's'}.`;
     }
 
-    setStatus(`Synced ${displayName} from DisputeFox.${documentMessage}`, 'success');
+    setStatus(`${filesOnly ? 'Checked files for' : 'Synced'} ${displayName} from DisputeFox.${documentMessage}`, 'success');
 
     if (client?.cuid) {
         settingsCache.selected_client_cuid = client.cuid;
@@ -1594,7 +1847,7 @@ async function resolveApiBaseUrl(settings) {
         }
     }
 
-    throw new Error('Could not auto-detect the local CreditSoft API. It tries port 80 first, then 8001.');
+    throw new Error('Could not auto-detect the local CreditSoft API. It tries the 8877 router first, then port 80 and 8001.');
 }
 
 function escapeHtml(value) {
@@ -1666,12 +1919,25 @@ elements.saveDisputeFoxCredentials?.addEventListener('click', async () => {
 elements.syncDisputeFoxProfile?.addEventListener('click', async () => {
     try {
         elements.syncDisputeFoxProfile.disabled = true;
-        elements.syncDisputeFoxProfile.textContent = 'Syncing...';
+        setButtonLabel(elements.syncDisputeFoxProfile, 'Syncing...');
         await syncDisputeFoxProfile();
     } catch (error) {
         setStatus(error instanceof Error ? error.message : 'Could not sync DisputeFox client data.', 'error');
     } finally {
-        elements.syncDisputeFoxProfile.textContent = 'Sync page';
+        setButtonLabel(elements.syncDisputeFoxProfile, 'Sync page');
+        syncFeatureVisibility();
+    }
+});
+
+elements.syncDisputeFoxFiles?.addEventListener('click', async () => {
+    try {
+        elements.syncDisputeFoxFiles.disabled = true;
+        setButtonLabel(elements.syncDisputeFoxFiles, 'Files...');
+        await syncDisputeFoxProfile({ filesOnly: true });
+    } catch (error) {
+        setStatus(error instanceof Error ? error.message : 'Could not import DisputeFox files.', 'error');
+    } finally {
+        setButtonLabel(elements.syncDisputeFoxFiles, 'Files');
         syncFeatureVisibility();
     }
 });
@@ -1723,6 +1989,8 @@ elements.goCapture?.addEventListener('click', async () => {
         setStatus(error instanceof Error ? error.message : 'Could not send capture.', 'error');
     }
 });
+
+syncButtonLabels();
 
 loadSettings().catch((error) => {
     setStatus(error instanceof Error ? error.message : 'Could not load extension settings.', 'error');

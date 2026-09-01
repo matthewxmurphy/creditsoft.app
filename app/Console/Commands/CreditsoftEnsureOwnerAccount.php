@@ -33,9 +33,11 @@ class CreditsoftEnsureOwnerAccount extends Command
 
         $user = User::query()
             ->where('email', $email)
-            ->orWhere(function ($query): void {
-                $query->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', 'owner_admin'));
-            })
+            ->first();
+
+        $user ??= User::query()
+            ->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', 'owner_admin'))
+            ->orderBy('id')
             ->first();
 
         $created = false;

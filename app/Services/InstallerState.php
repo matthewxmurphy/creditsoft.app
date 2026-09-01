@@ -64,6 +64,8 @@ class InstallerState
             'installed_at' => null,
             'company_name' => null,
             'admin_email' => null,
+            'business_city' => null,
+            'business_state' => null,
             'tailscale_required' => (bool) config('creditsoft.tunnels.tailscale.required', true),
             'tailscale_hostname' => config('creditsoft.tailscale_hostname'),
             'tailscale_tailnet' => (string) config('creditsoft.tunnels.tailscale.tailnet', ''),

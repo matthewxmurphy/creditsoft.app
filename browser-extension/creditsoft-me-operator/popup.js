@@ -10,12 +10,14 @@ const API_CAPTURE_PATH = '/api/v1/migration-operator/captures';
 const API_TEMPLATE_IMPORT_PATH = '/api/v1/migration-operator/letter-templates';
 const API_CLIENT_SYNC_PATH = '/api/v1/migration-operator/clients/sync';
 const LOCAL_API_CANDIDATES = [
+  'http://127.0.0.1:8877',
+  'http://localhost:8877',
   'http://127.0.0.1',
   'http://localhost',
   'http://127.0.0.1:8001',
   'http://localhost:8001',
 ];
-const DEFAULT_OPERATOR_PAGE = 'http://127.0.0.1:8001/migration-operator';
+const DEFAULT_OPERATOR_PAGE = 'http://127.0.0.1:8877/migration-operator';
 const LETTER_PAGE_SETTLE_MS = 1400;
 const LETTER_POST_IMPORT_PAUSE_MS = 700;
 
@@ -240,7 +242,7 @@ async function resolveApiBaseUrl(settings) {
     }
   }
 
-  throw new Error('Could not auto-detect the OPS API. It tries port 80 first, then 8001.');
+  throw new Error('Could not auto-detect the OPS API. It tries the 8877 router first, then port 80 and 8001.');
 }
 
 async function verifyConnection({ quiet = false } = {}) {

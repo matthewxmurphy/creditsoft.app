@@ -189,6 +189,7 @@ class OfficeGrowthRuntime
             'business_phone' => trim((string) ($company['business_phone'] ?? '')),
             'security_sms_phone' => trim((string) ($company['security_sms_phone'] ?? '')),
             'fax' => trim((string) ($company['fax'] ?? '')),
+            'usps_mailer_id' => trim((string) ($company['usps_mailer_id'] ?? '')),
             'intake_endpoint' => trim((string) ($signup['intake_endpoint'] ?? '/api/v1/clients')),
             'document_upload_endpoint' => trim((string) ($signup['document_upload_endpoint'] ?? '/api/v1/clients/{clientCuid}/documents')),
             'browser_capture_endpoint' => trim((string) ($signup['browser_capture_endpoint'] ?? '/api/v1/browser-companion/intake')),

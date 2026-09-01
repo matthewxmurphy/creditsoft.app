@@ -1,0 +1,225 @@
+.cs-document-scanner {
+    --cs-accent: #0f766e;
+    --cs-accent-strong: #115e59;
+    --cs-border: #cbd5e1;
+    --cs-ink: #102033;
+    --cs-muted: #526273;
+    --cs-panel: #f8fafc;
+    --cs-warning: #b45309;
+    background: var(--cs-panel);
+    border: 1px solid var(--cs-border);
+    border-radius: 8px;
+    color: var(--cs-ink);
+    display: grid;
+    gap: 12px;
+    margin: 14px 0;
+    padding: 14px;
+}
+
+.cs-document-scanner__header {
+    align-items: flex-start;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.cs-document-scanner__title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 4px;
+}
+
+.cs-document-scanner__copy {
+    color: var(--cs-muted);
+    font-size: 13px;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.cs-document-scanner__tips {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin: 0;
+    padding: 0;
+}
+
+.cs-document-scanner__tips li {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    font-size: 12px;
+    line-height: 1.35;
+    list-style: none;
+    min-height: 52px;
+    padding: 10px;
+}
+
+.cs-document-scanner__actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.cs-document-scanner__button {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--cs-border);
+    border-radius: 7px;
+    color: var(--cs-ink);
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 12px;
+}
+
+.cs-document-scanner__button:hover,
+.cs-document-scanner__button:focus-visible {
+    border-color: var(--cs-accent);
+    outline: 2px solid rgba(15, 118, 110, 0.18);
+}
+
+.cs-document-scanner__button--primary {
+    background: var(--cs-accent);
+    border-color: var(--cs-accent);
+    color: #ffffff;
+}
+
+.cs-document-scanner__button--primary:hover,
+.cs-document-scanner__button--primary:focus-visible {
+    background: var(--cs-accent-strong);
+    border-color: var(--cs-accent-strong);
+}
+
+.cs-document-scanner__review {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    display: none;
+    gap: 10px;
+    padding: 12px;
+}
+
+.cs-document-scanner__review[data-visible="true"] {
+    display: grid;
+}
+
+.cs-document-scanner__review[data-status="accepted"] {
+    border-color: #7dd3fc;
+}
+
+.cs-document-scanner__review[data-status="retake_recommended"] {
+    border-color: #f59e0b;
+}
+
+.cs-document-scanner__status {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.cs-document-scanner__badge {
+    background: #e0f2fe;
+    border-radius: 999px;
+    color: #075985;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 5px 9px;
+}
+
+.cs-document-scanner__review[data-status="retake_recommended"] .cs-document-scanner__badge {
+    background: #fef3c7;
+    color: var(--cs-warning);
+}
+
+.cs-document-scanner__score {
+    color: var(--cs-muted);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.cs-document-scanner__warnings {
+    color: var(--cs-muted);
+    display: grid;
+    font-size: 13px;
+    gap: 6px;
+    line-height: 1.4;
+    margin: 0;
+    padding-left: 18px;
+}
+
+.cs-document-scanner__preview {
+    background: #0f172a;
+    border-radius: 8px;
+    display: none;
+    overflow: hidden;
+    position: relative;
+}
+
+.cs-document-scanner__preview[data-visible="true"] {
+    display: block;
+}
+
+.cs-document-scanner__preview img,
+.cs-document-scanner__preview video {
+    display: block;
+    max-height: min(360px, 52vh);
+    object-fit: contain;
+    width: 100%;
+}
+
+.cs-document-scanner__guide {
+    border: 2px solid rgba(255, 255, 255, 0.92);
+    border-radius: 10px;
+    box-shadow: 0 0 0 999px rgba(15, 23, 42, 0.42);
+    height: 58%;
+    left: 50%;
+    max-width: 86%;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(86%, 560px);
+}
+
+.cs-document-scanner__guide::after {
+    background: rgba(15, 23, 42, 0.78);
+    border-radius: 999px;
+    bottom: -34px;
+    color: #ffffff;
+    content: "Fill this guide with the document";
+    font-size: 12px;
+    font-weight: 800;
+    left: 50%;
+    padding: 6px 10px;
+    position: absolute;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.cs-document-scanner__hidden {
+    display: none !important;
+}
+
+@media (max-width: 560px) {
+    .cs-document-scanner {
+        padding: 12px;
+    }
+
+    .cs-document-scanner__header {
+        display: grid;
+    }
+
+    .cs-document-scanner__button {
+        justify-content: center;
+        width: 100%;
+    }
+}

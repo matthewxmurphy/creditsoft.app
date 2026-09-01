@@ -22,6 +22,7 @@ type EvidenceItem = {
 const props = defineProps<{
     client: {
         id: number;
+        cuid?: string | null;
         display_name: string;
     };
     selectedCycle?: {
@@ -127,6 +128,7 @@ const page = usePage<{
 }>();
 const bureauKeys: BureauKey[] = ['experian', 'transunion', 'equifax'];
 const reviewLabelStyle = computed(() => String(page.props.creditsoft?.ui?.review_label_style ?? '10'));
+const clientRouteKey = computed(() => String(props.client.id));
 const comparisonFields: Array<{ key: ComparisonFieldKey; label: string }> = [
     { key: 'account_status', label: 'Status' },
     { key: 'balance', label: 'Balance' },
@@ -178,7 +180,7 @@ watch(selectedReasonOptions, (options) => {
 });
 
 const submit = () => {
-    form.post(`/clients/${props.client.id}/violations`, {
+    form.post(`/clients/${clientRouteKey.value}/violations`, {
         preserveScroll: true,
         onSuccess: () => form.reset('next_action', 'evidence'),
     });
@@ -195,13 +197,13 @@ const setRule = (event: Event) => {
 };
 
 const updateStatus = (id: number, status: string) => {
-    router.patch(`/clients/${props.client.id}/violations/${id}`, { status }, { preserveScroll: true });
+    router.patch(`/clients/${clientRouteKey.value}/violations/${id}`, { status }, { preserveScroll: true });
 };
 
 const queueSuggestions = () => {
     if (!form.reporting_cycle_id) return;
 
-    router.post(`/clients/${props.client.id}/violations/scan`, {
+    router.post(`/clients/${clientRouteKey.value}/violations/scan`, {
         reporting_cycle_id: form.reporting_cycle_id,
     }, {
         preserveScroll: true,
@@ -213,7 +215,7 @@ const changeCycle = (event: Event) => {
 
     form.reporting_cycle_id = target.value;
 
-    router.get(`/clients/${props.client.id}/violations`, {
+    router.get(`/clients/${clientRouteKey.value}/violations`, {
         cycle: target.value,
     }, {
         preserveState: true,

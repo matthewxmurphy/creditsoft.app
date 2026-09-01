@@ -3,22 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Services\AiProviderHealthService;
-use App\Services\InstallerAdvertisementFeed;
-use App\Services\InstallerBranding;
-use App\Services\InstallerState;
-use App\Services\LicenseCheckService;
 use App\Services\BrowserCompanionBundle;
 use App\Services\CreditsoftAiRegistry;
 use App\Services\CreditsoftApiAccess;
 use App\Services\CreditsoftClusterLicenseSyncService;
 use App\Services\EnvironmentEditor;
+use App\Services\InstallerAdvertisementFeed;
+use App\Services\InstallerBranding;
+use App\Services\InstallerState;
 use App\Services\IntranetClientInstallerBundle;
 use App\Services\IntranetNodeInstallerBundle;
+use App\Services\LicenseCheckService;
 use App\Services\LicenseStateService;
 use App\Services\NgrokConfigService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -36,8 +37,7 @@ class InstallerController extends Controller
         NgrokConfigService $ngrokConfig,
         IntranetClientInstallerBundle $intranetClientInstaller,
         IntranetNodeInstallerBundle $intranetNodeInstaller,
-    ): Response
-    {
+    ): Response {
         abort_unless(config('creditsoft.installer.enabled', true), 404);
 
         $state = $installerState->read();
@@ -84,6 +84,8 @@ class InstallerController extends Controller
                 'license' => $licenseCheckService->check($savedKey, [
                     'company_name' => $state['company_name'] ?? config('app.name', 'CreditSoft'),
                     'admin_email' => $state['admin_email'] ?? $request->user()?->email,
+                    'business_city' => $state['business_city'] ?? null,
+                    'business_state' => $state['business_state'] ?? null,
                     'tailscale_hostname' => $state['tailscale_hostname'] ?? config('creditsoft.tailscale_hostname'),
                 ]),
             ]);
@@ -125,6 +127,8 @@ class InstallerController extends Controller
         $validated = $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email:rfc', 'max:255'],
+            'business_city' => ['nullable', 'string', 'max:120'],
+            'business_state' => ['nullable', 'string', 'max:80'],
             'tailscale_hostname' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9][a-z0-9.-]*$/i'],
             'backup_destination' => ['required', 'in:wasabi,google_drive,dropbox,local_only'],
             'portal_sync_enabled' => ['nullable', 'boolean'],
@@ -135,6 +139,8 @@ class InstallerController extends Controller
         $license = $licenseCheckService->check($validated['license_key'], [
             'company_name' => $validated['company_name'],
             'admin_email' => $validated['admin_email'],
+            'business_city' => $validated['business_city'] ?? null,
+            'business_state' => $validated['business_state'] ?? null,
             'tailscale_hostname' => $validated['tailscale_hostname'],
         ]);
 
@@ -145,6 +151,8 @@ class InstallerController extends Controller
         $installerState->merge([
             'company_name' => $validated['company_name'],
             'admin_email' => $validated['admin_email'],
+            'business_city' => $validated['business_city'] ?? null,
+            'business_state' => $validated['business_state'] ?? null,
             'tailscale_hostname' => $validated['tailscale_hostname'],
             'backup_destination' => $validated['backup_destination'],
             'portal_sync_enabled' => $request->boolean('portal_sync_enabled'),
@@ -375,7 +383,7 @@ class InstallerController extends Controller
                 'key' => 'feedback',
                 'title' => 'Privacy-safe report feedback',
                 'description' => $reportFeedbackEnabled
-                    ? 'Send John-Doe style report structure, score movement, and business timing only.'
+                    ? 'Share aggregate-only report, lifecycle, city/state, office-location comparison, and seasonal timing statistics without customer identifiers.'
                     : 'Keep analytics feedback off if this installation should stay fully local.',
                 'status' => $reportFeedbackEnabled ? 'complete' : 'pending',
             ],
@@ -445,7 +453,7 @@ class InstallerController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, array<string, mixed>>  $catalog
+     * @param  Collection<int, array<string, mixed>>  $catalog
      * @return array<string, mixed>
      */
     private function aiProviderState(string $key, string $fallbackLabel, $catalog, string $configuredKey): array

@@ -5,7 +5,10 @@ const DEFAULT_SETTINGS = {
 };
 
 const API_OVERVIEW_PATH = '/api/v1';
+const API_COMPANION_CHECK_PATH = '/api/v1/clients/picker?limit=1';
 const LOCAL_API_CANDIDATES = [
+    'http://127.0.0.1:8877',
+    'http://localhost:8877',
     'http://127.0.0.1',
     'http://localhost',
     'http://127.0.0.1:8001',
@@ -36,7 +39,9 @@ function normalizeBaseUrl(value) {
         return '';
     }
 
-    return trimmed.replace(/\/+$/, '');
+    return trimmed
+        .replace(/\/+$/, '')
+        .replace(/\/api\/v1$/i, '');
 }
 
 function candidateBaseUrls(value) {
@@ -136,7 +141,7 @@ async function testConnection() {
     }
 
     const apiBaseUrl = await resolveApiBaseUrl(settings);
-    const response = await fetch(`${apiBaseUrl}${API_OVERVIEW_PATH}`, {
+    const response = await fetch(`${apiBaseUrl}${API_COMPANION_CHECK_PATH}`, {
         headers: {
             Accept: 'application/json',
             Authorization: `Bearer ${settings.office_token}`,
@@ -147,10 +152,10 @@ async function testConnection() {
     const parsed = await parseJsonResponse(response);
 
     if (!response.ok) {
-        throw new Error(apiErrorMessage(parsed, response.status, 'Could not reach CreditSoft.'));
+        throw new Error(apiErrorMessage(parsed, response.status, 'Could not verify browser companion access.'));
     }
 
-    return parsed?.data?.name || 'Connected to CreditSoft.';
+    return 'Browser companion access verified.';
 }
 
 async function verifyConnection({ quiet = false } = {}) {
@@ -237,7 +242,7 @@ async function resolveApiBaseUrl(settings) {
         }
     }
 
-    throw new Error('Could not auto-detect the local CreditSoft API. It tries port 80 first, then 8001.');
+    throw new Error('Could not auto-detect the local CreditSoft API. It tries the 8877 router first, then port 80 and 8001.');
 }
 
 async function parseJsonResponse(response) {

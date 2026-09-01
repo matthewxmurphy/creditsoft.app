@@ -1,0 +1,1158 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { loadThemePage } from "../lib/preview-content";
+
+const theme = await loadThemePage();
+const turnstileSiteKey = import.meta.env.PUBLIC_CREDITSOFT_TURNSTILE_SITE_KEY || "0x4AAAAAACi2Qk6bhhRsXu2g";
+const cashAppQrImage =
+  "https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=https%3A%2F%2Fcash.app%2F%24creditsoft";
+
+const checkoutAddons = {
+  server_node: {
+    name: "Additional server node",
+  },
+};
+
+const checkoutPlans = {
+  professional: {
+    name: "CreditSoft Enterprise",
+    apiPlan: "professional",
+    badge: "Core office system",
+    description:
+      "Local-first CRM, client records, Metro2 review, letters, client portal, and legal-intake screening.",
+    features: [
+      "Unlimited users and clients",
+      "Local intranet and client portal",
+      "Metro2 review, letters, briefs, and audit trails",
+      "FCRA / FDCPA lawsuit intake included",
+    ],
+    billing: {
+      monthly: { label: "Monthly", suffix: "/mo" },
+      yearly: { label: "Annual", suffix: "/yr" },
+    },
+    upsell: {
+      eyebrow: "Recommended upgrade",
+      title: "Most teams should look at Enterprise Pro before paying.",
+      text: "Enterprise Pro adds the browser companion, API connector, automation workflows, and priority rollout support.",
+      cta: "Upgrade to Enterprise Pro",
+      plan: "enterprise",
+    },
+  },
+  enterprise: {
+    name: "CreditSoft Enterprise Pro",
+    apiPlan: "enterprise",
+    badge: "Browser companion",
+    description:
+      "The stronger office lane for teams that want the browser companion, API connector, and automation workflows.",
+    features: [
+      "Everything in Enterprise",
+      "Chrome browser companion",
+      "API connector and automation workflows",
+      "Priority rollout support",
+    ],
+    billing: {
+      monthly: { label: "Monthly", suffix: "/mo" },
+      yearly: { label: "Annual", suffix: "/yr" },
+      "ten-year": {
+        label: "10-year",
+        suffix: "/10 years",
+      },
+    },
+    upsell: {
+      eyebrow: "Best value path",
+      title: "Annual Pro or the 10-year license can beat monthly renewal math.",
+      text: "If CreditSoft is becoming office infrastructure, compare the longer-term options before sending payment.",
+      cta: "Compare long-term value",
+      plan: "enterprise",
+    },
+  },
+};
+---
+
+<BaseLayout
+  title="CreditSoft Checkout"
+  description="Create a CreditSoft checkout reference before paying by Zelle or Cash App."
+  path="/checkout"
+  showChat={false}
+>
+  {turnstileSiteKey && <script slot="head" src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+
+  <main class="checkout-page" data-checkout-page>
+    <section class="section checkout-hero-section">
+      <div class="page-wrap checkout-hero">
+        <div>
+          <span class="eyebrow">CreditSoft checkout</span>
+          <h1>Create the checkout first. Pay with a clean reference second.</h1>
+          <p>
+            The checkout reference ties Zelle or Cash App payment history to the
+            CreditSoft account record, account email, amount, phone, and license access.
+          </p>
+        </div>
+        <div class="checkout-proof" aria-label="Checkout safeguards">
+          <span>Public CreditSoft checkout</span>
+          <span>License matching reference</span>
+          <span>Zelle and Cash App notes</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section checkout-workspace-section">
+      <div class="page-wrap checkout-workspace">
+        <aside class="checkout-summary-card" aria-label="Selected plan">
+          <span class="summary-badge" data-plan-badge>Core office system</span>
+          <h2 data-plan-name>CreditSoft Enterprise</h2>
+          <p data-plan-description>
+            Local-first CRM, client records, Metro2 review, letters, client portal, and legal-intake screening.
+          </p>
+
+          <div class="plan-switcher" aria-label="Plan quick switch">
+            <a data-plan-switch="professional" href="/checkout/?plan=professional&billing=monthly&payment=zelle">Enterprise</a>
+            <a data-plan-switch="enterprise" href="/checkout/?plan=enterprise&billing=monthly&payment=zelle">Enterprise Pro</a>
+          </div>
+
+          <div class="price-panel">
+            <strong data-billing-label>Monthly billing</strong>
+            <div class="price-line">
+              <span class="price-list" data-list-price hidden></span>
+              <span class="price-sale" data-price>Loading database price</span>
+            </div>
+            <p data-price-note>Checkout pulls the current price from the database before creating the invoice.</p>
+          </div>
+
+          <section class="server-node-upsell" aria-label="Server node add-on">
+            <div class="server-node-copy">
+              <span>Server node upsell</span>
+              <h3>Add the next office node before the payment note is created.</h3>
+              <p>
+                Use this when the office needs another local install: a second office,
+                branch, front desk machine, or dedicated backup-light server node.
+              </p>
+            </div>
+            <label class="server-node-toggle" for="serverNodeAddon">
+              <input id="serverNodeAddon" type="checkbox" />
+              <span>
+                <strong>Add server node</strong>
+                <small data-server-node-price>Loading database node price</small>
+              </span>
+            </label>
+            <label class="server-node-qty" for="serverNodeQty">
+              <span>Additional nodes</span>
+              <select id="serverNodeQty" name="server_node_quantity">
+                <option value="1">1 server node</option>
+                <option value="2">2 server nodes</option>
+                <option value="3">3 server nodes</option>
+                <option value="4">4 server nodes</option>
+              </select>
+            </label>
+            <p class="server-node-note" data-server-node-note>
+              Requires an active Enterprise or Enterprise Pro license first.
+            </p>
+          </section>
+
+          <div class="checkout-total-panel" aria-live="polite">
+            <span>Payment total</span>
+            <strong data-total-price>Loading database price</strong>
+            <small data-total-breakdown>CreditSoft Enterprise monthly</small>
+          </div>
+
+          <ul class="checkout-feature-list" data-feature-list>
+            <li>Unlimited users and clients</li>
+            <li>Local intranet and client portal</li>
+            <li>Metro2 review, letters, briefs, and audit trails</li>
+            <li>FCRA / FDCPA lawsuit intake included</li>
+          </ul>
+
+          <aside class="checkout-upsell" aria-label="Recommended upgrade">
+            <span data-upsell-eyebrow>Recommended upgrade</span>
+            <h3 data-upsell-title>Most teams should look at Enterprise Pro before paying.</h3>
+            <p data-upsell-text>
+              Enterprise Pro adds the browser companion, API connector, automation workflows, and priority rollout support.
+            </p>
+            <a data-upsell-link href="/checkout/?plan=enterprise&billing=monthly&payment=zelle">Upgrade to Enterprise Pro</a>
+          </aside>
+        </aside>
+
+        <section class="checkout-form-card" aria-label="Account checkout form">
+          <div class="form-heading">
+            <span class="eyebrow">Account reference</span>
+            <h2>Who should own the license?</h2>
+            <p>
+              Use the email that should own the CreditSoft account dashboard and license.
+              After this step, copy the exact checkout note into the <strong data-payment-label>Zelle</strong> memo or note.
+            </p>
+          </div>
+
+          <form id="checkoutForm" class="checkout-form">
+            <div id="checkoutError" class="status-msg error" role="alert"></div>
+            <div id="checkoutSuccess" class="status-msg success" role="status"></div>
+
+            <div class="checkout-fields two">
+              <label>
+                <span>Account email</span>
+                <input type="email" id="customerEmail" name="customer_email" placeholder="you@company.com" required />
+              </label>
+              <label>
+                <span>Phone</span>
+                <input type="tel" id="customerPhone" name="customer_phone" placeholder="(555) 555-5555" required />
+              </label>
+            </div>
+
+            <div class="checkout-fields two">
+              <label>
+                <span>Office name</span>
+                <input type="text" id="officeName" name="office_name" placeholder="Your office or company name" required />
+              </label>
+              <label>
+                <span>Expected payer</span>
+                <input type="text" id="paymentSource" name="payment_source" placeholder="Zelle email, phone, or Cash App tag" />
+              </label>
+            </div>
+
+            <label>
+              <span>Notes</span>
+              <textarea
+                id="checkoutNotes"
+                name="notes"
+                placeholder="Optional: billing contact, different payer name, or anything else useful for matching."
+              ></textarea>
+            </label>
+
+            <div aria-hidden="true" class="honeypot">
+              <label for="checkoutWebsite">Website</label>
+              <input type="text" id="checkoutWebsite" name="website" tabindex="-1" autocomplete="off" />
+            </div>
+
+            {turnstileSiteKey && <div class="cf-turnstile" data-sitekey={turnstileSiteKey}></div>}
+
+            <button class="checkout-submit" type="submit" disabled>Loading database price...</button>
+          </form>
+
+          <section id="paymentOptions" class="payment-options" hidden aria-live="polite">
+            <div class="reference-box">
+              <span>Checkout created</span>
+              <strong id="checkoutNumber"></strong>
+              <p>Use this exact note in the Zelle memo or Cash App note:</p>
+              <code id="memoText"></code>
+            </div>
+
+            <div class="payment-card-grid">
+              <article class="payment-card">
+                <div class="payment-card-head">
+                  <span>Zelle</span>
+                  <strong data-payment-amount>Database invoice</strong>
+                </div>
+                <img src="/assets/payments/zelle.png" alt="CreditSoft Zelle checkout QR code" loading="lazy" decoding="async" />
+                <dl>
+                  <div><dt>Payee</dt><dd>Matthew Murphy</dd></div>
+                  <div><dt>Zelle email</dt><dd>hello@creditsoft.app</dd></div>
+                </dl>
+              </article>
+
+              <article class="payment-card">
+                <div class="payment-card-head">
+                  <span>Cash App</span>
+                  <strong data-payment-amount>Database invoice</strong>
+                </div>
+                <img src={cashAppQrImage} alt="CreditSoft Cash App checkout QR code" loading="lazy" decoding="async" />
+                <dl>
+                  <div><dt>Cashtag</dt><dd>$creditsoft</dd></div>
+                  <div><dt>Link</dt><dd><a href="https://cash.app/$creditsoft" target="_blank" rel="noopener">cash.app/$creditsoft</a></dd></div>
+                </dl>
+              </article>
+            </div>
+
+            <a id="dashboardLink" class="dashboard-link" href="/account/">Open account dashboard</a>
+          </section>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+
+  <script is:inline define:vars={{ checkoutPlans, checkoutAddons }}>
+    (() => {
+      const money = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      const normalizePlan = (value) => {
+        const plan = String(value || "professional").toLowerCase();
+        return ["enterprise", "enterprise-pro", "enterprise_pro", "pro", "api", "api_version"].includes(plan)
+          ? "enterprise"
+          : "professional";
+      };
+      const normalizeBilling = (value, plan) => {
+        const billing = String(value || "monthly").toLowerCase();
+        if (["ten-year", "ten_year", "10-year", "10_year", "lifetime"].includes(billing) && plan === "enterprise") {
+          return "ten-year";
+        }
+        return ["yearly", "annual"].includes(billing) ? "yearly" : "monthly";
+      };
+      const normalizePayment = (value) => {
+        const payment = String(value || "zelle").toLowerCase();
+        return ["cash-app", "cash_app", "cashapp", "square"].includes(payment) ? "cash_app" : "zelle";
+      };
+
+      const planKey = normalizePlan(params.get("plan"));
+      const billingKey = normalizeBilling(params.get("billing"), planKey);
+      const paymentMethod = normalizePayment(params.get("payment"));
+      const paymentQueryValue = paymentMethod === "cash_app" ? "cash-app" : "zelle";
+      const paymentLabel = paymentMethod === "cash_app" ? "Cash App" : "Zelle";
+      const plan = checkoutPlans[planKey] || checkoutPlans.professional;
+      const billing = plan.billing[billingKey] || plan.billing.monthly;
+      const serverNodeAddon = checkoutAddons.server_node;
+      const serverNodeBillingKey = billingKey === "yearly" ? "yearly" : "monthly";
+      const serverNodeCanPrice = billingKey !== "ten-year";
+      const serverNodeSuffix = serverNodeBillingKey === "yearly" ? "/yr" : "/mo";
+      let currentQuote = null;
+      let quoteSequence = 0;
+
+      const setText = (selector, value) => {
+        document.querySelectorAll(selector).forEach((node) => {
+          node.textContent = value;
+        });
+      };
+
+      setText("[data-plan-name]", plan.name);
+      setText("[data-plan-badge]", plan.badge);
+      setText("[data-plan-description]", plan.description);
+      setText("[data-billing-label]", `${billing.label} billing`);
+      setText("[data-payment-label]", paymentLabel);
+      setText("[data-upsell-eyebrow]", plan.upsell.eyebrow);
+      setText("[data-upsell-title]", plan.upsell.title);
+      setText("[data-upsell-text]", plan.upsell.text);
+      setText("[data-server-node-price]", serverNodeCanPrice ? "Loading database node price" : "Quoted with 10-year rollout");
+
+      const listPrice = document.querySelector("[data-list-price]");
+      const price = document.querySelector("[data-price]");
+      const priceNote = document.querySelector("[data-price-note]");
+
+      const featureList = document.querySelector("[data-feature-list]");
+      if (featureList) {
+        featureList.innerHTML = plan.features.map((feature) => `<li>${feature}</li>`).join("");
+      }
+
+      const upsellHref =
+        planKey === "professional"
+          ? `/checkout/?plan=enterprise&billing=${billingKey}&payment=${paymentQueryValue}`
+          : billingKey === "monthly"
+            ? `/checkout/?plan=enterprise&billing=yearly&payment=${paymentQueryValue}`
+            : `/checkout/?plan=enterprise&billing=ten-year&payment=${paymentQueryValue}`;
+      const upsellLink = document.querySelector("[data-upsell-link]");
+      if (upsellLink) {
+        upsellLink.href = upsellHref;
+        upsellLink.textContent = planKey === "professional" ? "Upgrade to Enterprise Pro" : plan.upsell.cta;
+      }
+
+      document.querySelectorAll("[data-plan-switch]").forEach((link) => {
+        const switchPlan = link.getAttribute("data-plan-switch") || "professional";
+        link.classList.toggle("is-active", switchPlan === planKey);
+        link.href = `/checkout/?plan=${switchPlan}&billing=${switchPlan === "professional" && billingKey === "ten-year" ? "monthly" : billingKey}&payment=${paymentQueryValue}`;
+      });
+
+      const checkoutForm = document.getElementById("checkoutForm");
+      const checkoutError = document.getElementById("checkoutError");
+      const checkoutSuccess = document.getElementById("checkoutSuccess");
+      const paymentOptions = document.getElementById("paymentOptions");
+      const checkoutNumber = document.getElementById("checkoutNumber");
+      const memoText = document.getElementById("memoText");
+      const dashboardLink = document.getElementById("dashboardLink");
+      const serverNodeToggle = document.getElementById("serverNodeAddon");
+      const serverNodeQty = document.getElementById("serverNodeQty");
+      const serverNodeNote = document.querySelector("[data-server-node-note]");
+      const totalPrice = document.querySelector("[data-total-price]");
+      const totalBreakdown = document.querySelector("[data-total-breakdown]");
+      const submitButton = checkoutForm?.querySelector("button[type='submit']");
+
+      if (!serverNodeCanPrice) {
+        serverNodeToggle.disabled = true;
+        serverNodeQty.disabled = true;
+        serverNodeNote.textContent =
+          "10-year server-node rollouts are sized after checkout so we do not underquote the hardware plan.";
+      }
+
+      const selectedServerNodeQuantity = () => {
+        if (!serverNodeCanPrice || !serverNodeToggle.checked) {
+          return 0;
+        }
+
+        return Math.max(1, Number.parseInt(serverNodeQty.value || "1", 10));
+      };
+
+      const quoteUrl = () => {
+        const url = new URL("/api/checkout-request.php", window.location.origin);
+        url.searchParams.set("quote", "1");
+        url.searchParams.set("plan", plan.apiPlan);
+        url.searchParams.set("billing", billingKey);
+        url.searchParams.set("server_nodes", String(selectedServerNodeQuantity()));
+        return url;
+      };
+
+      const setCheckoutReady = (ready, label = "Create checkout reference") => {
+        if (!submitButton) return;
+        submitButton.disabled = !ready;
+        submitButton.textContent = label;
+      };
+
+      const renderQuote = (quote) => {
+        currentQuote = quote;
+        const quantity = selectedServerNodeQuantity();
+        const planLabel = plan.name.replace("CreditSoft ", "");
+        const nodeLabel = quantity === 1 ? "1 server node" : `${quantity} server nodes`;
+        const paymentLabel = quote.amount_label || money.format(Number(quote.amount || 0));
+        const baseLabel = quote.base_amount_label || paymentLabel;
+        const listLabel = quote.list_amount_label || "";
+        const listAmount = Number(quote.list_amount || 0);
+        const baseAmount = Number(quote.base_amount || quote.amount || 0);
+        const nodeUnitLabel = quote.server_node_unit_label || null;
+
+        setText("[data-payment-amount]", paymentLabel);
+        setText("[data-server-node-price]", nodeUnitLabel ? `+${nodeUnitLabel}${serverNodeSuffix} per node` : "Database node price unavailable");
+
+        if (listPrice) {
+          listPrice.textContent = listAmount > baseAmount ? `${listLabel}${billing.suffix}` : "";
+          listPrice.hidden = !(listAmount > baseAmount);
+        }
+
+        if (price) {
+          price.innerHTML = `${baseLabel}<small>${billing.suffix}</small>`;
+        }
+
+        if (priceNote) {
+          priceNote.textContent = "Invoice amount comes from the database price book at checkout time.";
+        }
+
+        if (totalPrice) {
+          totalPrice.textContent = `${paymentLabel}${billing.suffix}`;
+        }
+
+        if (totalBreakdown) {
+          totalBreakdown.textContent = quantity > 0
+            ? `${planLabel} ${billing.label.toLowerCase()} + ${nodeLabel}`
+            : `${planLabel} ${billing.label.toLowerCase()}`;
+        }
+
+        setCheckoutReady(true);
+      };
+
+      const renderQuoteLoading = () => {
+        currentQuote = null;
+        setCheckoutReady(false, "Loading database price...");
+        setText("[data-payment-amount]", "Database invoice");
+        setText("[data-server-node-price]", serverNodeCanPrice ? "Loading database node price" : "Quoted with 10-year rollout");
+
+        if (price) {
+          price.textContent = "Loading database price";
+        }
+
+        if (totalPrice) {
+          totalPrice.textContent = "Loading database price";
+        }
+
+        if (priceNote) {
+          priceNote.textContent = "Checkout pulls the current price from the database before creating the invoice.";
+        }
+      };
+
+      const refreshQuote = async () => {
+        const sequence = ++quoteSequence;
+        renderQuoteLoading();
+
+        try {
+          const response = await fetch(quoteUrl(), { headers: { Accept: "application/json" } });
+          const data = await response.json();
+
+          if (sequence !== quoteSequence) {
+            return;
+          }
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Database pricing is not available.");
+          }
+
+          renderQuote(data);
+        } catch (error) {
+          if (sequence !== quoteSequence) {
+            return;
+          }
+
+          currentQuote = null;
+          setCheckoutReady(false, "Database price unavailable");
+          setText("[data-payment-amount]", "Database price unavailable");
+          if (price) {
+            price.textContent = "Database price unavailable";
+          }
+          if (totalPrice) {
+            totalPrice.textContent = "Database price unavailable";
+          }
+          if (priceNote) {
+            priceNote.textContent = error.message || "Database pricing is not available.";
+          }
+        }
+      };
+
+      serverNodeToggle?.addEventListener("change", refreshQuote);
+      serverNodeQty?.addEventListener("change", refreshQuote);
+      refreshQuote();
+
+      const showMessage = (target, message) => {
+        if (!target) return;
+        target.textContent = message;
+        target.style.display = "block";
+      };
+
+      const clearMessages = () => {
+        [checkoutError, checkoutSuccess].forEach((node) => {
+          if (node) {
+            node.textContent = "";
+            node.style.display = "none";
+          }
+        });
+      };
+
+      checkoutForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearMessages();
+
+        if (!currentQuote) {
+          showMessage(checkoutError, "Database pricing is not loaded yet. Please wait a moment and try again.");
+          return;
+        }
+
+        const payload = {
+          plan: plan.apiPlan,
+          billing: billingKey,
+          server_nodes: selectedServerNodeQuantity(),
+          payment_method: paymentMethod,
+          customer_email: document.getElementById("customerEmail").value.trim(),
+          customer_phone: document.getElementById("customerPhone").value.trim(),
+          payment_source: document.getElementById("paymentSource").value.trim(),
+          office_name: document.getElementById("officeName").value.trim(),
+          notes: document.getElementById("checkoutNotes").value.trim(),
+          website: document.getElementById("checkoutWebsite").value.trim(),
+          turnstile_token: window.turnstile
+            ? window.turnstile.getResponse()
+            : document.querySelector('[name="cf-turnstile-response"]')?.value || "",
+        };
+
+        if (!payload.customer_email || !payload.customer_phone || !payload.office_name) {
+          showMessage(checkoutError, "Please fill in the account email, phone, and office name.");
+          return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating checkout...";
+
+        try {
+          const response = await fetch("/api/checkout-request.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Unable to create the checkout.");
+          }
+
+          const reference = data.checkout_number || data.checkout_reference || "";
+          const email = data.customer_email || payload.customer_email;
+          const memo = data.payment_memo || (reference ? `CreditSoft checkout:${reference} email:${email}` : `CreditSoft email:${email}`);
+
+          checkoutNumber.textContent = reference;
+          memoText.textContent = memo;
+          const dashboardUrl = new URL("/account/", window.location.origin);
+          dashboardUrl.searchParams.set("email", email);
+          if (reference) {
+            dashboardUrl.searchParams.set("reference", reference);
+          }
+          dashboardLink.href = data.account_dashboard_url || data.customer_dashboard_url || dashboardUrl.toString();
+
+          showMessage(checkoutSuccess, "Checkout saved. Use one of the payment options below and include the exact checkout note.");
+          paymentOptions.hidden = false;
+          paymentOptions.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (error) {
+          showMessage(checkoutError, error.message || "Something went wrong. Please try again.");
+        } finally {
+          if (window.turnstile) {
+            window.turnstile.reset();
+          }
+          setCheckoutReady(Boolean(currentQuote));
+        }
+      });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  .checkout-page {
+    background:
+      radial-gradient(circle at 12% 0%, rgba(91, 214, 149, 0.16), transparent 30%),
+      radial-gradient(circle at 82% 12%, rgba(37, 99, 235, 0.22), transparent 34%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 18%);
+  }
+
+  .checkout-hero-section {
+    padding-top: 74px;
+    padding-bottom: 30px;
+  }
+
+  .checkout-workspace-section {
+    padding-top: 26px;
+  }
+
+  .checkout-hero,
+  .checkout-workspace {
+    display: grid;
+    gap: 24px;
+  }
+
+  .checkout-hero {
+    box-sizing: border-box;
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.62fr);
+    align-items: stretch;
+    padding: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 30px;
+    background:
+      radial-gradient(circle at 18% 8%, rgba(91, 214, 149, 0.16), transparent 32%),
+      radial-gradient(circle at 82% 0%, rgba(37, 99, 235, 0.22), transparent 36%),
+      linear-gradient(135deg, rgba(10, 19, 36, 0.98), rgba(13, 24, 43, 0.94));
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.34);
+  }
+
+  .checkout-hero h1 {
+    margin: 18px 0 0;
+    max-width: 980px;
+    font-size: clamp(2.45rem, 4.9vw, 4.45rem);
+    line-height: 0.94;
+    letter-spacing: -0.05em;
+  }
+
+  .checkout-hero p {
+    max-width: 780px;
+    margin: 18px 0 0;
+    color: rgba(226, 232, 240, 0.82);
+    line-height: 1.72;
+    font-size: 1.06rem;
+  }
+
+  .checkout-proof {
+    display: grid;
+    gap: 12px;
+  }
+
+  .checkout-proof span {
+    display: grid;
+    align-items: center;
+    min-height: 72px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.075);
+    color: rgba(226, 232, 240, 0.86);
+    font-weight: 800;
+  }
+
+  .checkout-workspace {
+    box-sizing: border-box;
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+    grid-template-columns: minmax(330px, 0.82fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .checkout-summary-card,
+  .checkout-form-card {
+    box-sizing: border-box;
+    min-width: 0;
+    display: grid;
+    gap: 18px;
+    padding: 28px;
+    border-radius: 28px;
+    border: 1px solid rgba(226, 232, 240, 0.86);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.96));
+    color: #0f172a;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  }
+
+  .summary-badge,
+  .server-node-copy span,
+  .checkout-upsell span {
+    width: fit-content;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .checkout-summary-card h2,
+  .form-heading h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+  }
+
+  .checkout-summary-card p,
+  .form-heading p,
+  .server-node-copy p,
+  .server-node-note,
+  .checkout-upsell p {
+    margin: 0;
+    color: #526174;
+    line-height: 1.66;
+  }
+
+  .plan-switcher {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .plan-switcher a {
+    display: grid;
+    place-items: center;
+    min-height: 46px;
+    border-radius: 14px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .plan-switcher a.is-active {
+    background: #2563eb;
+    color: white;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.2);
+  }
+
+  .price-panel {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border: 1px solid #dbe4ef;
+    border-radius: 20px;
+    background: #f8fafc;
+  }
+
+  .price-panel strong {
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .price-line {
+    display: flex;
+    align-items: end;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .price-list {
+    color: #64748b;
+    font-weight: 800;
+    text-decoration: line-through;
+  }
+
+  .price-sale {
+    color: #2563eb;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 950;
+    line-height: 0.95;
+  }
+
+  .price-sale small {
+    margin-left: 4px;
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  .checkout-feature-list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .checkout-feature-list li {
+    display: flex;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dbe4ef;
+    color: #334155;
+    line-height: 1.55;
+  }
+
+  .checkout-feature-list li::before {
+    content: "✓";
+    color: #15803d;
+    font-weight: 900;
+  }
+
+  .server-node-upsell,
+  .checkout-total-panel {
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .server-node-upsell {
+    border: 1px solid rgba(37, 99, 235, 0.24);
+    background:
+      radial-gradient(circle at 95% 0%, rgba(37, 99, 235, 0.12), transparent 34%),
+      linear-gradient(135deg, #f8fbff, #ffffff);
+  }
+
+  .server-node-copy {
+    display: grid;
+    gap: 8px;
+  }
+
+  .server-node-copy h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.2rem;
+    line-height: 1.15;
+  }
+
+  .server-node-toggle,
+  .server-node-qty {
+    display: grid;
+    gap: 8px;
+  }
+
+  .server-node-toggle {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    padding: 14px;
+    border: 1px solid #bfdbfe;
+    border-radius: 18px;
+    background: #eff6ff;
+    color: #0f172a;
+    cursor: pointer;
+  }
+
+  .server-node-toggle input {
+    width: 20px;
+    height: 20px;
+    accent-color: #2563eb;
+  }
+
+  .server-node-toggle strong,
+  .server-node-toggle small {
+    display: block;
+  }
+
+  .server-node-toggle small,
+  .server-node-qty span,
+  .checkout-total-panel span,
+  .checkout-total-panel small {
+    color: #64748b;
+  }
+
+  .server-node-qty span,
+  .checkout-total-panel span {
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .server-node-qty select {
+    width: 100%;
+    border: 1px solid #dbe4ef;
+    border-radius: 16px;
+    background: white;
+    color: #0f172a;
+    padding: 13px 14px;
+    font: inherit;
+    font-weight: 800;
+  }
+
+  .server-node-note {
+    font-size: 0.9rem;
+  }
+
+  .checkout-total-panel {
+    border: 1px solid rgba(37, 99, 235, 0.18);
+    background: #0f172a;
+    color: white;
+  }
+
+  .checkout-total-panel strong {
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    line-height: 0.96;
+  }
+
+  .checkout-total-panel small {
+    color: rgba(226, 232, 240, 0.78);
+    line-height: 1.45;
+  }
+
+  .checkout-upsell {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid rgba(21, 128, 61, 0.24);
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(240, 253, 244, 0.96), rgba(255, 255, 255, 0.98));
+  }
+
+  .checkout-upsell h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.35rem;
+    line-height: 1.1;
+  }
+
+  .checkout-upsell a,
+  .checkout-submit,
+  .dashboard-link {
+    display: inline-grid;
+    min-height: 54px;
+    place-items: center;
+    border-radius: 16px;
+    border: 0;
+    background: #2563eb;
+    color: white;
+    font-weight: 900;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .checkout-upsell a {
+    background: white;
+    color: #166534;
+    border: 1px solid rgba(21, 128, 61, 0.2);
+  }
+
+  .form-heading {
+    display: grid;
+    gap: 12px;
+  }
+
+  .checkout-form {
+    display: grid;
+    gap: 14px;
+  }
+
+  .checkout-fields.two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .checkout-form label {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .checkout-form label span {
+    color: #64748b;
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .checkout-form input,
+  .checkout-form textarea {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    border: 1px solid #dbe4ef;
+    border-radius: 16px;
+    background: white;
+    color: #0f172a;
+    padding: 14px 16px;
+  }
+
+  .checkout-form textarea {
+    min-height: 96px;
+    resize: vertical;
+  }
+
+  .honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .status-msg {
+    display: none;
+    border-radius: 16px;
+    padding: 14px 16px;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .status-msg.error {
+    background: #fff1f2;
+    border: 1px solid #fda4af;
+    color: #9f1239;
+  }
+
+  .status-msg.success {
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    color: #166534;
+  }
+
+  .payment-options {
+    display: grid;
+    gap: 18px;
+    margin-top: 4px;
+  }
+
+  .payment-options[hidden] {
+    display: none;
+  }
+
+  .reference-box {
+    display: grid;
+    gap: 8px;
+    padding: 18px;
+    border-radius: 20px;
+    border: 1px solid #86efac;
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .reference-box span {
+    font-size: 0.74rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .reference-box code {
+    white-space: normal;
+    word-break: break-word;
+    color: #0f172a;
+  }
+
+  .payment-card-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .payment-card {
+    display: grid;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid #dbe4ef;
+    border-radius: 22px;
+    background: white;
+  }
+
+  .payment-card-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #0f172a;
+    font-weight: 900;
+  }
+
+  .payment-card img {
+    width: 100%;
+    max-width: 240px;
+    margin: 0 auto;
+    border-radius: 16px;
+    border: 1px solid #dbe4ef;
+  }
+
+  .payment-card dl {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+
+  .payment-card dl div {
+    padding: 12px;
+    border-radius: 14px;
+    background: #f8fafc;
+  }
+
+  .payment-card dt {
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .payment-card dd {
+    margin: 4px 0 0;
+    color: #0f172a;
+  }
+
+  @media (max-width: 1080px) {
+    .checkout-hero,
+    .checkout-workspace {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .checkout-hero-section {
+      padding-top: 34px;
+    }
+
+    .checkout-hero,
+    .checkout-summary-card,
+    .checkout-form-card {
+      padding: 20px;
+      border-radius: 24px;
+    }
+
+    .checkout-hero h1 {
+      font-size: clamp(1.92rem, 8.8vw, 2.62rem);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .checkout-hero p {
+      font-size: 1rem;
+      line-height: 1.58;
+    }
+
+    .checkout-proof span {
+      min-height: 50px;
+      padding: 13px 14px;
+    }
+
+    .checkout-fields.two,
+    .payment-card-grid,
+    .plan-switcher {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

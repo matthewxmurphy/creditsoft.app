@@ -124,14 +124,14 @@ class IntranetNodeInstallerBundle
         $downloadUrl = trim((string) ($feed['download_url'] ?? ''));
 
         if ($latestVersion !== '' && ($downloadUrl === '' || str_starts_with($downloadUrl, '/'))) {
-            $downloadUrl = sprintf('https://updates.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion);
+            $downloadUrl = sprintf('https://update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion);
         }
 
         $bundled = $packagePath !== '' && is_file($packagePath);
         $feedUrl = trim((string) ($feed['feed_url'] ?? config('creditsoft.updates.feed_url')));
 
         if ($feedUrl === '' || str_starts_with($feedUrl, 'file://')) {
-            $feedUrl = (string) config('creditsoft.updates.feed_url', 'https://updates.creditsoft.app/api/update-feed');
+            $feedUrl = (string) config('creditsoft.updates.feed_url', 'https://update.creditsoft.app/api/update-feed');
         }
 
         return [
@@ -207,6 +207,12 @@ class IntranetNodeInstallerBundle
             'office' => [
                 'name' => data_get($state, 'company_name') ?: config('app.name', 'CreditSoft'),
                 'admin_email' => data_get($state, 'admin_email'),
+                'business_city' => data_get($state, 'business_city'),
+                'business_state' => data_get($state, 'business_state'),
+                'business_location' => [
+                    'city' => data_get($state, 'business_city'),
+                    'state' => data_get($state, 'business_state'),
+                ],
                 'tailscale_hostname' => data_get($state, 'tailscale_hostname') ?: config('creditsoft.tailscale_hostname'),
             ],
             'branding' => $this->brandingManifest($state),
@@ -349,11 +355,12 @@ class IntranetNodeInstallerBundle
             'CREDITSOFT_OWNER_PASSWORD' => (string) data_get($state, 'owner_password', ''),
             'CREDITSOFT_LOCAL_AUTH_BYPASS_EMAIL' => $ownerEmail !== '' ? $ownerEmail : 'owner@creditsoft.local',
             'CREDITSOFT_BROWSER_COMPANION_TRIAL_DAYS' => '7',
-            'CREDITSOFT_BROWSER_COMPANION_DOWNLOAD_URL' => (string) config('creditsoft.updates.browser_companion_download_url', 'https://updates.creditsoft.app/downloads/creditsoft-browser-companion-v2026.4.27.1.zip'),
-            'LOG_CHANNEL' => 'stack',
-            'LOG_STACK' => 'single',
+            'CREDITSOFT_BROWSER_COMPANION_DOWNLOAD_URL' => $this->browserCompanionDownloadUrl(),
+            'LOG_CHANNEL' => 'daily',
+            'LOG_STACK' => 'daily',
             'LOG_DEPRECATIONS_CHANNEL' => 'null',
             'LOG_LEVEL' => 'info',
+            'LOG_DAILY_DAYS' => '1',
             'DB_CONNECTION' => 'pgsql',
             'DB_HOST' => 'office-db',
             'DB_PORT' => '5432',
@@ -431,7 +438,7 @@ class IntranetNodeInstallerBundle
             'CREDITSOFT_LICENSE_API_URL' => (string) config('creditsoft.installer.license_check_api_url', 'https://api.creditsoft.app/license/validate'),
             'CREDITSOFT_LICENSE_PORTAL_URL' => (string) config('creditsoft.installer.license_check_portal_url', 'https://www.creditsoft.app/license/validate.json'),
             'CREDITSOFT_LICENSE_GRACE_DAYS' => (string) config('creditsoft.installer.license_grace_days', 7),
-            'CREDITSOFT_UPDATE_FEED_URL' => (string) config('creditsoft.updates.feed_url', 'https://updates.creditsoft.app/api/update-feed'),
+            'CREDITSOFT_UPDATE_FEED_URL' => (string) config('creditsoft.updates.feed_url', 'https://update.creditsoft.app/api/update-feed'),
             'CREDITSOFT_AI_DEFAULT_PROVIDER' => (string) config('ai.default', 'openrouter_creditsoft'),
             'CREDITSOFT_CRM_ENABLED' => $this->boolEnv(config('creditsoft.integrations.crm.enabled', false)),
             'CREDITSOFT_CRM_BASE_URL' => (string) config('creditsoft.integrations.crm.base_url', ''),
@@ -460,6 +467,17 @@ class IntranetNodeInstallerBundle
         return collect($values)
             ->map(fn (string $value, string $key): string => "{$key}=".$this->escapeEnv($value))
             ->implode(PHP_EOL).PHP_EOL;
+    }
+
+    protected function browserCompanionDownloadUrl(): string
+    {
+        $feed = $this->updateFeed->current();
+
+        return trim((string) (
+            data_get($feed, 'browser_companion.download_url')
+            ?: data_get($feed, 'browser_companion_url')
+            ?: config('creditsoft.updates.browser_companion_download_url', '')
+        ));
     }
 
     protected function readme(array $manifest): string
@@ -816,6 +834,8 @@ branding = manifest.get("branding") or {}
 office = manifest.get("office") or {}
 state["company_name"] = office.get("name") or state.get("company_name")
 state["admin_email"] = office.get("admin_email") or state.get("admin_email")
+state["business_city"] = office.get("business_city") or state.get("business_city")
+state["business_state"] = office.get("business_state") or state.get("business_state")
 state["tailscale_hostname"] = office.get("tailscale_hostname") or state.get("tailscale_hostname")
 state["branding"] = {
     "logo_name": branding.get("logo_name"),
@@ -1191,6 +1211,8 @@ try {
     $State = [ordered]@{
         company_name = $Manifest.office.name
         admin_email = $Manifest.office.admin_email
+        business_city = $Manifest.office.business_city
+        business_state = $Manifest.office.business_state
         tailscale_hostname = $Manifest.office.tailscale_hostname
         branding = [ordered]@{
             logo_name = $Manifest.branding.logo_name

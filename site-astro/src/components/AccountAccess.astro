@@ -1,0 +1,261 @@
+---
+const {
+  eyebrow = "CreditSoft access",
+  title = "Billing history, license, downloads, and office login belong together.",
+  text = "Use this lane for the CreditSoft purchaser account. It is separate from the credit-repair client portal an office gives to its own customers.",
+} = Astro.props;
+
+const adminLoginUrl = "https://admin.creditsoft.app/login";
+const adminHomeUrl = "https://admin.creditsoft.app";
+
+const accountItems = [
+  "Payment history and receipt references",
+  "Billing, balances, and server-node add-ons",
+  "Download links for office, companion, and intranet client",
+  "License key history and API license code",
+  "Account info updates for the license owner",
+];
+---
+
+<section class="section account-access-section">
+  <div class="page-wrap account-access-shell">
+    <div class="account-access-heading">
+      <span class="eyebrow">{eyebrow}</span>
+      <h1>{title}</h1>
+      <p>{text}</p>
+    </div>
+
+    <div class="access-grid">
+      <article class="access-card account-card">
+        <span class="card-kicker">CreditSoft account portal</span>
+        <h2>Open purchase history, license, and downloads.</h2>
+        <p>
+          This is where a CreditSoft purchaser should see payment history, open
+          balances, download links, current license key, key history, API license
+          code, and account-contact updates.
+        </p>
+
+        <div class="lookup-grid">
+          <label>
+            <span>Account email</span>
+            <input data-account-email type="email" placeholder="you@company.com" autocomplete="email" />
+          </label>
+          <label>
+            <span>Checkout / receipt / license reference</span>
+            <input data-account-reference type="text" placeholder="CSCO-20260430-ABC123" />
+          </label>
+        </div>
+
+        <a data-account-dashboard-link class="button primary" href="/account/">Open account dashboard</a>
+
+        <ul>
+          {accountItems.map((item) => <li>{item}</li>)}
+        </ul>
+      </article>
+
+      <article class="access-card office-card">
+        <span class="card-kicker">Protected office login</span>
+        <h2>Continue to the intranet workspace.</h2>
+        <p>
+          Admins and operators still sign in at the protected office system. The
+          same purchaser-level billing and license expectations should be visible
+          from the office dashboard and license/settings areas after login.
+        </p>
+
+        <form class="office-login-form" action={adminLoginUrl} method="get">
+          <label>
+            <span>Email</span>
+            <input type="email" name="email" placeholder="you@company.com" autocomplete="email" />
+          </label>
+          <button class="button secondary" type="submit">Continue to office login</button>
+        </form>
+
+        <a class="admin-link" href={adminHomeUrl}>Open admin.creditsoft.app</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<script>
+  (() => {
+    const emailInputs = document.querySelectorAll("[data-account-email]");
+    const referenceInputs = document.querySelectorAll("[data-account-reference]");
+    const dashboardLinks = document.querySelectorAll("[data-account-dashboard-link]");
+
+    const setLinks = () => {
+      const email = Array.from(emailInputs)
+        .map((input) => input instanceof HTMLInputElement ? input.value.trim() : "")
+        .find(Boolean) || "";
+      const reference = Array.from(referenceInputs)
+        .map((input) => input instanceof HTMLInputElement ? input.value.trim() : "")
+        .find(Boolean) || "";
+
+      dashboardLinks.forEach((link) => {
+        if (!(link instanceof HTMLAnchorElement)) return;
+
+        const next = new URL("/account/", window.location.origin);
+
+        if (email) next.searchParams.set("email", email);
+        if (reference) next.searchParams.set("reference", reference);
+
+        link.href = next.pathname + next.search;
+      });
+    };
+
+    [...emailInputs, ...referenceInputs].forEach((input) => {
+      input.addEventListener("input", setLinks);
+    });
+    setLinks();
+  })();
+</script>
+
+<style>
+  .account-access-section {
+    padding-top: 74px;
+  }
+
+  .account-access-shell {
+    display: grid;
+    gap: 24px;
+  }
+
+  .account-access-heading {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 34px;
+    padding: clamp(28px, 5vw, 54px);
+    background:
+      radial-gradient(circle at 14% 0%, rgba(91, 214, 149, 0.14), transparent 32%),
+      linear-gradient(135deg, rgba(10, 18, 32, 0.98), rgba(13, 17, 27, 0.94));
+    box-shadow: var(--shadow);
+  }
+
+  .account-access-heading h1 {
+    max-width: 1020px;
+    margin: 18px 0 0;
+    font-size: clamp(2.55rem, 5.8vw, 5.35rem);
+    line-height: 0.94;
+    letter-spacing: -0.06em;
+  }
+
+  .account-access-heading p {
+    max-width: 840px;
+    margin: 20px 0 0;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 1.04rem;
+    line-height: 1.78;
+  }
+
+  .access-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(340px, 0.72fr);
+    gap: 20px;
+  }
+
+  .access-card {
+    display: grid;
+    align-content: start;
+    gap: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 28px;
+    background: rgba(20, 20, 27, 0.84);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .account-card {
+    background:
+      radial-gradient(circle at 82% 8%, rgba(241, 194, 122, 0.13), transparent 34%),
+      rgba(20, 20, 27, 0.9);
+  }
+
+  .card-kicker {
+    color: var(--accent);
+    font-size: 0.74rem;
+    font-weight: 850;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .access-card h2 {
+    margin: 0;
+    font-size: clamp(1.8rem, 3.4vw, 3rem);
+    line-height: 1.04;
+    letter-spacing: -0.04em;
+  }
+
+  .access-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.72;
+  }
+
+  .lookup-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .access-card label {
+    display: grid;
+    gap: 8px;
+    color: var(--text-soft);
+    font-size: 0.88rem;
+    font-weight: 750;
+  }
+
+  .access-card input {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 54px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.055);
+    color: var(--text);
+    padding: 0 14px;
+    outline: none;
+  }
+
+  .access-card ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--text-soft);
+  }
+
+  .access-card li {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+    line-height: 1.55;
+  }
+
+  .office-login-form {
+    display: grid;
+    gap: 14px;
+  }
+
+  .admin-link {
+    color: var(--accent-alt);
+    font-weight: 800;
+  }
+
+  @media (max-width: 980px) {
+    .access-grid,
+    .lookup-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .account-access-section {
+      padding-top: 42px;
+    }
+
+    .access-card,
+    .account-access-heading {
+      border-radius: 24px;
+      padding: 22px;
+    }
+  }
+</style>

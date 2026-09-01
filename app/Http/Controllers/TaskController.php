@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Task;
 use App\Models\ViolationCandidate;
 use App\Services\AuditTrail;
+use App\Services\InboxWorkService;
 use App\Services\OperationalReminderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,9 +15,17 @@ use Inertia\Response;
 
 class TaskController extends Controller
 {
-    public function inbox(OperationalReminderService $operationalReminders): Response
+    public function inbox(Request $request, OperationalReminderService $operationalReminders, InboxWorkService $inboxWork): Response
     {
+        $leadPage = $inboxWork->leadPage(
+            $request->integer('lead_page', 1),
+            $request->integer('lead_per_page', 25),
+        );
+
         return Inertia::render('inbox/Index', [
+            'counts' => $inboxWork->counts(),
+            'leadInbox' => $leadPage['items'],
+            'leadPagination' => $leadPage['pagination'],
             'tasks' => $operationalReminders->prependToTaskFeed(
                 Task::query()->with('client', 'assignedUser')->whereIn('status', ['open', 'in_progress'])->orderBy('due_at')->get(),
             ),

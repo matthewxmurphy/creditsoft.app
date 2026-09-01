@@ -41,7 +41,7 @@ class CreditsoftPublishRelease extends Command
         $notes = $this->releaseNotes($version);
         $headline = trim((string) ($this->option('headline') ?: "CreditSoft {$version} is ready"));
         $summary = trim((string) ($this->option('summary') ?: ($feed['summary'] ?? 'CreditSoft office update is ready.')));
-        $downloadUrl = sprintf('https://updates.creditsoft.app/downloads/creditsoft-office-v%s.zip', $version);
+        $downloadUrl = sprintf('https://update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $version);
 
         $this->table(
             ['Field', 'Value'],
@@ -232,18 +232,31 @@ class CreditsoftPublishRelease extends Command
      */
     protected function syncFeedPackageVersions(array &$feed, string $version): void
     {
-        $browserCompanionUrl = sprintf('https://update.creditsoft.app/downloads/creditsoft-browser-companion-v%s.zip', $version);
-        $intranetClientUrl = sprintf('https://updates.creditsoft.app/downloads/creditsoft-intranet-client-installer-v%s.zip', $version);
+        $browserCompanionUrl = 'https://update.creditsoft.app/downloads/creditsoft-browser-companion.zip';
+        $intranetClientUrl = sprintf('https://update.creditsoft.app/downloads/creditsoft-intranet-client-installer-v%s.zip', $version);
+        $browserCompanionArchive = base_path('update.creditsoft.app/downloads/creditsoft-browser-companion.zip');
+        $intranetClientArchive = base_path(sprintf('update.creditsoft.app/downloads/creditsoft-intranet-client-installer-v%s.zip', $version));
 
         $feed['browser_companion'] = is_array($feed['browser_companion'] ?? null) ? $feed['browser_companion'] : [];
-        $feed['browser_companion']['latest_version'] = $version;
-        $feed['browser_companion']['download_url'] = $browserCompanionUrl;
+
+        if (File::exists($browserCompanionArchive)) {
+            $feed['browser_companion']['latest_version'] = $version;
+            $feed['browser_companion']['download_url'] = $browserCompanionUrl;
+            $feed['browser_companion_url'] = $browserCompanionUrl;
+        } elseif (filled((string) ($feed['browser_companion']['download_url'] ?? ''))) {
+            $feed['browser_companion_url'] = (string) $feed['browser_companion']['download_url'];
+        }
+
+        $feed['browser_companion']['renewal_url'] = 'https://www.creditsoft.app/renewal/';
 
         $feed['intranet_client'] = is_array($feed['intranet_client'] ?? null) ? $feed['intranet_client'] : [];
-        $feed['intranet_client']['latest_version'] = $version;
-        $feed['intranet_client']['download_url'] = $intranetClientUrl;
 
-        $feed['browser_companion_url'] = $browserCompanionUrl;
+        if (File::exists($intranetClientArchive)) {
+            $feed['intranet_client']['latest_version'] = $version;
+            $feed['intranet_client']['download_url'] = $intranetClientUrl;
+        }
+
+        $feed['renewal_url'] = 'https://www.creditsoft.app/renewal/';
         $feed['minimum_version'] = $version;
     }
 
@@ -262,12 +275,12 @@ class CreditsoftPublishRelease extends Command
             $manifest['build'] = $build;
             $manifest['published_at'] = (string) ($feed['published_at'] ?? $manifest['published_at'] ?? '');
             $manifest['notes'] = array_values(is_array($feed['notes'] ?? null) ? $feed['notes'] : ($manifest['notes'] ?? []));
-            $manifest['download_url'] = (string) ($feed['download_url'] ?? sprintf('https://updates.creditsoft.app/downloads/creditsoft-office-v%s.zip', $version));
-            $manifest['browser_companion_url'] = (string) ($feed['browser_companion']['download_url'] ?? sprintf('https://update.creditsoft.app/downloads/creditsoft-browser-companion-v%s.zip', $version));
+            $manifest['download_url'] = (string) ($feed['download_url'] ?? sprintf('https://update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $version));
+            $manifest['browser_companion_url'] = (string) ($feed['browser_companion']['download_url'] ?? 'https://update.creditsoft.app/downloads/creditsoft-browser-companion.zip');
 
             $manifest['intranet_client'] = is_array($manifest['intranet_client'] ?? null) ? $manifest['intranet_client'] : [];
             $manifest['intranet_client']['latest_version'] = $version;
-            $manifest['intranet_client']['download_url'] = (string) ($feed['intranet_client']['download_url'] ?? sprintf('https://updates.creditsoft.app/downloads/creditsoft-intranet-client-installer-v%s.zip', $version));
+            $manifest['intranet_client']['download_url'] = (string) ($feed['intranet_client']['download_url'] ?? sprintf('https://update.creditsoft.app/downloads/creditsoft-intranet-client-installer-v%s.zip', $version));
 
             return $manifest;
         });

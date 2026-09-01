@@ -88,7 +88,7 @@ class IntranetClientInstallerBundle
 
         return $configuredUrl !== ''
             ? $configuredUrl
-            : sprintf('https://updates.creditsoft.app/downloads/%s', $this->downloadName());
+            : sprintf('https://update.creditsoft.app/downloads/%s', $this->downloadName());
     }
 
     /**
@@ -105,7 +105,7 @@ class IntranetClientInstallerBundle
             'local_route_url' => route('install.intranet-client.download'),
             'description' => 'Employee workstation installer for the local 127.0.0.1 router and PWA. It does not install Docker, a database, or cluster SSH.',
             'platforms' => ['Windows PowerShell', 'macOS bash', 'Linux bash'],
-            'router_url' => 'http://127.0.0.1/dashboard?source=intranet-client',
+            'router_url' => 'http://127.0.0.1:8877/dashboard?source=intranet-client',
             'office_name' => 'CreditSoft Office',
             'candidate_api_bases' => $this->candidateApiBases(),
             'api_token_included' => false,
@@ -220,9 +220,7 @@ class IntranetClientInstallerBundle
      */
     protected function candidateApiBases(): array
     {
-        return collect([
-            'http://127.0.0.1:8001/api/v1',
-        ])
+        return collect((array) config('creditsoft.updates.intranet_client_api_bases', []))
             ->map(fn (mixed $url): ?string => $this->normalizeApiBaseUrl($url))
             ->filter()
             ->unique(fn (string $url): string => strtolower($url))

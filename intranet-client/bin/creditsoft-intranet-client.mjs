@@ -7,11 +7,12 @@ import os from 'node:os';
 import path from 'node:path';
 
 const DEFAULT_LOCAL_API_BASE = 'http://127.0.0.1:8001/api/v1';
+const CLIENT_VERSION = '2026.5.6.4';
 const DEFAULT_DASHBOARD_PATH = '/dashboard?source=intranet-client';
 const DEFAULT_ROUTER_HOST = '127.0.0.1';
 const DEFAULT_ROUTER_PORT = '8877';
 const CRM_PROXY_PREFIX = '/__creditsoft/crm';
-const CRM_SPA_ROUTE_PREFIXES = ['/objects'];
+const CRM_SPA_ROUTE_PREFIXES = ['/objects', '/settings/admin-panel'];
 const CONFIG_DIR = path.join(os.homedir(), '.creditsoft');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'intranet-client.json');
 
@@ -148,6 +149,28 @@ const originFromApiBase = (apiBase) => {
     return `${parsed.protocol}//${parsed.host}`;
 };
 
+const isLoopbackApiBase = (apiBase) => {
+    try {
+        const parsed = new URL(apiBase);
+        const host = parsed.hostname.toLowerCase();
+
+        return host === 'localhost' || host === '127.0.0.1' || host === '::1';
+    } catch {
+        return false;
+    }
+};
+
+const splitApiBases = (value) => {
+    if (typeof value !== 'string') {
+        return [];
+    }
+
+    return value
+        .split(/[\n,;]+/)
+        .map((candidate) => candidate.trim())
+        .filter(Boolean);
+};
+
 const normalizeOrigin = (value) => {
     if (typeof value !== 'string' || value.trim() === '') {
         return null;
@@ -224,17 +247,28 @@ const buildCandidates = (args, config, pairing) => {
         ? [`http://${args.host.replace(/^https?:\/\//, '')}:${args.port}/api/v1`]
         : [];
 
-    return unique([
+    const configuredCandidates = unique([
         ...args.bases,
         ...hostCandidate,
+        ...splitApiBases(process.env.CREDITSOFT_API_BASES),
         process.env.CREDITSOFT_API_BASE_URL,
         ...(Array.isArray(pairing.candidateBaseUrls) ? pairing.candidateBaseUrls : []),
         pairing.api_base_url,
         pairing.base_url,
+    ].map(normalizeApiBase));
+
+    const savedCandidates = unique([
         config.lastConnectedBaseUrl,
         ...(Array.isArray(config.candidateBaseUrls) ? config.candidateBaseUrls : []),
-        DEFAULT_LOCAL_API_BASE,
     ].map(normalizeApiBase));
+
+    const candidates = unique([...configuredCandidates, ...savedCandidates]);
+    const hasRemoteCandidate = candidates.some((candidate) => !isLoopbackApiBase(candidate));
+    const usableCandidates = hasRemoteCandidate
+        ? candidates.filter((candidate) => !isLoopbackApiBase(candidate))
+        : candidates;
+
+    return usableCandidates.length > 0 ? usableCandidates : [DEFAULT_LOCAL_API_BASE];
 };
 
 const fetchJson = async (url, options = {}, timeout = 2500) => {
@@ -248,6 +282,7 @@ const fetchJson = async (url, options = {}, timeout = 2500) => {
             signal: controller.signal,
             headers: {
                 Accept: 'application/json',
+                'ngrok-skip-browser-warning': 'true',
                 ...(options.headers || {}),
             },
         });
@@ -460,6 +495,7 @@ const requestHeaders = (request, token) => {
     }
 
     headers.set('x-creditsoft-client-router', 'node');
+    headers.set('ngrok-skip-browser-warning', 'true');
     headers.set('x-forwarded-proto', 'http');
 
     if (request.headers.host) {
@@ -523,9 +559,68 @@ const responseHeaders = (response, targetOrigin, routerOrigin) => {
 
 const rewriteCrmHtml = (html) => {
     const envScript = `<script id="creditsoft-crm-router-env">window._env_=Object.assign({},window._env_||{},{REACT_APP_SERVER_BASE_URL:"${CRM_PROXY_PREFIX}"});if(window.location.pathname.indexOf("${CRM_PROXY_PREFIX}/")===0){window.history.replaceState(null,document.title,"/"+window.location.search+window.location.hash);}</script>`;
+    const adminBridgeScript = `<script id="creditsoft-crm-admin-bridge">
+(() => {
+  const panelId = 'creditsoft-crm-admin-bridge-panel';
+  const styleId = 'creditsoft-crm-admin-bridge-style';
+  const config = {
+    apiWebhooksUrl: '/settings/api-webhooks',
+    aiSettingsUrl: '/settings/ai',
+    publicDocsUrl: 'https://www.creditsoft.app/resources#/user-guide/introduction',
+    aiEndpoint: '/internal/ai/chat',
+    apiBase: '/api/v1',
+    webhooks: [
+      ['POST', '/api/v1/clients', 'Website lead intake', 'Creates leads or clients from public forms and partner funnels.'],
+      ['POST', '/api/v1/clients/{cuid}/documents', 'Client portal documents', 'Uploads IDs, proof of address, agreements, and portal files.'],
+      ['POST', '/api/v1/browser-companion/intake', 'Browser companion captures', 'Receives SmartCredit, IdentityIQ, DisputeFox, and document captures.'],
+      ['POST', '/api/v1/cluster-actions/apply', 'Multi-office action sync', 'Queues deletes, archives, status updates, and peer-node actions.'],
+      ['POST', '/api/v1/cluster-db-events/receive', 'Replica event intake', 'Accepts queued database events when another office node returns.'],
+      ['GET', '/api/v1/meta/callback', 'Meta callback', 'Completes Facebook, Instagram, and social publishing callbacks.'],
+    ],
+  };
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const text = () => document.body?.innerText || '';
+  const shouldRender = () => window.location.pathname.includes('/settings/admin-panel') || /APIs & Webhooks|API Keys|Webhooks|\\bAI\\b/i.test(text());
+  const style = () => {
+    if (document.getElementById(styleId)) return;
+    const node = document.createElement('style');
+    node.id = styleId;
+    node.textContent = '.creditsoft-crm-admin-bridge-panel{width:min(1180px,calc(100% - 24px));margin:16px auto 24px;border:1px solid rgba(241,194,122,.38);border-radius:14px;background:linear-gradient(135deg,rgba(13,13,18,.97),rgba(31,28,22,.97));box-shadow:0 20px 52px rgba(0,0,0,.24);color:#f8fafc;font-family:Inter,ui-sans-serif,system-ui,sans-serif;padding:20px}.creditsoft-crm-admin-bridge-panel *{box-sizing:border-box}.creditsoft-crm-admin-bridge-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}.creditsoft-crm-admin-bridge-panel h2{margin:0;color:#fff7ed;font-size:22px;line-height:1.2;letter-spacing:0}.creditsoft-crm-admin-bridge-panel p{margin:7px 0 0;color:rgba(255,255,255,.74);font-size:14px;line-height:1.55}.creditsoft-crm-admin-bridge-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}.creditsoft-crm-admin-bridge-actions a{display:inline-flex;align-items:center;min-height:38px;border-radius:9px;padding:0 13px;background:rgba(241,194,122,.14);border:1px solid rgba(241,194,122,.32);color:#fff7ed!important;text-decoration:none;font-size:13px;font-weight:700}.creditsoft-crm-admin-bridge-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:16px}.creditsoft-crm-admin-bridge-list,.creditsoft-crm-admin-bridge-ai{border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.045);padding:14px}.creditsoft-crm-admin-bridge-row{display:grid;grid-template-columns:74px minmax(185px,.8fr) minmax(240px,1fr);gap:12px;padding:12px 0;border-top:1px solid rgba(255,255,255,.08)}.creditsoft-crm-admin-bridge-row:first-child{border-top:0;padding-top:0}.creditsoft-crm-admin-bridge-method,.creditsoft-crm-admin-bridge-code{color:#fde68a;font-family:SFMono-Regular,Consolas,monospace;font-size:12px}.creditsoft-crm-admin-bridge-code{overflow-wrap:anywhere}.creditsoft-crm-admin-bridge-label{color:#fff;font-size:13px;font-weight:800}.creditsoft-crm-admin-bridge-note{color:rgba(255,255,255,.7);font-size:12px;line-height:1.45}.creditsoft-crm-admin-bridge-ai dl{display:grid;gap:10px;margin:14px 0 0}.creditsoft-crm-admin-bridge-ai dt{color:rgba(255,255,255,.58);font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.creditsoft-crm-admin-bridge-ai dd{margin:3px 0 0;color:#fff;font-size:13px;overflow-wrap:anywhere}@media(max-width:980px){.creditsoft-crm-admin-bridge-head,.creditsoft-crm-admin-bridge-grid,.creditsoft-crm-admin-bridge-row{display:grid;grid-template-columns:1fr}.creditsoft-crm-admin-bridge-actions{justify-content:flex-start}}';
+    document.head.appendChild(node);
+  };
+  const rows = () => config.webhooks.map(([method, path, label, note]) => '<div class="creditsoft-crm-admin-bridge-row"><span class="creditsoft-crm-admin-bridge-method">'+esc(method)+'</span><div><div class="creditsoft-crm-admin-bridge-label">'+esc(label)+'</div><div class="creditsoft-crm-admin-bridge-code">'+esc(path)+'</div></div><div class="creditsoft-crm-admin-bridge-note">'+esc(note)+'</div></div>').join('');
+  const mount = () => {
+    const heading = Array.from(document.querySelectorAll('h1,h2,h3')).find((node) => /APIs & Webhooks|Admin Panel|AI/i.test(node.textContent || ''));
+    return heading?.parentElement || document.querySelector('main,[role="main"],[data-testid="page-content"]') || document.getElementById('root') || document.body;
+  };
+  const render = () => {
+    if (!document.body || !shouldRender()) return;
+    style();
+    const target = mount();
+    if (!target) return;
+    const existing = document.getElementById(panelId);
+    if (existing && existing.parentElement === target) return;
+    existing?.remove();
+    const panel = document.createElement('section');
+    panel.id = panelId;
+    panel.className = 'creditsoft-crm-admin-bridge-panel';
+    panel.innerHTML = '<div class="creditsoft-crm-admin-bridge-head"><div><h2>CreditSoft webhooks and AI are handled by the intranet</h2><p>This CRM screen is Twenty\\'s generic admin area. These are the CreditSoft routes the CRM, portal, website, companion, and office nodes actually use.</p></div><div class="creditsoft-crm-admin-bridge-actions"><a href="'+esc(config.apiWebhooksUrl)+'" target="_top" rel="noopener">Open API/Webhooks</a><a href="'+esc(config.aiSettingsUrl)+'" target="_top" rel="noopener">Open AI settings</a><a href="'+esc(config.publicDocsUrl)+'" target="_blank" rel="noopener">User guide</a></div></div><div class="creditsoft-crm-admin-bridge-grid"><section class="creditsoft-crm-admin-bridge-list" aria-label="CreditSoft webhook routes">'+rows()+'</section><aside class="creditsoft-crm-admin-bridge-ai" aria-label="CreditSoft AI settings"><h2>Built-in AI</h2><p>The assistant, CTO recommendations, letters, briefs, and review helpers use the intranet AI settings, not CRM-only API keys.</p><dl><div><dt>Chat endpoint</dt><dd>'+esc(config.aiEndpoint)+'</dd></div><div><dt>API base</dt><dd>'+esc(config.apiBase)+'</dd></div><div><dt>Providers</dt><dd>OpenRouter, Ollama Cloud, OpenCode Zen</dd></div></dl></aside></div>';
+    target.insertBefore(panel, target.firstChild);
+  };
+  render();
+  window.addEventListener('hashchange', () => setTimeout(render, 80));
+  window.addEventListener('popstate', () => setTimeout(render, 80));
+  new MutationObserver(render).observe(document.documentElement, {childList: true, subtree: true});
+  setInterval(render, 1500);
+})();
+</script>`;
     let rewritten = html.includes('creditsoft-crm-router-env')
         ? html
         : html.replace('</head>', `${envScript}</head>`);
+
+    rewritten = rewritten.includes('creditsoft-crm-admin-bridge')
+        ? rewritten
+        : rewritten.replace('</head>', `${adminBridgeScript}</head>`);
 
     rewritten = rewritten
         .replace(/(href|src)="\/(assets\/[^"]+)"/g, `$1="${CRM_PROXY_PREFIX}/$2"`)
@@ -591,7 +686,6 @@ const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath, 
         const isCrmProxyRequest = crmOrigin && (
             requestUrl.pathname === CRM_PROXY_PREFIX
             || requestUrl.pathname.startsWith(`${CRM_PROXY_PREFIX}/`)
-            || requestUrl.pathname.startsWith('/assets/')
             || isCrmSpaRoute(requestUrl.pathname)
         );
 
@@ -616,10 +710,13 @@ const startLocalRouter = ({ selected, token, listen, listenPort, dashboardPath, 
             response.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
             response.end(JSON.stringify({
                 status: 'ok',
+                clientVersion: CLIENT_VERSION,
                 targetOrigin,
                 apiBase: selected.apiBase,
+                apiName: selected.apiName ?? null,
                 latencyMs: selected.latencyMs ?? null,
                 authenticated: selected.authenticated,
+                authStatus: selected.authStatus ?? null,
                 tokenProvided: Boolean(token),
                 crmOrigin,
                 crmProxyPath: crmOrigin ? CRM_PROXY_PREFIX : null,
@@ -727,6 +824,7 @@ const main = async () => {
 
     const result = {
         ok: Boolean(selected?.reachable),
+        clientVersion: CLIENT_VERSION,
         authenticated: Boolean(selected?.authenticated),
         selectedApiBase: selected?.apiBase || null,
         dashboardUrl,

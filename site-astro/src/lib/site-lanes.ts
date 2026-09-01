@@ -252,7 +252,7 @@ export const lanes: Lane[] = [
     slug: "migration",
     eyebrow: "Switching systems",
     title: "Migration without losing the office shape",
-    summary: "Imports, browser companion captures, provider credentials, and staged documents should move offices away from old tools without making clients upload everything again.",
+    summary: "Imports, browser companion captures, provider credentials, and staged documents should move offices away from previous systems without making clients upload everything again.",
     bullets: ["Client and file imports", "Provider account capture", "Migration review before cutover"],
     image: `${proofBase}/clients-roster.png`,
     alt: "CreditSoft client roster screenshot with account rows and office workflow controls.",

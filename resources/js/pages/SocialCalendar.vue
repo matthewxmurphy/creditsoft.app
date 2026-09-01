@@ -146,8 +146,6 @@ const props = defineProps<{
 
         <SocialCalendarWorkspace
             eyebrow="Social media calendar"
-            title="Plan Meta content without crowding the settings page."
-            description="Use this page for content, publishing, agenda, meetings, and AI planning. Connection and scoring controls stay under Social settings."
             settings-href="/settings/social"
             :page-name="props.calendar.page_name"
             :ad-account-name="props.calendar.ad_account_name"

@@ -14,8 +14,8 @@ class CreditsoftUpdateFeed
      * @var array<int, string>
      */
     protected const CANONICAL_REMOTE_FEEDS = [
-        'https://updates.creditsoft.app/api/update-feed.php',
-        'https://updates.creditsoft.app/api/update-feed',
+        'https://update.creditsoft.app/api/update-feed.php',
+        'https://update.creditsoft.app/api/update-feed',
     ];
 
     /**
@@ -197,7 +197,7 @@ class CreditsoftUpdateFeed
         $inferredDownloadUrl = $downloadUrl;
 
         if ($latestVersion !== '' && ($downloadUrl === '' || ! str_ends_with(strtolower(parse_url($downloadUrl, PHP_URL_PATH) ?: ''), '.zip'))) {
-            $inferredDownloadUrl = sprintf('https://updates.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion);
+            $inferredDownloadUrl = sprintf('https://update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion);
         }
 
         $payload = array_replace_recursive([

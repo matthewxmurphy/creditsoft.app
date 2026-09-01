@@ -233,7 +233,7 @@ const sortTabClass = (mode: NameMode) =>
         : 'border-stone-300 bg-white text-stone-600 hover:border-stone-500 hover:bg-stone-50 hover:text-stone-950';
 
 const clientHref = (client: ClientNavigatorItem) =>
-    `/clients/${client.id}${clientWorkspaceSuffix.value}${queryString.value}`;
+    `${client.href || `/clients/${client.id}`}${clientWorkspaceSuffix.value}${queryString.value}`;
 
 const selectNameMode = (mode: NameMode) => {
     nameMode.value = mode;

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { faTrashCan } from '@fortawesome/free-regular-svg-icons';
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import {
+    faEye,
+    faEyeSlash,
+    faMoneyBillWave,
+    faPencil,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, nextTick, reactive, ref, watch } from 'vue';
@@ -30,7 +35,9 @@ import {
     clientHealthScoreLabel,
 } from '@/lib/client-health';
 import type { ClientHealthSignal } from '@/lib/client-health';
-import { formatDate, formatNumber } from '@/lib/creditsoft';
+import { normalizeClientNameForm } from '@/lib/client-name';
+import { formatDate, formatDateTime, formatNumber } from '@/lib/creditsoft';
+import { formatUsPhone } from '@/lib/phone';
 
 type ReviewSignal = {
     key: 'missing' | 'mismatch' | 'negative' | 'single';
@@ -60,12 +67,23 @@ type ImportedScoreCard = {
 const props = defineProps<{
     client: {
         id: number;
+        cuid?: string | null;
         display_name: string;
         first_name: string;
+        middle_name?: string | null;
         last_name: string;
+        name_suffix?: string | null;
         status: string;
         email?: string | null;
+        secondary_email?: string | null;
         phone?: string | null;
+        address_line_1?: string | null;
+        address_line_2?: string | null;
+        city?: string | null;
+        state?: string | null;
+        postal_code?: string | null;
+        date_of_birth?: string | null;
+        ssn_last_four?: string | null;
         current_score?: number | null;
         goals?: string | null;
         source_kind?: string | null;
@@ -91,7 +109,10 @@ const props = defineProps<{
             amount?: string | number | null;
             currency?: string | null;
             billing_interval?: string | null;
+            last_paid_at?: string | null;
             next_due_at?: string | null;
+            notes?: string | null;
+            metadata?: Record<string, unknown> | null;
         } | null;
         reporting_cycles: Array<{
             id: number;
@@ -295,6 +316,19 @@ const props = defineProps<{
             status?: string | null;
             occurred_at?: string | null;
         }>;
+        profile_snapshots?: Array<{
+            id: number;
+            client_cuid: string;
+            source?: string | null;
+            source_label?: string | null;
+            is_current?: boolean;
+            recorded_at?: string | null;
+            mailing_label?: string | null;
+            mailing_barcode?: string | null;
+            mailing_barcode_symbology?: string | null;
+            address_fingerprint?: string | null;
+            changed_fields?: string[];
+        }>;
         document_access?: {
             can_view_files: boolean;
             document_count: number;
@@ -369,6 +403,7 @@ const props = defineProps<{
     };
     relationship: {
         can_end: boolean;
+        can_delete_lead?: boolean;
         ended_at?: string | null;
         ended_reason?: string | null;
         ended_notes?: string | null;
@@ -485,13 +520,22 @@ const page = usePage<{
 }>();
 
 const clientPageTitle = computed(() => {
-    const fallbackName =
-        `${props.client.first_name ?? ''} ${props.client.last_name ?? ''}`.trim();
+    const fallbackName = [
+        props.client.first_name,
+        props.client.middle_name,
+        props.client.last_name,
+        props.client.name_suffix,
+    ]
+        .filter(Boolean)
+        .join(' ')
+        .trim();
 
     return (
         props.client.display_name || fallbackName || `Client ${props.client.id}`
     );
 });
+
+const clientRouteKey = computed(() => String(props.client.id));
 
 const clientHealth = computed(
     () =>
@@ -552,7 +596,7 @@ const clientProfileHref = (suffix = '') => {
 
     const query = params.toString();
 
-    return `/clients/${props.client.id}${suffix}${query ? `?${query}` : ''}`;
+    return `/clients/${clientRouteKey.value}${suffix}${query ? `?${query}` : ''}`;
 };
 const clientProfilePanelReturnHref = () => clientProfileHref();
 
@@ -590,6 +634,7 @@ const capturePendingDelete = ref<
 const deleteConfirmationArmed = ref(false);
 const providerSectionId = 'credit-monitoring-panel';
 const importSectionId = 'import-tools-panel';
+const billingSectionId = 'client-billing-panel';
 const relationshipSectionId = 'client-relationship-panel';
 type ClientProcessAction =
     | 'client_info'
@@ -669,6 +714,269 @@ const browserCaptureForm = useForm<{
     capture_file: null,
 });
 
+const clientProfileForm = useForm({
+    first_name: props.client.first_name ?? '',
+    middle_name: props.client.middle_name ?? '',
+    last_name: props.client.last_name ?? '',
+    name_suffix: props.client.name_suffix ?? '',
+    email: props.client.email ?? '',
+    secondary_email: props.client.secondary_email ?? '',
+    phone: props.client.phone ?? '',
+    address_line_1: props.client.address_line_1 ?? '',
+    address_line_2: props.client.address_line_2 ?? '',
+    city: props.client.city ?? '',
+    state: props.client.state ?? '',
+    postal_code: props.client.postal_code ?? '',
+    date_of_birth: props.client.date_of_birth
+        ? String(props.client.date_of_birth).slice(0, 10)
+        : '',
+    ssn: '',
+    current_score: props.client.current_score?.toString() ?? '',
+    goals: props.client.goals ?? '',
+});
+
+const clientProfileEditing = ref(false);
+
+const compactClientValue = (value?: string | number | null) => {
+    const normalized = String(value ?? '').trim();
+
+    return normalized !== '' ? normalized : 'Not set';
+};
+
+type ParsedMailingAddress = {
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+};
+
+const parseEmbeddedMailingAddress = (
+    value?: string | null,
+): ParsedMailingAddress | null => {
+    const raw = String(value ?? '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (raw === '') {
+        return null;
+    }
+
+    const commaMatch = raw.match(
+        /^(.+),\s*([^,]+),\s*([A-Za-z]{2}|[A-Za-z][A-Za-z .'-]*?)\s+(\d{5}(?:-\d{4})?)$/,
+    );
+
+    if (!commaMatch) {
+        return null;
+    }
+
+    const [, street, city, state, postalCode] = commaMatch.map((part) =>
+        part.trim(),
+    );
+
+    if (!street || !city || !state || !postalCode) {
+        return null;
+    }
+
+    return { street, city, state, postalCode };
+};
+
+const clientMailingAddress = computed(() => {
+    const parsed = parseEmbeddedMailingAddress(props.client.address_line_1);
+    const city = String(props.client.city ?? '').trim() || parsed?.city || '';
+    const state =
+        String(props.client.state ?? '').trim() || parsed?.state || '';
+    const postalCode =
+        String(props.client.postal_code ?? '').trim() ||
+        parsed?.postalCode ||
+        '';
+    const street =
+        parsed?.street || String(props.client.address_line_1 ?? '').trim();
+
+    return {
+        street,
+        addressLine2: String(props.client.address_line_2 ?? '').trim(),
+        city,
+        state,
+        postalCode,
+    };
+});
+
+const clientLocationLine = computed(() => {
+    const cityState = [
+        clientMailingAddress.value.city,
+        clientMailingAddress.value.state,
+    ]
+        .map((part) => String(part ?? '').trim())
+        .filter(Boolean)
+        .join(', ');
+
+    return [cityState, clientMailingAddress.value.postalCode]
+        .map((part) => String(part ?? '').trim())
+        .filter(Boolean)
+        .join(' ');
+});
+
+const clientHasStreetAddress = computed(() =>
+    Boolean(clientMailingAddress.value.street),
+);
+
+const clientMailingLabelLines = computed(() => {
+    const lines = [
+        props.client.display_name || 'Name missing',
+        clientHasStreetAddress.value
+            ? clientMailingAddress.value.street
+            : 'Address info missing',
+    ]
+        .map((line) => String(line ?? '').trim())
+        .filter(Boolean);
+
+    const line2 = clientMailingAddress.value.addressLine2;
+
+    if (line2 !== '') {
+        lines.push(line2);
+    }
+
+    lines.push(clientLocationLine.value || 'City, State ZIP missing');
+    lines.push('United States');
+
+    return lines;
+});
+
+const latestProfileSnapshot = computed(
+    () => props.client.profile_snapshots?.[0] ?? null,
+);
+
+const latestProfilePostalBarcodeValue = computed(() => {
+    const barcode = latestProfileSnapshot.value?.mailing_barcode;
+
+    if (barcode) {
+        return barcode;
+    }
+
+    if (!clientHasStreetAddress.value) {
+        return 'address info missing';
+    }
+
+    return clientMailingAddress.value.postalCode
+        ? 'ZIP+4 needed'
+        : 'ZIP missing';
+});
+
+const profileSnapshotCount = computed(
+    () => props.client.profile_snapshots?.length ?? 0,
+);
+
+const profileSnapshotFieldLabel = (field: string) =>
+    field
+        .replaceAll('_', ' ')
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+const profileSnapshotChangedFields = (fields?: string[]) =>
+    (fields ?? []).slice(0, 4).map(profileSnapshotFieldLabel).join(', ');
+
+const zodiacSignForDate = (value?: string | null) => {
+    const raw = String(value ?? '').trim();
+    const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+    if (!match) {
+        return null;
+    }
+
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    if (!month || !day) {
+        return null;
+    }
+
+    if ((month === 1 && day >= 20) || (month === 2 && day <= 18)) {
+        return 'Aquarius';
+    }
+
+    if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) {
+        return 'Pisces';
+    }
+
+    if ((month === 3 && day >= 21) || (month === 4 && day <= 19)) {
+        return 'Aries';
+    }
+
+    if ((month === 4 && day >= 20) || (month === 5 && day <= 20)) {
+        return 'Taurus';
+    }
+
+    if ((month === 5 && day >= 21) || (month === 6 && day <= 20)) {
+        return 'Gemini';
+    }
+
+    if ((month === 6 && day >= 21) || (month === 7 && day <= 22)) {
+        return 'Cancer';
+    }
+
+    if ((month === 7 && day >= 23) || (month === 8 && day <= 22)) {
+        return 'Leo';
+    }
+
+    if ((month === 8 && day >= 23) || (month === 9 && day <= 22)) {
+        return 'Virgo';
+    }
+
+    if ((month === 9 && day >= 23) || (month === 10 && day <= 22)) {
+        return 'Libra';
+    }
+
+    if ((month === 10 && day >= 23) || (month === 11 && day <= 21)) {
+        return 'Scorpio';
+    }
+
+    if ((month === 11 && day >= 22) || (month === 12 && day <= 21)) {
+        return 'Sagittarius';
+    }
+
+    return 'Capricorn';
+};
+
+const clientZodiacSign = computed(() =>
+    zodiacSignForDate(props.client.date_of_birth),
+);
+
+const clientProfileSummaryItems = computed(() => [
+    {
+        label: 'Email',
+        value: compactClientValue(props.client.email),
+    },
+    {
+        label: 'Phone',
+        value: compactClientValue(props.client.phone),
+    },
+    {
+        label: 'DOB',
+        value: props.client.date_of_birth
+            ? formatDate(props.client.date_of_birth)
+            : 'Not set',
+    },
+    {
+        label: 'Zodiac',
+        value: clientZodiacSign.value ?? 'DOB needed',
+    },
+    {
+        label: 'SSN',
+        value: props.client.ssn_last_four
+            ? `Ending ${props.client.ssn_last_four}`
+            : 'Not saved',
+    },
+    {
+        label: 'Current score',
+        value: props.client.current_score
+            ? formatNumber(props.client.current_score)
+            : 'N/A',
+    },
+    {
+        label: 'History',
+        value: `${profileSnapshotCount.value} snapshot${profileSnapshotCount.value === 1 ? '' : 's'}`,
+    },
+]);
+
 const providerForm = useForm({
     provider_key: props.providerCatalog[0]?.key ?? 'smartcredit',
     provider_label: props.providerCatalog[0]?.label ?? 'SmartCredit',
@@ -681,12 +989,25 @@ const providerForm = useForm({
 });
 
 const relationshipForm = useForm({
-    ended_reason: props.relationship.ended_reason ?? 'nonpayment',
+    ended_reason: props.relationship.ended_reason ?? '',
     ended_notes: props.relationship.ended_notes ?? '',
     ended_at: props.relationship.ended_at
         ? String(props.relationship.ended_at).slice(0, 10)
         : new Date().toISOString().slice(0, 10),
 });
+const manualBillingForm = useForm({
+    kind: 'cash',
+    amount: props.client.billing_profile?.amount
+        ? String(props.client.billing_profile.amount)
+        : '0.00',
+    currency: props.client.billing_profile?.currency ?? 'USD',
+    paid_at: new Date().toISOString().slice(0, 10),
+    billing_interval:
+        props.client.billing_profile?.billing_interval ?? 'monthly',
+    notes: '',
+});
+const deleteLeadForm = useForm({});
+const deleteLeadConfirmationArmed = ref(false);
 
 const aiProviderCount = computed(
     () =>
@@ -861,6 +1182,50 @@ const onboardingCampaignStarted = computed(() =>
 );
 const billingReady = computed(() =>
     Boolean(props.client.billing_profile?.status),
+);
+const manualBillingKindLabel = computed(() =>
+    String(manualBillingForm.kind)
+        .replace('cash_app', 'Cash App')
+        .replace('owner_comp', 'Owner comp')
+        .replace('pro_bono', 'Pro bono')
+        .replaceAll('_', ' ')
+        .replace(/^\w/, (character) => character.toUpperCase()),
+);
+const billingProfileSummary = computed(() => {
+    const profile = props.client.billing_profile;
+
+    if (!profile) {
+        return 'No billing profile is attached yet.';
+    }
+
+    const amount = Number.parseFloat(String(profile.amount ?? '0'));
+    const amountLabel = Number.isFinite(amount)
+        ? new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: profile.currency ?? 'USD',
+          }).format(amount)
+        : 'Amount not set';
+    const interval = profile.billing_interval
+        ? ` / ${String(profile.billing_interval).replaceAll('_', ' ')}`
+        : '';
+    const paid = profile.last_paid_at
+        ? `Last paid ${formatDate(profile.last_paid_at)}.`
+        : 'No recent paid date saved.';
+
+    return `${String(profile.status).replaceAll('_', ' ')}${interval} · ${amountLabel} · ${paid}`;
+});
+const manualBillingIsComped = computed(() =>
+    ['pro_bono', 'owner_comp'].includes(String(manualBillingForm.kind)),
+);
+
+watch(
+    () => manualBillingForm.kind,
+    (kind) => {
+        if (['pro_bono', 'owner_comp'].includes(String(kind))) {
+            manualBillingForm.amount = '0.00';
+            manualBillingForm.billing_interval = 'lifetime';
+        }
+    },
 );
 const documentSearchText = (document: ClientDocumentRecord) =>
     [
@@ -1203,7 +1568,7 @@ const runClientProcessAction = (action?: ClientProcessAction) => {
             scrollToPanel(relationshipSectionId);
             break;
         case 'billing':
-            router.get('/billing');
+            scrollToPanel(billingSectionId);
             break;
         case 'import':
             showBrowserCaptureEditor.value = true;
@@ -1678,6 +2043,13 @@ const smartCreditBureauScores = (
         }));
 };
 
+const smartCreditAvailableBureauScoreCount = (
+    capture?: (typeof props.client.browser_captures)[number] | null,
+) =>
+    smartCreditBureauScores(capture).filter(
+        (score) => score.available && parseCount(score.display) !== null,
+    ).length;
+
 const smartCreditBureauMatrixRows = (
     capture?: (typeof props.client.browser_captures)[number] | null,
 ) => {
@@ -1728,6 +2100,46 @@ const primaryScoreCaptureId = computed(
         props.scoreTimeline.source?.id ?? latestScoreCapture.value?.id ?? null,
 );
 
+const latestSmartCreditThreeBureauScoreCapture = computed(
+    () =>
+        props.client.browser_captures
+            .filter(
+                (capture) =>
+                    (capture.metadata?.smartcredit as any)?.profile ===
+                    'three_bureau_report',
+            )
+            .slice()
+            .sort(sortCapturesByImportedAt)
+            .find(
+                (capture) => smartCreditAvailableBureauScoreCount(capture) > 0,
+            ) ?? null,
+);
+
+const smartCreditThreeBureauScoreCapture = computed(
+    () =>
+        latestSmartCreditThreeBureauScoreCapture.value ??
+        latestSmartCreditThreeBureauCapture.value,
+);
+
+const smartCreditThreeBureauMatrixCapture = computed(() => {
+    const latestCapture = latestSmartCreditThreeBureauCapture.value;
+
+    if (smartCreditBureauMatrixRows(latestCapture as any).length > 0) {
+        return latestCapture;
+    }
+
+    return smartCreditThreeBureauScoreCapture.value;
+});
+
+const smartCreditThreeBureauScoreFallbackActive = computed(() =>
+    Boolean(
+        latestSmartCreditThreeBureauCapture.value &&
+        smartCreditThreeBureauScoreCapture.value &&
+        latestSmartCreditThreeBureauCapture.value.id !==
+            smartCreditThreeBureauScoreCapture.value.id,
+    ),
+);
+
 const shouldRenderCaptureChart = (
     capture: (typeof props.client.browser_captures)[number],
 ) =>
@@ -1768,14 +2180,14 @@ const smartCreditTotalReviewRows = computed(() => {
     }
 
     return smartCreditBureauMatrixRows(
-        latestSmartCreditThreeBureauCapture.value as any,
+        smartCreditThreeBureauMatrixCapture.value as any,
     ).length;
 });
 
 const smartCreditReviewedCount = computed(
     () =>
         smartCreditBureauMatrixRows(
-            latestSmartCreditThreeBureauCapture.value as any,
+            smartCreditThreeBureauMatrixCapture.value as any,
         ).filter((row) =>
             reviewedSignatureSet.value.has(smartCreditRowSignature(row)),
         ).length,
@@ -1784,7 +2196,7 @@ const smartCreditReviewedCount = computed(
 const smartCreditUtilizationTargetCount = computed(
     () =>
         smartCreditBureauMatrixRows(
-            latestSmartCreditThreeBureauCapture.value as any,
+            smartCreditThreeBureauMatrixCapture.value as any,
         ).filter((row) => {
             const utilization = parseCount(row.utilization);
 
@@ -1794,7 +2206,7 @@ const smartCreditUtilizationTargetCount = computed(
 
 const smartCreditPriorityRows = computed(() =>
     smartCreditBureauMatrixRows(
-        latestSmartCreditThreeBureauCapture.value as any,
+        smartCreditThreeBureauMatrixCapture.value as any,
     ).filter(
         (row) =>
             row.negative ||
@@ -1833,7 +2245,7 @@ const currentScoreMetric = computed(() => {
     }
 
     const availableScores = smartCreditBureauScores(
-        latestSmartCreditThreeBureauCapture.value as any,
+        smartCreditThreeBureauScoreCapture.value as any,
     )
         .map((bureau) => parseCount(bureau.display))
         .filter((score): score is number => score !== null);
@@ -1890,17 +2302,17 @@ const selectedRelationshipReason = computed(
     () =>
         props.relationship.reason_options.find(
             (reason) => reason.key === relationshipForm.ended_reason,
-        ) ??
-        props.relationship.reason_options[0] ??
-        null,
+        ) ?? null,
 );
 
 const relationshipOutcomeLabel = computed(() =>
-    selectedRelationshipReason.value?.outcome === 'graduated'
-        ? 'Graduated'
-        : selectedRelationshipReason.value?.outcome === 'canceled'
-          ? 'Canceled'
-          : 'Terminated',
+    !selectedRelationshipReason.value
+        ? 'Choose a reason'
+        : selectedRelationshipReason.value.outcome === 'graduated'
+          ? 'Graduated'
+          : selectedRelationshipReason.value.outcome === 'canceled'
+            ? 'Canceled'
+            : 'Terminated',
 );
 
 const endedRelationshipReasonLabel = computed(
@@ -1915,11 +2327,11 @@ const endedRelationshipReasonLabel = computed(
 const smartCreditBureauCards = computed(() => {
     const scoreMap = Object.fromEntries(
         smartCreditBureauScores(
-            latestSmartCreditThreeBureauCapture.value as any,
+            smartCreditThreeBureauScoreCapture.value as any,
         ).map((bureau) => [bureau.key, bureau]),
     );
     const rows = smartCreditBureauMatrixRows(
-        latestSmartCreditThreeBureauCapture.value as any,
+        smartCreditThreeBureauMatrixCapture.value as any,
     );
 
     return smartCreditBureauOrder.map((bureauKey) => {
@@ -2232,7 +2644,7 @@ const markSmartCreditRowReviewed = (
     }
 
     router.post(
-        `/clients/${props.client.id}/cycles/${activeReviewCycleId.value}/import-review/review`,
+        `/clients/${clientRouteKey.value}/cycles/${activeReviewCycleId.value}/import-review/review`,
         {
             row_signature: smartCreditRowSignature(row),
             row_name: row.name,
@@ -2252,7 +2664,7 @@ const startSmartCreditDispute = (
     }
 
     router.post(
-        `/clients/${props.client.id}/cycles/${activeReviewCycleId.value}/import-review/dispute`,
+        `/clients/${clientRouteKey.value}/cycles/${activeReviewCycleId.value}/import-review/dispute`,
         {
             row_signature: smartCreditRowSignature(row),
             row_name: row.name,
@@ -2269,20 +2681,63 @@ const startSmartCreditDispute = (
 };
 
 const createCycle = () => {
-    cycleForm.post(`/clients/${props.client.id}/cycles`, {
+    cycleForm.post(`/clients/${clientRouteKey.value}/cycles`, {
         preserveScroll: true,
         onSuccess: () => cycleForm.reset('cycle_label'),
     });
 };
 
+const saveClientProfile = () => {
+    normalizeClientNameForm(clientProfileForm);
+    clientProfileForm.phone = formatUsPhone(clientProfileForm.phone);
+
+    clientProfileForm.patch(`/clients/${clientRouteKey.value}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            clientProfileForm.reset('ssn');
+            clientProfileEditing.value = false;
+        },
+    });
+};
+
+const normalizeClientProfileName = () => {
+    normalizeClientNameForm(clientProfileForm);
+};
+
 const endClientRelationship = () => {
-    relationshipForm.post(`/clients/${props.client.id}/end-relationship`, {
+    relationshipForm.post(`/clients/${clientRouteKey.value}/end-relationship`, {
         preserveScroll: true,
     });
 };
 
+const saveManualBilling = () => {
+    manualBillingForm.post(`/clients/${clientRouteKey.value}/billing/manual`, {
+        preserveScroll: true,
+        onSuccess: () => manualBillingForm.reset('notes'),
+    });
+};
+
+const armDeleteLead = () => {
+    deleteLeadConfirmationArmed.value = true;
+};
+
+const deleteLead = () => {
+    if (!deleteLeadConfirmationArmed.value) {
+        armDeleteLead();
+
+        return;
+    }
+
+    deleteLeadForm.delete(`/clients/${clientRouteKey.value}`, {
+        preserveScroll: false,
+        onFinish: () => {
+            deleteLeadConfirmationArmed.value = false;
+        },
+    });
+};
+
 const importSnapshot = () => {
-    snapshotForm.post(`/clients/${props.client.id}/snapshots`, {
+    snapshotForm.post(`/clients/${clientRouteKey.value}/snapshots`, {
         forceFormData: true,
         preserveScroll: true,
         onSuccess: () => {
@@ -2324,35 +2779,38 @@ const handleBrowserCaptureFile = (event: Event) => {
 };
 
 const importBrowserCapture = () => {
-    browserCaptureForm.post(`/clients/${props.client.id}/browser-captures`, {
-        forceFormData: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            browserCaptureForm.reset(
-                'page_title',
-                'page_url',
-                'html',
-                'capture_file',
-            );
-            browserCaptureForm.reporting_cycle_id =
-                props.cycles[0]?.id?.toString() ?? '';
-            browserCaptureForm.source_type = 'dom_capture';
-            browserCaptureForm.browser_name = 'CreditSoft companion';
-            showBrowserCaptureEditor.value = false;
-
-            if (importPanelRequested.value) {
-                router.get(
-                    clientProfilePanelReturnHref(),
-                    {},
-                    {
-                        preserveScroll: true,
-                        preserveState: true,
-                        replace: true,
-                    },
+    browserCaptureForm.post(
+        `/clients/${clientRouteKey.value}/browser-captures`,
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                browserCaptureForm.reset(
+                    'page_title',
+                    'page_url',
+                    'html',
+                    'capture_file',
                 );
-            }
+                browserCaptureForm.reporting_cycle_id =
+                    props.cycles[0]?.id?.toString() ?? '';
+                browserCaptureForm.source_type = 'dom_capture';
+                browserCaptureForm.browser_name = 'CreditSoft companion';
+                showBrowserCaptureEditor.value = false;
+
+                if (importPanelRequested.value) {
+                    router.get(
+                        clientProfilePanelReturnHref(),
+                        {},
+                        {
+                            preserveScroll: true,
+                            preserveState: true,
+                            replace: true,
+                        },
+                    );
+                }
+            },
         },
-    });
+    );
 };
 
 const resetProviderForm = () => {
@@ -2395,7 +2853,7 @@ const startSmartCreditSetup = () => {
 };
 
 const saveProvider = () => {
-    providerForm.post(`/clients/${props.client.id}/providers`, {
+    providerForm.post(`/clients/${clientRouteKey.value}/providers`, {
         preserveScroll: true,
         onSuccess: () => {
             resetProviderForm();
@@ -2417,7 +2875,7 @@ const saveProvider = () => {
 };
 
 const removeProvider = (provider: (typeof props.providers)[number]) => {
-    router.delete(`/clients/${props.client.id}/providers/${provider.id}`, {
+    router.delete(`/clients/${clientRouteKey.value}/providers/${provider.id}`, {
         preserveScroll: true,
         onSuccess: () => {
             delete revealedProviderCredentials[provider.id];
@@ -2458,7 +2916,7 @@ const revealProviderCredentials = async (
 
     try {
         const response = await fetch(
-            `/clients/${props.client.id}/providers/${provider.id}/credentials`,
+            `/clients/${clientRouteKey.value}/providers/${provider.id}/credentials`,
             {
                 credentials: 'same-origin',
                 headers: {
@@ -2561,7 +3019,7 @@ const deleteBrowserCapture = () => {
     }
 
     router.delete(
-        `/clients/${props.client.id}/browser-captures/${capturePendingDelete.value.id}`,
+        `/clients/${clientRouteKey.value}/browser-captures/${capturePendingDelete.value.id}`,
         {
             preserveScroll: true,
             onSuccess: () => {
@@ -2585,7 +3043,7 @@ const pruneBrowserCaptureDuplicates = () => {
     }
 
     router.delete(
-        `/clients/${props.client.id}/browser-captures/prune-duplicates`,
+        `/clients/${clientRouteKey.value}/browser-captures/prune-duplicates`,
         {
             preserveScroll: true,
         },
@@ -2684,6 +3142,600 @@ const pruneBrowserCaptureDuplicates = () => {
                         {{ metric.hint }}
                     </p>
                 </div>
+            </div>
+        </section>
+
+        <section
+            v-if="!focusPanelMode"
+            :id="billingSectionId"
+            class="mr-5 ml-10 scroll-mt-24 rounded-[28px] border border-stone-300/70 bg-white/85 p-5 shadow-sm"
+        >
+            <div
+                class="flex flex-wrap items-start justify-between gap-4 border-b border-stone-300/70 pb-4"
+            >
+                <div class="flex min-w-0 items-start gap-3">
+                    <FontAwesomeIcon
+                        :icon="faMoneyBillWave"
+                        class="mt-1 h-5 w-5 text-emerald-700"
+                    />
+                    <div class="min-w-0">
+                        <p
+                            class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"
+                        >
+                            Billing access
+                        </p>
+                        <h2
+                            class="mt-1 text-xl font-semibold tracking-tight text-stone-950"
+                        >
+                            Manual payment, pro bono, or owner comp
+                        </h2>
+                        <p class="mt-2 text-sm leading-6 text-stone-600">
+                            {{ billingProfileSummary }}
+                        </p>
+                    </div>
+                </div>
+                <div class="text-left sm:text-right">
+                    <p
+                        class="text-[11px] font-medium tracking-[0.22em] text-stone-500 uppercase"
+                    >
+                        Client ID
+                    </p>
+                    <p class="mt-1 font-mono text-sm text-stone-900">
+                        {{ client.cuid ?? client.id }}
+                    </p>
+                </div>
+            </div>
+
+            <form
+                class="mt-5 grid gap-4 xl:grid-cols-[0.82fr_0.52fr_0.52fr_0.52fr_1fr_auto]"
+                @submit.prevent="saveManualBilling"
+            >
+                <div class="space-y-2">
+                    <label
+                        class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                        >Record type</label
+                    >
+                    <select
+                        v-model="manualBillingForm.kind"
+                        class="h-11 w-full rounded-xl border border-input bg-transparent px-3 text-sm"
+                    >
+                        <option value="cash">Cash</option>
+                        <option value="zelle">Zelle</option>
+                        <option value="cash_app">Cash App</option>
+                        <option value="check">Check</option>
+                        <option value="manual">Manual</option>
+                        <option value="pro_bono">Pro bono</option>
+                        <option value="owner_comp">Owner comp</option>
+                    </select>
+                    <p
+                        v-if="manualBillingForm.errors.kind"
+                        class="text-xs text-rose-700"
+                    >
+                        {{ manualBillingForm.errors.kind }}
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                        >Amount</label
+                    >
+                    <Input
+                        v-model="manualBillingForm.amount"
+                        inputmode="decimal"
+                        :disabled="manualBillingIsComped"
+                    />
+                    <p
+                        v-if="manualBillingForm.errors.amount"
+                        class="text-xs text-rose-700"
+                    >
+                        {{ manualBillingForm.errors.amount }}
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                        >Paid on</label
+                    >
+                    <Input v-model="manualBillingForm.paid_at" type="date" />
+                    <p
+                        v-if="manualBillingForm.errors.paid_at"
+                        class="text-xs text-rose-700"
+                    >
+                        {{ manualBillingForm.errors.paid_at }}
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                        >Term</label
+                    >
+                    <select
+                        v-model="manualBillingForm.billing_interval"
+                        class="h-11 w-full rounded-xl border border-input bg-transparent px-3 text-sm"
+                    >
+                        <option value="monthly">Monthly</option>
+                        <option value="annual">Annual</option>
+                        <option value="one_time">One-time</option>
+                        <option value="lifetime">Lifetime</option>
+                    </select>
+                    <p
+                        v-if="manualBillingForm.errors.billing_interval"
+                        class="text-xs text-rose-700"
+                    >
+                        {{ manualBillingForm.errors.billing_interval }}
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <label
+                        class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                        >Note</label
+                    >
+                    <Input
+                        v-model="manualBillingForm.notes"
+                        :placeholder="`${manualBillingKindLabel} note`"
+                    />
+                    <p
+                        v-if="manualBillingForm.errors.notes"
+                        class="text-xs text-rose-700"
+                    >
+                        {{ manualBillingForm.errors.notes }}
+                    </p>
+                </div>
+
+                <div class="flex items-end">
+                    <button
+                        type="submit"
+                        class="h-11 rounded-full bg-stone-950 px-4 text-xs font-medium tracking-[0.2em] whitespace-nowrap text-stone-50 uppercase transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        :disabled="manualBillingForm.processing"
+                    >
+                        {{
+                            manualBillingForm.processing
+                                ? 'Saving...'
+                                : 'Save billing'
+                        }}
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section
+            v-if="!focusPanelMode"
+            class="mr-5 ml-10 rounded-[28px] border border-stone-300/70 bg-white/85 p-5 shadow-sm"
+        >
+            <div class="space-y-5">
+                <div
+                    class="flex items-start justify-between gap-4 border-b border-stone-300/70 pb-4"
+                >
+                    <div>
+                        <p
+                            class="text-[11px] font-medium tracking-[0.32em] text-stone-500 uppercase"
+                        >
+                            Personal & contact info
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        class="-mt-1 inline-flex items-center gap-2 text-sm font-medium text-stone-500 transition hover:text-stone-950"
+                        :aria-label="
+                            clientProfileEditing
+                                ? 'Close profile editor'
+                                : 'Edit personal and contact info'
+                        "
+                        :title="
+                            clientProfileEditing
+                                ? 'Close editor'
+                                : 'Edit profile'
+                        "
+                        @click="clientProfileEditing = !clientProfileEditing"
+                    >
+                        <FontAwesomeIcon :icon="faPencil" class="text-lg" />
+                        <span class="sr-only">
+                            {{ clientProfileEditing ? 'Close edit' : 'Edit' }}
+                        </span>
+                    </button>
+                </div>
+
+                <div
+                    v-if="!clientProfileEditing"
+                    class="grid gap-6 xl:grid-cols-[minmax(22rem,1.15fr)_minmax(20rem,0.9fr)_minmax(16rem,0.7fr)]"
+                >
+                    <div>
+                        <p
+                            class="text-[11px] font-semibold tracking-[0.24em] text-stone-500 uppercase"
+                        >
+                            Mail to
+                        </p>
+
+                        <address
+                            class="mt-4 min-h-32 space-y-1 font-serif text-xl leading-7 text-stone-950 not-italic"
+                        >
+                            <span
+                                v-for="line in clientMailingLabelLines"
+                                :key="line"
+                                class="block"
+                            >
+                                {{ line }}
+                            </span>
+                        </address>
+
+                        <p
+                            class="mt-4 font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase"
+                        >
+                            Client ID {{ client.cuid || `local-${client.id}` }}
+                        </p>
+
+                        <div
+                            class="mt-5 border-t border-dashed border-stone-300 pt-3"
+                        >
+                            <p
+                                class="font-mono text-[11px] tracking-[0.18em] text-stone-500 uppercase"
+                            >
+                                Barcode {{ latestProfilePostalBarcodeValue }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid content-start gap-3 sm:grid-cols-2">
+                        <div
+                            v-for="item in clientProfileSummaryItems"
+                            :key="item.label"
+                            class="border-t border-stone-200 pt-3"
+                        >
+                            <p
+                                class="text-[10px] font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >
+                                {{ item.label }}
+                            </p>
+                            <p class="mt-1 text-sm font-medium text-stone-950">
+                                {{ item.value }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="content-start">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p
+                                    class="text-[11px] font-medium tracking-[0.24em] text-stone-500 uppercase"
+                                >
+                                    Profile history
+                                </p>
+                                <p
+                                    class="mt-1 text-xs leading-5 text-stone-600"
+                                >
+                                    {{ profileSnapshotCount }} saved
+                                    {{
+                                        profileSnapshotCount === 1
+                                            ? 'record'
+                                            : 'records'
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            v-if="client.profile_snapshots?.length"
+                            class="mt-3 space-y-3"
+                        >
+                            <div
+                                v-for="snapshot in client.profile_snapshots.slice(
+                                    0,
+                                    3,
+                                )"
+                                :key="snapshot.id"
+                                class="border-t border-stone-200 pt-3"
+                            >
+                                <div
+                                    class="flex items-start justify-between gap-3"
+                                >
+                                    <p
+                                        class="text-sm font-medium text-stone-950"
+                                    >
+                                        {{
+                                            snapshot.source_label ||
+                                            snapshot.source ||
+                                            'Profile update'
+                                        }}
+                                    </p>
+                                    <p class="text-[11px] text-stone-500">
+                                        {{
+                                            formatDateTime(snapshot.recorded_at)
+                                        }}
+                                    </p>
+                                </div>
+                                <p
+                                    class="mt-1 text-xs leading-5 text-stone-600"
+                                >
+                                    {{
+                                        profileSnapshotChangedFields(
+                                            snapshot.changed_fields,
+                                        ) || 'Initial profile snapshot'
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+                        <p v-else class="mt-4 text-sm leading-6 text-stone-600">
+                            No profile snapshots yet.
+                        </p>
+                    </div>
+                </div>
+
+                <form
+                    v-if="clientProfileEditing"
+                    class="space-y-5"
+                    @submit.prevent="saveClientProfile"
+                >
+                    <div class="space-y-6">
+                        <div>
+                            <p
+                                class="text-xs font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >
+                                Legal name
+                            </p>
+                            <div class="mt-3 grid gap-4 lg:grid-cols-4">
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >First name</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.first_name"
+                                        autocomplete="given-name"
+                                        @blur="normalizeClientProfileName"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Middle name</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.middle_name"
+                                        autocomplete="additional-name"
+                                        @blur="normalizeClientProfileName"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Last name</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.last_name"
+                                        autocomplete="family-name"
+                                        @blur="normalizeClientProfileName"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Suffix</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.name_suffix"
+                                        autocomplete="honorific-suffix"
+                                        placeholder="Jr, Sr, III"
+                                        @blur="normalizeClientProfileName"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p
+                                class="text-xs font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >
+                                Contact
+                            </p>
+                            <div
+                                class="mt-3 grid gap-4 lg:grid-cols-2 xl:grid-cols-4"
+                            >
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Email</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.email"
+                                        type="email"
+                                        autocomplete="email"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Phone</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.phone"
+                                        autocomplete="tel"
+                                        @blur="
+                                            clientProfileForm.phone =
+                                                formatUsPhone(
+                                                    clientProfileForm.phone,
+                                                )
+                                        "
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Secondary email</span
+                                    >
+                                    <Input
+                                        v-model="
+                                            clientProfileForm.secondary_email
+                                        "
+                                        type="email"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p
+                                class="text-xs font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >
+                                Address
+                            </p>
+                            <div
+                                class="mt-3 grid gap-4 lg:grid-cols-2 xl:grid-cols-4"
+                            >
+                                <label class="space-y-2 lg:col-span-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Street address</span
+                                    >
+                                    <Input
+                                        v-model="
+                                            clientProfileForm.address_line_1
+                                        "
+                                        autocomplete="address-line1"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Apt / suite</span
+                                    >
+                                    <Input
+                                        v-model="
+                                            clientProfileForm.address_line_2
+                                        "
+                                        autocomplete="address-line2"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >City</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.city"
+                                        autocomplete="address-level2"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >State</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.state"
+                                        autocomplete="address-level1"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Postal code</span
+                                    >
+                                    <Input
+                                        v-model="clientProfileForm.postal_code"
+                                        autocomplete="postal-code"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p
+                                class="text-xs font-semibold tracking-[0.2em] text-stone-500 uppercase"
+                            >
+                                Personal details
+                            </p>
+                            <div class="mt-3 grid gap-4 lg:grid-cols-3">
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Date of birth</span
+                                    >
+                                    <Input
+                                        v-model="
+                                            clientProfileForm.date_of_birth
+                                        "
+                                        type="date"
+                                        autocomplete="bday"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                        >Current score</span
+                                    >
+                                    <Input
+                                        v-model="
+                                            clientProfileForm.current_score
+                                        "
+                                        inputmode="numeric"
+                                    />
+                                </label>
+                                <label class="space-y-2">
+                                    <span
+                                        class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                                    >
+                                        SSN
+                                    </span>
+                                    <Input
+                                        v-model="clientProfileForm.ssn"
+                                        autocomplete="off"
+                                        inputmode="numeric"
+                                        placeholder="Enter when available"
+                                        type="password"
+                                    />
+                                    <p class="text-xs leading-5 text-stone-500">
+                                        {{
+                                            client.ssn_last_four
+                                                ? `Stored ending ${client.ssn_last_four}. Full number is never shown here.`
+                                                : 'Not saved yet. Save the full number or last four when the office has it.'
+                                        }}
+                                    </p>
+                                    <p
+                                        v-if="clientProfileForm.errors.ssn"
+                                        class="text-xs text-rose-700"
+                                    >
+                                        {{ clientProfileForm.errors.ssn }}
+                                    </p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="block space-y-2">
+                        <span
+                            class="text-[11px] font-medium tracking-[0.2em] text-stone-500 uppercase"
+                            >Goals / intake notes</span
+                        >
+                        <Textarea
+                            v-model="clientProfileForm.goals"
+                            class="min-h-24"
+                        />
+                    </label>
+
+                    <div class="flex items-center justify-end gap-3">
+                        <p
+                            v-if="clientProfileForm.recentlySuccessful"
+                            class="text-sm font-medium text-emerald-700"
+                        >
+                            Saved.
+                        </p>
+                        <button
+                            type="submit"
+                            class="rounded-full bg-stone-950 px-4 py-2 text-xs font-medium tracking-[0.22em] text-stone-50 uppercase transition hover:bg-stone-800 disabled:opacity-50"
+                            :disabled="clientProfileForm.processing"
+                        >
+                            {{
+                                clientProfileForm.processing
+                                    ? 'Saving'
+                                    : 'Save profile'
+                            }}
+                        </button>
+                    </div>
+                </form>
             </div>
         </section>
 
@@ -2983,6 +4035,20 @@ const pruneBrowserCaptureDuplicates = () => {
                                 )
                             }}
                         </p>
+                        <p
+                            v-if="smartCreditThreeBureauScoreFallbackActive"
+                            class="mt-2 text-xs font-medium text-amber-700"
+                        >
+                            Latest capture did not include bureau scores; using
+                            the most recent scored SmartCredit report from
+                            {{
+                                smartCreditThreeBureauScoreCapture?.imported_at
+                                    ? formatCaptureTimestamp(
+                                          smartCreditThreeBureauScoreCapture.imported_at,
+                                      )
+                                    : 'the prior capture'
+                            }}.
+                        </p>
                     </div>
                     <div class="text-right">
                         <p
@@ -3152,7 +4218,7 @@ const pruneBrowserCaptureDuplicates = () => {
                     <div
                         v-if="
                             smartCreditBureauMatrixRows(
-                                latestSmartCreditThreeBureauCapture,
+                                smartCreditThreeBureauMatrixCapture,
                             ).length
                         "
                         class="space-y-3 rounded-[24px] border border-stone-300/70 bg-white/90 p-5"
@@ -3214,7 +4280,7 @@ const pruneBrowserCaptureDuplicates = () => {
 
                             <div
                                 v-for="row in smartCreditBureauMatrixRows(
-                                    latestSmartCreditThreeBureauCapture,
+                                    smartCreditThreeBureauMatrixCapture,
                                 )"
                                 :key="`${row.name}-${row.status ?? 'row'}`"
                                 class="grid grid-cols-[minmax(0,1.25fr)_minmax(0,0.62fr)_minmax(0,0.62fr)_minmax(0,0.62fr)_minmax(0,0.95fr)] gap-px border-t border-stone-300/70 bg-stone-300/70 text-sm"
@@ -3347,7 +4413,7 @@ const pruneBrowserCaptureDuplicates = () => {
                                         </button>
                                         <a
                                             v-if="hasSmartCreditDispute(row)"
-                                            :href="`/clients/${client.id}/violations`"
+                                            :href="`/clients/${clientRouteKey}/violations`"
                                             class="inline-flex items-center rounded-full border border-stone-300 bg-white px-3 py-1 text-[11px] font-medium tracking-[0.16em] text-stone-700 uppercase transition hover:border-stone-500"
                                         >
                                             Open disputes
@@ -4065,6 +5131,10 @@ const pruneBrowserCaptureDuplicates = () => {
                                 v-model="relationshipForm.ended_reason"
                                 class="h-10 w-full rounded-xl border border-input bg-transparent px-3 text-sm"
                             >
+                                <option value="" disabled>
+                                    Choose only when this client is actually
+                                    ending
+                                </option>
                                 <option
                                     v-for="reason in relationship.reason_options"
                                     :key="reason.key"
@@ -4074,7 +5144,10 @@ const pruneBrowserCaptureDuplicates = () => {
                                 </option>
                             </select>
                             <p class="text-sm text-stone-600">
-                                {{ selectedRelationshipReason?.description }}
+                                {{
+                                    selectedRelationshipReason?.description ??
+                                    'This client is still active/intake until you choose a reason and submit this form.'
+                                }}
                             </p>
                             <p
                                 v-if="relationshipForm.errors.ended_reason"
@@ -4117,12 +5190,16 @@ const pruneBrowserCaptureDuplicates = () => {
                                 </p>
                                 <p class="mt-1 text-sm text-stone-600">
                                     {{
-                                        relationshipOutcomeLabel === 'Graduated'
-                                            ? 'Use this when the client no longer needs help or goals were met.'
+                                        relationshipOutcomeLabel ===
+                                        'Choose a reason'
+                                            ? 'No relationship change has been selected.'
                                             : relationshipOutcomeLabel ===
-                                                'Canceled'
-                                              ? 'Use this when the client asked to cancel before the work was finished.'
-                                              : 'Use this when the office is ending the relationship early.'
+                                                'Graduated'
+                                              ? 'Use this when the client no longer needs help or goals were met.'
+                                              : relationshipOutcomeLabel ===
+                                                  'Canceled'
+                                                ? 'Use this when the client asked to cancel before the work was finished.'
+                                                : 'Use this when the office is ending the relationship early.'
                                     }}
                                 </p>
                             </div>
@@ -4148,16 +5225,23 @@ const pruneBrowserCaptureDuplicates = () => {
                         <button
                             type="submit"
                             class="rounded-full border border-rose-300 bg-rose-50 px-4 py-2 text-xs font-medium tracking-[0.22em] text-rose-800 uppercase transition hover:border-rose-400"
-                            :disabled="relationshipForm.processing"
+                            :disabled="
+                                relationshipForm.processing ||
+                                !relationshipForm.ended_reason
+                            "
                         >
                             {{
                                 relationshipForm.processing
                                     ? 'Saving…'
-                                    : relationshipOutcomeLabel === 'Graduated'
-                                      ? 'Move to Graduated'
-                                      : relationshipOutcomeLabel === 'Canceled'
-                                        ? 'Move to Canceled'
-                                        : 'Fire client without deleting'
+                                    : relationshipOutcomeLabel ===
+                                        'Choose a reason'
+                                      ? 'Choose ending reason'
+                                      : relationshipOutcomeLabel === 'Graduated'
+                                        ? 'Move to Graduated'
+                                        : relationshipOutcomeLabel ===
+                                            'Canceled'
+                                          ? 'Move to Canceled'
+                                          : 'Fire client without deleting'
                             }}
                         </button>
                     </form>
@@ -4184,7 +5268,52 @@ const pruneBrowserCaptureDuplicates = () => {
                     </div>
                 </div>
 
-                <div v-else class="mt-4 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+                <div
+                    v-if="relationship.can_delete_lead"
+                    class="mt-4 rounded-[24px] border border-rose-300/80 bg-rose-50/75 p-4"
+                >
+                    <div
+                        class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+                    >
+                        <div>
+                            <p
+                                class="text-[11px] font-medium tracking-[0.28em] text-rose-800 uppercase"
+                            >
+                                Delete lead
+                            </p>
+                            <p class="mt-2 text-sm leading-6 text-rose-950">
+                                Remove this lead from the intake queue. Use this
+                                only for junk/test leads, duplicates, or leads
+                                that should not stay in the roster.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            class="inline-flex h-10 shrink-0 items-center rounded-md border border-rose-300 bg-white px-4 text-xs font-medium tracking-[0.18em] text-rose-800 uppercase shadow-sm transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            :disabled="deleteLeadForm.processing"
+                            @click="deleteLead"
+                        >
+                            {{
+                                deleteLeadForm.processing
+                                    ? 'Deleting...'
+                                    : deleteLeadConfirmationArmed
+                                      ? 'Confirm delete lead'
+                                      : 'Delete lead'
+                            }}
+                        </button>
+                    </div>
+                    <p
+                        v-if="deleteLeadForm.errors.client"
+                        class="mt-3 text-xs text-rose-800"
+                    >
+                        {{ deleteLeadForm.errors.client }}
+                    </p>
+                </div>
+
+                <div
+                    v-if="!relationship.can_end"
+                    class="mt-4 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]"
+                >
                     <div
                         class="rounded-[24px] border border-stone-300/70 bg-stone-50/80 p-4"
                     >

@@ -161,7 +161,7 @@ const saveReviewLabelStyle = () => {
                         <div class="space-y-3 rounded-[24px] border border-stone-300/70 bg-white/85 p-4">
                             <p class="text-[11px] font-medium uppercase tracking-[0.22em] text-stone-500">What changes</p>
                             <ul class="space-y-2 text-sm leading-6 text-stone-700">
-                                <li>Smaller review markers across SmartCredit import surfaces.</li>
+                                <li>Smaller review markers across SmartCredit report surfaces.</li>
                                 <li>Hover text still explains the icon meaning where needed.</li>
                                 <li>Theme remains your browser preference, not the office default.</li>
                             </ul>

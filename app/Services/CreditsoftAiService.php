@@ -406,6 +406,79 @@ class CreditsoftAiService
     }
 
     /**
+     * @param  array<string, mixed>  $event
+     * @param  array<string, mixed>  $signals
+     * @param  array<string, mixed>  $fallback
+     * @return array{title:string,summary:string,next_action:string,priority:string,channel:string,draft_message:string,crm_note:string,confidence:string,meta:array<string,mixed>}
+     */
+    public function generateCrmAutomationPlan(?Client $client, array $event, array $signals, array $fallback): array
+    {
+        $eventJson = json_encode($event, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
+        $signalsJson = json_encode($signals, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
+        $fallbackJson = json_encode($fallback, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}';
+        $clientContext = $client ? $this->buildClientContext($client, $client->reportingCycles()->first()) : 'No matching CreditSoft client was found.';
+
+        $result = $this->generateStructured(
+            task: 'oversight',
+            instructions: 'You are CreditSoft campaign intelligence running outside the CRM. Decide the next practical follow-up from a Twenty CRM webhook using CreditSoft client context. Do not invent facts, do not promise credit outcomes, do not ask clients to text passwords or SSNs, and do not send anything automatically. Prefer SMS draft only when the action is short, consent-safe, and client-facing. Return concise JSON.',
+            prompt: trim(<<<PROMPT
+            A CRM webhook arrived. Decide the next CreditSoft campaign action.
+
+            CRM event:
+            {$eventJson}
+
+            CreditSoft signals:
+            {$signalsJson}
+
+            Rule fallback:
+            {$fallbackJson}
+
+            Client context:
+            {$clientContext}
+
+            Requirements:
+            - Keep the title under 90 characters.
+            - priority must be one of: low, normal, high.
+            - channel must be one of: task, email_draft, sms_draft, note.
+            - next_action should be one concrete operator action.
+            - draft_message can be blank unless email_draft or sms_draft is appropriate.
+            - crm_note should be safe to write back into CRM as an internal timeline note.
+            PROMPT),
+            schema: fn (JsonSchema $schema) => [
+                'title' => $schema->string()->required(),
+                'summary' => $schema->string()->required(),
+                'next_action' => $schema->string()->required(),
+                'priority' => $schema->string()->required(),
+                'channel' => $schema->string()->required(),
+                'draft_message' => $schema->string()->required(),
+                'crm_note' => $schema->string()->required(),
+                'confidence' => $schema->string()->required(),
+            ],
+            requiredKeys: ['title', 'summary', 'next_action', 'priority', 'channel', 'draft_message', 'crm_note', 'confidence'],
+        );
+
+        $structured = Arr::get($result, 'structured', []);
+        $priority = in_array($structured['priority'] ?? null, ['low', 'normal', 'high'], true)
+            ? (string) $structured['priority']
+            : (string) ($fallback['priority'] ?? 'normal');
+        $channel = in_array($structured['channel'] ?? null, ['task', 'email_draft', 'sms_draft', 'note'], true)
+            ? (string) $structured['channel']
+            : (string) ($fallback['channel'] ?? 'task');
+
+        return [
+            'title' => Str::limit(trim((string) ($structured['title'] ?? $fallback['title'] ?? 'CRM automation review')), 90, ''),
+            'summary' => trim((string) ($structured['summary'] ?? $fallback['summary'] ?? 'Review the CRM event and decide the next action.')),
+            'next_action' => trim((string) ($structured['next_action'] ?? $fallback['next_action'] ?? 'Review the CRM event.')),
+            'priority' => $priority,
+            'channel' => $channel,
+            'draft_message' => trim((string) ($structured['draft_message'] ?? $fallback['draft_message'] ?? '')),
+            'crm_note' => trim((string) ($structured['crm_note'] ?? $fallback['crm_note'] ?? 'CreditSoft received a CRM automation event.')),
+            'confidence' => trim((string) ($structured['confidence'] ?? 'medium')),
+            'meta' => Arr::get($result, 'meta', []),
+        ];
+    }
+
+    /**
      * @param  callable(JsonSchema):array<string,mixed>  $schema
      * @return array{structured:array<string,mixed>,meta:array<string,mixed>}
      */

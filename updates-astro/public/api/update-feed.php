@@ -1,12 +1,26 @@
 {
     "product": "CreditSoft Intranet",
     "channel": "stable",
-    "latest_version": "2026.4.28.6",
-    "latest_build": "2026.4.28.6",
-    "published_at": "2026-04-28T11:52:22-07:00",
-    "headline": "CreditSoft 2026.4.28.6 CRM PWA bridge is ready",
-    "summary": "Keeps the CRM inside the CreditSoft PWA and restores the existing CRM-user recovery/roster bridge.",
+    "latest_version": "2026.5.6.4",
+    "latest_build": "2026.5.6.4",
+    "published_at": "2026-05-06T08:03:27+00:00",
+    "headline": "CreditSoft 2026.5.6.4 is ready",
+    "summary": "CreditSoft office package 2026.5.6.4 fixes local PWA asset routing for Zelle renewal images and publishes the matching employee intranet client.",
     "notes": [
+        "CreditSoft 2026.5.6.4 fixes the local PWA router so intranet assets such as Zelle logos and renewal QR codes load from the office server instead of the CRM sidecar.",
+        "Browser companion 2026.5.6.4 adds a dedicated Files pass, keeps Font Awesome-style action icons unwrapped, retries real DisputeFox downloads after tiny previews, and reconciles local inbox files back onto staged records.",
+        "CreditSoft 2026.5.6.3 keeps DisputeFox record-list pages, including Invoices, in the list importer so invoice rows no longer ask for a client email or name.",
+        "CreditSoft 2026.5.6.3 skips tiny DisputeFox preview images while still keeping real PDF and large JPG document evidence.",
+        "CreditSoft 2026.5.6.3 publishes the browser companion from a stable reload folder and update ZIP so Chrome can reload without changing extension folders.",
+        "Browser companion 2026.5.5.9 keeps the Stop button visible in the sidepanel at all times, disabled while idle and enabled while provider updates are running.",
+        "Browser companion 2026.5.5.8 keeps provider report pulls client-first, so SmartCredit, IdentityIQ, MyScoreIQ, Credit Karma, and configured provider rows for the same client get a turn before the runner moves to another client.",
+        "Browser companion 2026.5.5.7 keeps intake clients in the provider report queue, stamps queued SmartCredit accounts only after the final capture page, and refuses provider rows whose encrypted password cannot be decrypted on the current office node.",
+        "Browser companion 2026.5.5.6 clears stale selected SmartCredit cards before starting Update, so a future-due client cannot be forced back into the runner.",
+        "Browser companion 2026.5.5.6 treats the main Update button as a fresh queue check instead of a force-run for the visible card.",
+        "Browser companion 2026.5.5.5 rechecks the active SmartCredit runner against the server queue before continuing, so already-imported clients stay skipped until they are due again.",
+        "Browser companion 2026.5.5.5 marks provider logins that never reach a report page for review and advances the queue instead of retrying the same name all day.",
+        "Browser companion 2026.5.5.4 keeps manual SmartCredit force runs to the selected client only, then returns the queue to unprocessed or due accounts.",
+        "Browser companion 2026.5.5.4 now publishes from a stable creditsoft-browser-companion.zip package so Chrome can reload the same unpacked extension folder after updates.",
         "CreditSoft 2026.4.28.6 changes the left-rail CRM item to open a same-origin /crm workspace so installed PWA sessions do not jump to the regular browser.",
         "CreditSoft 2026.4.28.6 restores the CRM launch bridge logic that repairs existing CRM users, retries token login, and syncs the CreditSoft roster into the CRM sidecar.",
         "CreditSoft 2026.4.28.5 mirrors provider, tunnel, mail, payment, CRM, and backup env families into the generated Laravel .env so web requests see OpenRouter and related keys after container recreates.",
@@ -83,7 +97,7 @@
         "Violations are easier to find again: the CFO Open violations metric and the footer Violations link both open /violations.",
         "Included access now says Included or Not included instead of showing Enabled or Off.",
         "Office profile now reads as three rows for Company, Admin Email, and Tailscale Host instead of crowding all three values across one row.",
-        "The old /ops shortcut now lands on the violations queue so existing links and the 43-count badge reach the actual review work instead of Connectivity.",
+        "The previous /ops shortcut now lands on the violations queue so existing links and the 43-count badge reach the actual review work instead of Connectivity.",
         "The License / Office updates changelog is now grouped by CreditSoft version, with the latest version expanded by default and older versions tucked under their own disclosures.",
         "The renewal payment copy now says to scan the live Zelle QR instead of calling the code a placeholder.",
         "The update-lane checkout and renewal pages now prefer the same live Zelle QR asset before falling back to generated QR text.",
@@ -109,7 +123,7 @@
         "The default side panel now says Update / Provider reports with an Update button, report-update queue language, and report-pull empty states.",
         "The logo import menu now opens Import / DisputeFox import with Import profiles, Import lists, and Import page actions for legacy CRM records, saved reports, documents, invoices, leads, and workflows.",
         "Pulse / DisputeFox now uses the primary Process action to open client and lead profiles, sync full details, and stage/download reports and documents where Pulse allows file access.",
-        "Import lists now only stages visible Pulse rows. The old separate-flow wording was removed from the companion surface so it is clearer what each button does.",
+        "Import lists now only stages visible Pulse rows. The previous separate-flow wording was removed from the companion surface so it is clearer what each button does.",
         "Opening the import systems menu no longer triggers SmartCredit/IdentityIQ provider queue checks, which prevents misleading no client-ready messages while working in Pulse.",
         "Pulse credit reports are now included in document capture instead of being filtered out before import.",
         "Pulse list capture now keeps up to 250 visible rows per list so profile processing can cover larger imported pages.",
@@ -158,7 +172,7 @@
         "The companion now detects the Pulse multiple simultaneous logins modal and clicks Continue and Logout other sessions before trying to process the page.",
         "The DisputeFox source item now opens https://pulse.disputeprocess.com/jsp/client/login.jsp?cdn/ when the active tab is not already on Pulse.",
         "Companion copy now says DisputeFox / Pulse and Pulse credentials instead of implying the login starts at plain DisputeFox.com.",
-        "The Pulse importer now reads old-school table rows, label/value text, definition lists, body lines, and same-tab frames instead of only modern input fields.",
+        "The Pulse importer now reads classic table rows, label/value text, definition lists, body lines, and same-tab frames instead of only modern input fields.",
         "If Pulse still does not expose a recognizable client profile, the companion reports the labels it did see so the mapper can be tightened quickly.",
         "Clicking the companion wordmark now opens an actual dropdown under the logo instead of only revealing a lower hidden section.",
         "The side panel now registers the logo click handler correctly, so the import menu works in the main companion surface.",
@@ -168,7 +182,7 @@
         "The office stack can run one PostgreSQL server while keeping CreditSoft and CRM data in separate databases and users.",
         "CRM images stay independently updatable through the Docker profile so upstream releases can be pulled without rebuilding the intranet app."
     ],
-    "download_url": "https://updates.creditsoft.app/downloads/creditsoft-office-v2026.4.28.6.zip",
+    "download_url": "https://update.creditsoft.app/downloads/creditsoft-office-v2026.5.6.4.zip",
     "crm_sidecar": {
         "label": "CreditSoft CRM Sidecar",
         "image": "update.creditsoft.app/creditsoft/crm-sidecar:latest",
@@ -177,21 +191,25 @@
     },
     "browser_companion": {
         "label": "CreditSoft Browser Companion",
-        "latest_version": "2026.4.28.6",
-        "download_url": "https://update.creditsoft.app/downloads/creditsoft-browser-companion-v2026.4.28.6.zip",
+        "latest_version": "2026.5.6.6",
+        "download_url": "https://update.creditsoft.app/downloads/creditsoft-browser-companion.zip",
         "trial_days": 7,
         "trial_label": "7-day companion trial",
-        "renewal_url": "https://updates.creditsoft.app/renewal/"
+        "renewal_url": "https://www.creditsoft.app/renewal/"
     },
     "intranet_client": {
         "label": "CreditSoft Employee Intranet Client",
-        "latest_version": "2026.4.28.6",
-        "download_url": "https://updates.creditsoft.app/downloads/creditsoft-intranet-client-installer-v2026.4.28.6.zip",
-        "router_url": "http://127.0.0.1/dashboard?source=intranet-client"
+        "latest_version": "2026.5.6.4",
+        "download_url": "https://update.creditsoft.app/downloads/creditsoft-intranet-client-installer-v2026.5.6.4.zip",
+        "router_url": "http://127.0.0.1:8877/dashboard?source=intranet-client"
     },
-    "browser_companion_url": "https://update.creditsoft.app/downloads/creditsoft-browser-companion-v2026.4.28.6.zip",
-    "renewal_url": "https://updates.creditsoft.app/renewal/",
+    "browser_companion_url": "https://update.creditsoft.app/downloads/creditsoft-browser-companion.zip",
+    "renewal_url": "https://www.creditsoft.app/renewal/",
     "support_url": "https://creditsoft.app/",
-    "minimum_version": "2026.4.28.6",
-    "update_required": true
+    "minimum_version": "2026.5.6.4",
+    "update_required": false,
+    "release_notes": [
+        "Browser companion 2026.5.6.6 keeps downloaded DisputeFox source files after reconcile so missing-document retries can be inspected and rerun instead of disappearing from Downloads.",
+        "Browser companion 2026.5.6.5 makes companion controls icon-only with hover titles, removes visible button pills/borders from icons, and keeps the dedicated Files pass."
+    ]
 }

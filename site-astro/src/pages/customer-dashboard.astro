@@ -1,0 +1,23 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="CreditSoft Account Dashboard"
+  description="CreditSoft account dashboard moved to /account/."
+  path="/customer-dashboard"
+  robots="noindex, nofollow"
+  showChat={false}
+>
+  <meta http-equiv="refresh" content="0; url=/account/" slot="head" />
+  <main class="redirect-page">
+    <a href="/account/">Continue to the CreditSoft account dashboard</a>
+  </main>
+  <script is:inline>
+    (() => {
+      const next = new URL("/account/", window.location.origin);
+      next.search = window.location.search;
+      window.location.replace(next.toString());
+    })();
+  </script>
+</BaseLayout>

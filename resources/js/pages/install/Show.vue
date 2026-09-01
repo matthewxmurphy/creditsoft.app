@@ -9,6 +9,8 @@ const props = defineProps<{
         state: {
             company_name?: string | null;
             admin_email?: string | null;
+            business_city?: string | null;
+            business_state?: string | null;
             tailscale_required?: boolean;
             tailscale_hostname?: string | null;
             tailscale_tailnet?: string | null;
@@ -146,6 +148,8 @@ const props = defineProps<{
 const form = useForm({
     company_name: props.installer.state.company_name ?? '',
     admin_email: props.installer.state.admin_email ?? '',
+    business_city: props.installer.state.business_city ?? '',
+    business_state: props.installer.state.business_state ?? '',
     tailscale_hostname: props.installer.state.tailscale_hostname ?? 'creditsoft-intranet',
     backup_destination: props.installer.state.backup_destination ?? 'wasabi',
     portal_sync_enabled: props.installer.state.portal_sync_enabled ?? false,
@@ -838,6 +842,28 @@ const credentialStatus = (saved: boolean, masked?: string | null) => {
                                         </label>
 
                                         <label class="space-y-2 text-sm font-medium text-stone-700">
+                                            <span>Business city</span>
+                                            <input
+                                                v-model="form.business_city"
+                                                type="text"
+                                                class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:border-amber-500"
+                                                placeholder="Dallas"
+                                            >
+                                            <span v-if="form.errors.business_city" class="text-xs text-rose-700">{{ form.errors.business_city }}</span>
+                                        </label>
+
+                                        <label class="space-y-2 text-sm font-medium text-stone-700">
+                                            <span>Business state</span>
+                                            <input
+                                                v-model="form.business_state"
+                                                type="text"
+                                                class="w-full rounded-2xl border border-stone-300 bg-white px-4 py-3 text-sm text-stone-900 shadow-sm outline-none transition focus:border-amber-500"
+                                                placeholder="TX"
+                                            >
+                                            <span v-if="form.errors.business_state" class="text-xs text-rose-700">{{ form.errors.business_state }}</span>
+                                        </label>
+
+                                        <label class="space-y-2 text-sm font-medium text-stone-700">
                                             <span>Backup destination</span>
                                             <select
                                                 v-model="form.backup_destination"
@@ -875,7 +901,7 @@ const credentialStatus = (saved: boolean, masked?: string | null) => {
                                         <span class="leading-6">
                                             <span class="block font-medium text-stone-900">Help improve CreditSoft with privacy-safe report data</span>
                                             <span class="mt-1 block">
-                                                Share John-Doe style report structure, score movement, lead timing, and customer age under an org-scoped ID. No names, emails, phone numbers, addresses, notes, or attachments leave the office.
+                                                Share aggregate-only report structure, score movement, customer age, city/state counts, office-location comparison, terminations, and seasonal timing. No names, emails, phone numbers, street addresses, notes, or attachments leave the office.
                                             </span>
                                         </span>
                                     </label>
