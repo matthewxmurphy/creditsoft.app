@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.creditsoft.app/</loc>
@@ -107,5 +107,57 @@
   <url>
     <loc>https://www.creditsoft.app/websites</loc>
     <lastmod>2026-05-06T03:28:02.600Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/budget/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/comparison/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/negative/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/optimizer/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/payoff/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/prep/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/readiness/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/recommendation/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/simulator/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/strategy/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/timeline/</loc>
+    <lastmod>2026-09-22</lastmod>
+  </url>
+  <url>
+    <loc>https://www.creditsoft.app/tools/utilization/</loc>
+    <lastmod>2026-09-22</lastmod>
   </url>
 </urlset>

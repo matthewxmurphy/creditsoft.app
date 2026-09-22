@@ -1,0 +1,13 @@
+---
+const { field, prefix = 'tool' } = Astro.props;
+const id = `${prefix}-${field.name}`;
+---
+{field.type === 'checkboxes' ? (
+ <fieldset class="tool-choices"><legend>{field.label}</legend>{field.options.map((option) => <label><input type="checkbox" name={field.name} value={option}/><span>{option}</span></label>)}</fieldset>
+) : (
+ <div class="tool-field"><label for={id}>{field.label}</label>
+ {field.type === 'select' ? <select id={id} name={field.name}>{field.options.map(([value,label])=><option value={value}>{label}</option>)}</select>
+ : field.type === 'textarea' ? <textarea id={id} name={field.name} rows="3" maxlength="4000" autocomplete="off" placeholder="Write your notes here" />
+ : <input id={id} name={field.name} type="number" value={field.value} min={field.min} max={field.max} step={field.step} required inputmode="decimal" autocomplete="off" />}
+ </div>
+)}

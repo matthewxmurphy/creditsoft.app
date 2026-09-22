@@ -2,6 +2,7 @@
 const {
   summary = "CreditSoft gives credit repair offices a Metro2-first public site, local-first CRM nodes, client portal, update lane, and compliance workflow without looking like generic software.",
   contact = "hello@creditsoft.app",
+  toolsLink = false,
 } = Astro.props;
 
 const socialLinks = [
@@ -60,6 +61,7 @@ const socialIcons = {
         <strong>Explore</strong>
         <a href="/">Home</a>
         <a href="/features">Features</a>
+        {toolsLink && <a href="/tools/">Free financial tools</a>}
         <a href="/videos">Videos</a>
         <a href="/metro2">Metro2 review</a>
         <a href="/compliance">FCRA / FDCPA</a>

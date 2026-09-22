@@ -15,7 +15,7 @@ const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)))
   title="CreditSoft | Metro2-first credit repair platform"
   description={theme.hero.summary}
 >
-  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} />
+  <SiteHeader topbarText={theme.topbarText} topbarEmail={theme.topbarEmail} toolsLink={true} />
 
   <main>
     <section class="section hero-poster">
@@ -111,7 +111,7 @@ const stars = (rating: number) => "★".repeat(Math.max(1, Math.min(5, rating)))
     </section>
   </main>
 
-  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} />
+  <SiteFooter summary={theme.footer.summary} contact={theme.footer.contact} toolsLink={true} />
 </BaseLayout>
 
 <style>

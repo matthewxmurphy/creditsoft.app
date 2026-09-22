@@ -2,6 +2,7 @@
 const {
   topbarText = "Metro2-first credit repair software with AI-assisted review, local-first office nodes, client portals, and compliance workflows.",
   topbarEmail = "hello@creditsoft.app",
+  toolsLink = false,
 } = Astro.props;
 
 const links = [
@@ -36,6 +37,7 @@ const links = [
   { href: "/outsourcing", label: "Outsourcing" },
   { href: "/videos", label: "Videos" },
   { href: "/pricing-plan", label: "Pricing" },
+  ...(toolsLink ? [{ href: "/tools/", label: "Free tools" }] : []),
 ];
 
 const icons = {

@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Field from '../../components/financial-tools/Field.astro';
+import Attribution from '../../components/financial-tools/Attribution.astro';
+import { tools } from '../../lib/financial-tools/catalog.mjs';
+import '../../styles/financial-tools.css';
+export function getStaticPaths(){return tools.map(tool=>({params:{tool:tool.slug},props:{tool}}));}
+const { tool }=Astro.props;
+---
+<BaseLayout title={`${tool.title} | Free Financial Tools | CreditSoft`} description={tool.description} path={`/tools/${tool.slug}/`} tracking={false} showChat={false}>
+ <SiteHeader toolsLink={true}/>
+ <main id="main" class="financial-tools page-wrap" data-financial-tool={tool.slug}>
+  <header class="tools-intro">
+   <a class="tool-back" href="/tools/">← All financial tools</a>
+   <p class="tool-kicker">{tool.category}</p>
+   <h1>{tool.title}</h1>
+   <p class="tool-lede">{tool.description}</p>
+   <p class="tool-privacy">Your entries stay in this page and are not saved or submitted. No account is needed.</p>
+   <Attribution/>
+  </header>
+  <div class="tool-workspace">
+   <form class="tool-inputs" autocomplete="off" onsubmit="return false">
+    <h2>Your inputs</h2>
+    <p class="tool-hint">Prefilled amounts are examples. Replace them with the numbers you want to explore.</p>
+    <div class="tool-fields">{tool.fields.map(field=><Field field={field}/>)}</div>
+    {tool.rows && <>
+     <div data-tool-rows>{[1,2].map(i=><fieldset class="tool-account" data-tool-row><legend>{tool.rows.label} {i}</legend><div class="tool-fields">{tool.rows.fields.map(field=><Field field={field} prefix={`row-${i}`}/>)}</div><button class="tool-remove" type="button" data-remove-row aria-label={`Remove ${tool.rows.label.toLowerCase()} ${i}`}>Remove {tool.rows.label.toLowerCase()}</button></fieldset>)}</div>
+     <template data-row-template><fieldset class="tool-account" data-tool-row><legend>{tool.rows.label}</legend><div class="tool-fields">{tool.rows.fields.map(field=><Field field={field} prefix="template"/>)}</div><button class="tool-remove" type="button" data-remove-row>Remove {tool.rows.label.toLowerCase()}</button></fieldset></template>
+     <button class="tool-add" type="button" data-add-row data-row-label={tool.rows.label} disabled>Add {tool.rows.label.toLowerCase()}</button>
+     <p class="tool-hint">Up to 20 entries. Example amounts are filled in; replace them with your own.</p>
+    </>}
+    <p class="tool-error" role="alert" data-tool-error hidden></p>
+    <div class="tool-actions"><button class="button primary" type="button" data-calculate disabled>{tool.category==='Planning worksheets'?'Build worksheet':'Update result'}</button><button class="button secondary" type="reset">Reset</button></div>
+    <noscript><p>Enable JavaScript to calculate locally. Your numbers are never submitted by this page.</p></noscript>
+   </form>
+   <section class="tool-output" aria-label="Your result" aria-live="polite" aria-atomic="true">
+    <p class="tool-kicker">Your result</p>
+    <h2 data-result-headline>Ready when you are</h2>
+    <p data-result-summary>Review the example inputs and update the result.</p>
+    <dl class="tool-metrics" data-result-metrics></dl>
+    <ul class="tool-result-list" data-result-items></ul>
+    <button class="tool-print" type="button" data-print disabled>Print worksheet</button>
+   </section>
+  </div>
+  <section class="tool-method" aria-labelledby="method-title"><h2 id="method-title">How this tool works</h2><p>{tool.method}</p><p>Reference: <a href={tool.source[1]}>{tool.source[0]}</a>.</p><Attribution/></section>
+  <nav class="tool-related" aria-label="Other financial tools">{tools.filter(t=>t.slug!==tool.slug).map(t=><a href={`/tools/${t.slug}/`}>{t.title}</a>)}</nav>
+ </main>
+ <SiteFooter toolsLink={true}/>
+</BaseLayout>
+<script>
+ import '../../lib/financial-tools/client.mjs';
+</script>

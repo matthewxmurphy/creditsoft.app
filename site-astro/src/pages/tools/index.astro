@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Attribution from '../../components/financial-tools/Attribution.astro';
+import { tools } from '../../lib/financial-tools/catalog.mjs';
+import '../../styles/financial-tools.css';
+---
+<BaseLayout title="Free Financial Tools | CreditSoft" description="Twelve free calculators and planning worksheets for budgeting, debt payoff, utilization and credit conversations. No account required." path="/tools/" tracking={false} showChat={false}>
+ <SiteHeader toolsLink={true}/>
+ <main id="main" class="financial-tools page-wrap">
+  <header class="tools-intro">
+   <p class="tool-kicker">Free financial tools</p>
+   <h1>Understand your numbers.<br/>Plan your next step.</h1>
+   <p class="tool-lede">Twelve calculators and worksheets for everyday money, debt and credit planning. Use them freely, without an account.</p>
+   <p class="tool-privacy">Your entries stay in this page. They are not saved to an account or submitted to CreditSoft or Credit Sense.</p>
+   <Attribution/>
+  </header>
+  <nav aria-label="Financial tools" class="tools-grid">
+   {tools.map((tool,index)=><a class="tool-card" href={`/tools/${tool.slug}/`}><span class="tool-number">{String(index+1).padStart(2,'0')} / {tool.category}</span><h2>{tool.title}</h2><p>{tool.description}</p><span class="tool-open">Open tool <span aria-hidden="true">→</span></span></a>)}
+  </nav>
+  <p class="tool-note">Calculations use the assumptions shown on each page. Credit planning worksheets do not predict a credit score, loan approval or dispute outcome.</p>
+ </main>
+ <SiteFooter toolsLink={true}/>
+</BaseLayout>

@@ -1,4 +1,5 @@
 import { lanes } from "./site-lanes";
+import { tools } from "./financial-tools/catalog.mjs";
 
 export const siteOrigin = "https://www.creditsoft.app";
 
@@ -17,7 +18,7 @@ export const staticPublicRoutes = [
 ];
 
 export const publicRoutes = Array.from(
-  new Set([...staticPublicRoutes, ...lanes.map((lane) => `/${lane.slug}`)]),
+  new Set([...staticPublicRoutes, ...lanes.map((lane) => `/${lane.slug}`), "/tools/", ...tools.map(tool => `/tools/${tool.slug}/`)]),
 ).sort((left, right) => left.localeCompare(right));
 
 export const publicUrls = publicRoutes.map((path) => new URL(path, siteOrigin).toString());
