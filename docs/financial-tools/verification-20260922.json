@@ -1,0 +1,151 @@
+{
+  "date": "2026-09-22",
+  "public_files_verified": 17,
+  "files": [
+    {
+      "path": "_astro/_tool_.astro_astro_type_script_index_0_lang.MH4eX8zN.js",
+      "status": 200,
+      "hash_matches": true
+    },
+    {
+      "path": "_astro/financial-tools.XnXpcYcN.css",
+      "status": 200,
+      "hash_matches": true
+    },
+    {
+      "path": "index.html",
+      "status": 200,
+      "hash_matches": true
+    },
+    {
+      "path": "sitemap.xml",
+      "status": 200,
+      "hash_matches": true
+    },
+    {
+      "path": "tools/budget/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/budget/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/comparison/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/comparison/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 1,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/negative/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/negative/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/optimizer/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/optimizer/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/payoff/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/payoff/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/prep/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/prep/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/readiness/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/readiness/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/recommendation/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/recommendation/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/simulator/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/simulator/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/strategy/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/strategy/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/timeline/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/timeline/",
+      "no_tracking": true
+    },
+    {
+      "path": "tools/utilization/index.html",
+      "status": 200,
+      "hash_matches": true,
+      "backlinks_in_initial_html": 2,
+      "link_text_correct": true,
+      "canonical": "https://www.creditsoft.app/tools/utilization/",
+      "no_tracking": true
+    }
+  ],
+  "browser": "Passed: all twelve local default results; payoff fixture; card add/remove/reset and zero-limit validation; worksheet editing/reset; mobile navigation with 390px page/viewport width. Live Chrome verified the collection, debt comparison rollover (two months, $100 monthly budget, $0 interest), backlink navigation to credit-essense.com/tools/, and the homepage Free tools link.",
+  "deployment": {
+    "files": 17,
+    "backup": "/var/backups/creditsoft-financial-tools/20260922T124809Z",
+    "rollback_originals_verified": 2,
+    "htaccess_unchanged": true,
+    "office_or_database_changes": false
+  }
+}
