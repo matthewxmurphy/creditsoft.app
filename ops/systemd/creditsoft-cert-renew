@@ -1,0 +1,59 @@
+#!/bin/sh
+set -u
+
+status=0
+
+renew_lineage() {
+  cert_name=$1
+  if ! /usr/bin/certbot renew --cert-name "$cert_name" --quiet --no-random-sleep-on-renew; then
+    /usr/bin/logger -p daemon.err -t creditsoft-cert-renew "Renewal failed for $cert_name"
+    status=1
+  fi
+}
+
+check_certificate() {
+  cert_path=$1
+  hostname=$2
+
+  if ! /usr/bin/openssl x509 -checkend 1209600 -noout -in "$cert_path" >/dev/null 2>&1; then
+    /usr/bin/logger -p daemon.err -t creditsoft-cert-renew "Certificate is missing, invalid, or expires within 14 days: $cert_path"
+    status=1
+    return
+  fi
+
+  if ! /usr/bin/openssl x509 -checkhost "$hostname" -noout -in "$cert_path" >/dev/null 2>&1; then
+    /usr/bin/logger -p daemon.err -t creditsoft-cert-renew "Certificate does not cover $hostname: $cert_path"
+    status=1
+  fi
+}
+
+renew_lineage creditsoft.app
+renew_lineage admin.creditsoft.app
+renew_lineage creditsoft-license-api
+
+public_cert=/etc/letsencrypt/live/creditsoft.app/fullchain.pem
+admin_cert=/etc/letsencrypt/live/admin.creditsoft.app/fullchain.pem
+api_cert=/etc/letsencrypt/live/creditsoft-license-api/fullchain.pem
+
+check_certificate "$public_cert" creditsoft.app
+check_certificate "$public_cert" www.creditsoft.app
+check_certificate "$public_cert" demo.creditsoft.app
+check_certificate "$public_cert" update.creditsoft.app
+check_certificate "$public_cert" updates.creditsoft.app
+check_certificate "$admin_cert" admin.creditsoft.app
+check_certificate "$api_cert" api.creditsoft.app
+check_certificate "$api_cert" api.creatorpublishinghub.com
+check_certificate "$api_cert" api.net30hosting.com
+check_certificate "$api_cert" api.matthewxmurphy.com
+
+if ! /usr/sbin/apache2ctl configtest >/dev/null 2>&1; then
+  /usr/bin/logger -p daemon.err -t creditsoft-cert-renew "Apache configuration test failed"
+  status=1
+fi
+
+if ! /usr/bin/systemctl is-active --quiet apache2; then
+  /usr/bin/logger -p daemon.err -t creditsoft-cert-renew "Apache is not active"
+  status=1
+fi
+
+exit "$status"
