@@ -325,6 +325,8 @@ if ($method === 'POST' && $action === 'create') {
 }
 
 if ($method === 'POST' && $action === 'check-grace-abuse') {
+    requireAdminSession();
+
     if (!$pdo) {
         echo json_encode(['message' => 'No DB']);
         exit;
@@ -374,6 +376,8 @@ if ($method === 'POST' && $action === 'check-grace-abuse') {
 }
 
 if ($method === 'POST' && $action === 'enable-auto-renew') {
+    requireAdminSession();
+
     $input = json_decode(file_get_contents('php://input'), true);
     $license_id = $input['license_id'] ?? 0;
     $auto_renew = $input['auto_renew'] ?? true;
