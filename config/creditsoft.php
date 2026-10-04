@@ -552,7 +552,7 @@ return [
         'license_mode' => env('CREDITSOFT_LICENSE_MODE', 'auto'),
         'license_check_url' => env('CREDITSOFT_LICENSE_URL'),
         'license_check_api_url' => env('CREDITSOFT_LICENSE_API_URL', 'https://api.creditsoft.app/license/validate'),
-        'license_check_portal_url' => env('CREDITSOFT_LICENSE_PORTAL_URL', 'https://www.creditsoft.app/license/validate.json'),
+        'license_check_portal_url' => env('CREDITSOFT_LICENSE_PORTAL_URL', 'https://api.creditsoft.app/license/validate.json'),
         'license_grace_days' => (int) env('CREDITSOFT_LICENSE_GRACE_DAYS', 7),
         'verification_window_days' => (int) env('CREDITSOFT_LICENSE_VERIFICATION_WINDOW_DAYS', 7),
     ],

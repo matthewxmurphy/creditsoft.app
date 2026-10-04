@@ -436,7 +436,7 @@ class IntranetNodeInstallerBundle
             'CREDITSOFT_INSTALLER_LOGO_URL_PREFIX' => (string) config('creditsoft.installer.logo_url_prefix', '/installer/branding'),
             'CREDITSOFT_LICENSE_MODE' => (string) config('creditsoft.installer.license_mode', 'auto'),
             'CREDITSOFT_LICENSE_API_URL' => (string) config('creditsoft.installer.license_check_api_url', 'https://api.creditsoft.app/license/validate'),
-            'CREDITSOFT_LICENSE_PORTAL_URL' => (string) config('creditsoft.installer.license_check_portal_url', 'https://www.creditsoft.app/license/validate.json'),
+            'CREDITSOFT_LICENSE_PORTAL_URL' => (string) config('creditsoft.installer.license_check_portal_url', 'https://api.creditsoft.app/license/validate.json'),
             'CREDITSOFT_LICENSE_GRACE_DAYS' => (string) config('creditsoft.installer.license_grace_days', 7),
             'CREDITSOFT_UPDATE_FEED_URL' => (string) config('creditsoft.updates.feed_url', 'https://update.creditsoft.app/api/update-feed'),
             'CREDITSOFT_AI_DEFAULT_PROVIDER' => (string) config('ai.default', 'openrouter_creditsoft'),
