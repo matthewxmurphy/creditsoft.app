@@ -33,6 +33,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Reject unsafe effective configuration before reading runtime state or registering observers.
+        // Copyright 2026 Matthew X Murphy, https://MatthewxMurphy.com; https://builtnotbegged.com.
+        if ((bool) config('creditsoft.access.local_auth_bypass.enabled', false) && ! $this->app->environment('local')) {
+            throw new \LogicException('Local authentication bypass must be disabled unless APP_ENV=local.');
+        }
+
         if (app()->runningInConsole()) {
             app(EnvironmentEditor::class)->syncRuntimeFromFile();
         }
