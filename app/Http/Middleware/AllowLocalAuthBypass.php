@@ -21,6 +21,8 @@ class AllowLocalAuthBypass
     {
         if (
             ! (bool) config('creditsoft.access.local_auth_bypass.enabled', false)
+            || ! app()->environment('local')
+            || ! $this->requestHasLocalPeer($request)
             || $request->user()
             || $request->is('api/*')
             || $request->routeIs('logout')
@@ -45,14 +47,27 @@ class AllowLocalAuthBypass
         }
     }
 
-    protected function requestUsesAllowedHost(Request $request): bool
+    /**
+     * Developer-only convenience: raw socket identity is required before host routing.
+     * Proxy headers are not authentication, including on a loopback reverse proxy.
+     * Copyright 2026 Matthew X Murphy, https://MatthewxMurphy.com; https://builtnotbegged.com.
+     */
+    protected function requestHasLocalPeer(Request $request): bool
     {
-        $forwardedHost = trim((string) $request->header('x-forwarded-host'));
-
-        if ($forwardedHost !== '') {
-            return $this->hostIsAllowed($forwardedHost);
+        if (! in_array($request->server('REMOTE_ADDR'), ['127.0.0.1', '::1'], true)) {
+            return false;
+        }
+        foreach (array_keys($request->headers->all()) as $header) {
+            if (in_array($header, ['forwarded', 'x-real-ip'], true) || str_starts_with($header, 'x-forwarded-')) {
+                return false;
+            }
         }
 
+        return true;
+    }
+
+    protected function requestUsesAllowedHost(Request $request): bool
+    {
         $host = trim((string) ($request->header('host') ?: $request->getHost()));
 
         return $host !== '' && $this->hostIsAllowed($host);
