@@ -12,11 +12,18 @@ use App\Services\CreditsoftClusterDatabaseSyncService;
 use App\Services\EnvironmentEditor;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Boost\BoostServiceProvider;
+use Laravel\Mcp\Server\McpServiceProvider;
+use Laravel\Pail\PailServiceProvider;
+use Laravel\Roster\RosterServiceProvider;
+use Laravel\Sail\SailServiceProvider;
+use NunoMaduro\Collision\Adapters\Laravel\CollisionServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +33,31 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(YamlConfigLoader::class);
+        $this->registerDevelopmentProviders();
+    }
+
+    /**
+     * Keep development tooling out of the package/service discovery cache shared
+     * with production workers. Explicit registration never changes those manifests.
+     */
+    protected function registerDevelopmentProviders(): void
+    {
+        if (! $this->app->environment('local', 'testing')) {
+            return;
+        }
+
+        foreach ([
+            BoostServiceProvider::class,
+            McpServiceProvider::class,
+            PailServiceProvider::class,
+            RosterServiceProvider::class,
+            SailServiceProvider::class,
+            CollisionServiceProvider::class,
+        ] as $provider) {
+            if (class_exists($provider)) {
+                $this->app->register($provider);
+            }
+        }
     }
 
     /**
@@ -223,7 +255,7 @@ class AppServiceProvider extends ServiceProvider
             Event::listen("eloquent.{$event}: *", function (string $eventName, array $payload): void {
                 $model = $payload[0] ?? null;
 
-                if (! $model instanceof \Illuminate\Database\Eloquent\Model) {
+                if (! $model instanceof Model) {
                     return;
                 }
 
@@ -235,7 +267,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen('eloquent.deleted: *', function (string $eventName, array $payload): void {
             $model = $payload[0] ?? null;
 
-            if (! $model instanceof \Illuminate\Database\Eloquent\Model) {
+            if (! $model instanceof Model) {
                 return;
             }
 
