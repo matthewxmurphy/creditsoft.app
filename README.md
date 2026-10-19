@@ -130,3 +130,7 @@ php artisan backup:monitor
 ## Backups
 
 Backup config is pre-wired for `local` and `wasabi` disks. Set the Wasabi credentials and `BACKUP_ARCHIVE_PASSWORD` in `.env` before enabling remote backup jobs in production.
+
+## Security maintenance
+
+See [unreleased security changes and rollout limits](docs/AUDIT-SECURITY-2026-10-16.md).

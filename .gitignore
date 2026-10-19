@@ -74,3 +74,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Operator bridge configuration is private runtime state. Use the existing example.
+/web-meta/api-bridge.json
