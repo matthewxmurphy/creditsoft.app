@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Copyright (c) 2026 Matthew X Murphy. https://MatthewxMurphy.com
+// Product/support: https://builtnotbegged.com
+// SPDX-License-Identifier: MIT
 
 import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -7,7 +10,29 @@ import os from 'node:os';
 import path from 'node:path';
 
 const DEFAULT_LOCAL_API_BASE = 'http://127.0.0.1:8001/api/v1';
-const CLIENT_VERSION = '2026.5.6.4';
+const packageReleaseVersion = (metadata) => {
+    if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+        const canonical = metadata.creditsoftReleaseVersion;
+        if (typeof canonical === 'string' && canonical.trim() === canonical && /^([1-9]\d{3})\.([1-9]|1[0-2])\.(0[1-9]|[12]\d|3[01])\.(00[1-9]|0[1-9]\d|[1-9]\d{2})$/.test(canonical)) {
+            const [year, month, day] = canonical.split('.').map(Number);
+            const date = new Date(Date.UTC(year, month - 1, day));
+            if (date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day) return canonical;
+        }
+        const legacy = metadata.version;
+        if (typeof legacy === 'string' && legacy.trim() === legacy && /^(?:\d+\.\d+\.\d+|\d{4}\.\d{1,2}\.\d{1,2}\.\d+)$/.test(legacy)) return legacy;
+    }
+    return '2026.5.6.4';
+};
+
+const clientReleaseVersion = (readPackage, packageUrl) => {
+    try {
+        return packageReleaseVersion(JSON.parse(readPackage(packageUrl, 'utf8')));
+    } catch {
+        return '2026.5.6.4';
+    }
+};
+
+const CLIENT_VERSION = clientReleaseVersion(readFileSync, new URL('../package.json', import.meta.url));
 const DEFAULT_DASHBOARD_PATH = '/dashboard?source=intranet-client';
 const DEFAULT_ROUTER_HOST = '127.0.0.1';
 const DEFAULT_ROUTER_PORT = '8877';

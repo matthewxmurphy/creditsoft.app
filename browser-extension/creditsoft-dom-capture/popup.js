@@ -1,3 +1,7 @@
+// Copyright (c) 2026 Matthew X Murphy. https://MatthewxMurphy.com
+// Product/support: https://builtnotbegged.com
+// SPDX-License-Identifier: MIT
+
 const DEFAULT_SETTINGS = {
     api_base_url: '',
     office_token: '',
@@ -1170,7 +1174,7 @@ function buildPayload(capture, settings) {
         worker_id: settings.worker_id,
         companion: {
             name: 'CreditSoft Browser Companion',
-            version: chrome.runtime.getManifest().version,
+            version: (chrome.runtime.getManifest().version_name || chrome.runtime.getManifest().version),
         },
     };
 }

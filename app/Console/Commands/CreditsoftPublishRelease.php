@@ -1,9 +1,14 @@
 <?php
 
+// Copyright (c) 2026 Matthew X Murphy. https://MatthewxMurphy.com
+// Product/support: https://builtnotbegged.com
+// SPDX-License-Identifier: MIT
+
 namespace App\Console\Commands;
 
 use App\Services\CreditsoftOfficeUpdatePackage;
 use App\Services\CreditsoftUpdateFeed;
+use App\Support\CreditsoftReleaseVersion;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\File;
@@ -26,17 +31,18 @@ class CreditsoftPublishRelease extends Command
     public function handle(CreditsoftOfficeUpdatePackage $packageBuilder): int
     {
         $feed = $this->readFeed();
-        $now = Carbon::now($this->releaseTimezone());
         $previousVersion = trim((string) ($feed['latest_version'] ?? ''));
-        $version = trim((string) ($this->option('release') ?: $this->nextVersion($previousVersion, $now)));
-        $build = trim((string) ($this->option('build') ?: $version));
-        $dryRun = (bool) $this->option('dry-run');
-
-        if (! $this->isDateVersion($version)) {
-            $this->error('CreditSoft release versions must use YYYY.M.D.N, for example 2026.4.21.38.');
+        try {
+            $now = Carbon::now($this->releaseTimezone());
+            $version = trim((string) ($this->option('release') ?: $this->nextVersion($previousVersion, $now)));
+            CreditsoftReleaseVersion::validateForPublish($version, $previousVersion, $now, (bool) $this->option('required'));
+        } catch (RuntimeException $exception) {
+            $this->error($exception->getMessage());
 
             return self::FAILURE;
         }
+        $build = trim((string) ($this->option('build') ?: $version));
+        $dryRun = (bool) $this->option('dry-run');
 
         $notes = $this->releaseNotes($version);
         $headline = trim((string) ($this->option('headline') ?: "CreditSoft {$version} is ready"));
@@ -95,26 +101,7 @@ class CreditsoftPublishRelease extends Command
 
     protected function nextVersion(string $previousVersion, Carbon $now): string
     {
-        $year = (int) $now->format('Y');
-        $month = (int) $now->format('n');
-        $day = (int) $now->format('j');
-
-        if (preg_match('/^(\d{4})\.(\d{1,2})\.(\d{1,2})\.(\d+)$/', $previousVersion, $matches) === 1) {
-            $sameDay = (int) $matches[1] === $year
-                && (int) $matches[2] === $month
-                && (int) $matches[3] === $day;
-            $release = $sameDay ? ((int) $matches[4]) + 1 : 1;
-
-            return "{$year}.{$month}.{$day}.{$release}";
-        }
-
-        if (preg_match('/^\d+\.\d+\.(\d+)$/', $previousVersion, $matches) === 1) {
-            $release = ((int) $matches[1]) + 1;
-
-            return "{$year}.{$month}.{$day}.{$release}";
-        }
-
-        return "{$year}.{$month}.{$day}.1";
+        return CreditsoftReleaseVersion::next($previousVersion, $now);
     }
 
     protected function workspaceAllowsRelease(): bool
@@ -150,14 +137,12 @@ class CreditsoftPublishRelease extends Command
 
     protected function releaseTimezone(): string
     {
-        $timezone = trim((string) config('creditsoft.updates.release_timezone', ''));
+        $timezone = trim((string) config('creditsoft.updates.release_timezone', CreditsoftReleaseVersion::TIMEZONE));
+        if ($timezone !== CreditsoftReleaseVersion::TIMEZONE) {
+            throw new RuntimeException('Future releases require CREDITSOFT_RELEASE_TIMEZONE=America/Chicago; review configuration before publishing.');
+        }
 
-        return $timezone !== '' ? $timezone : config('app.timezone', 'UTC');
-    }
-
-    protected function isDateVersion(string $version): bool
-    {
-        return preg_match('/^\d{4}\.\d{1,2}\.\d{1,2}\.\d+$/', $version) === 1;
+        return CreditsoftReleaseVersion::TIMEZONE;
     }
 
     /**
@@ -240,7 +225,8 @@ class CreditsoftPublishRelease extends Command
         $feed['browser_companion'] = is_array($feed['browser_companion'] ?? null) ? $feed['browser_companion'] : [];
 
         if (File::exists($browserCompanionArchive)) {
-            $feed['browser_companion']['latest_version'] = $version;
+            // The stable ZIP may be an older independent companion release.
+            // Its existence alone does not establish a new companion version.
             $feed['browser_companion']['download_url'] = $browserCompanionUrl;
             $feed['browser_companion_url'] = $browserCompanionUrl;
         } elseif (filled((string) ($feed['browser_companion']['download_url'] ?? ''))) {
@@ -279,7 +265,7 @@ class CreditsoftPublishRelease extends Command
             $manifest['browser_companion_url'] = (string) ($feed['browser_companion']['download_url'] ?? 'https://update.creditsoft.app/downloads/creditsoft-browser-companion.zip');
 
             $manifest['intranet_client'] = is_array($manifest['intranet_client'] ?? null) ? $manifest['intranet_client'] : [];
-            $manifest['intranet_client']['latest_version'] = $version;
+            $manifest['intranet_client']['latest_version'] = (string) ($feed['intranet_client']['latest_version'] ?? $manifest['intranet_client']['latest_version'] ?? '');
             $manifest['intranet_client']['download_url'] = (string) ($feed['intranet_client']['download_url'] ?? sprintf('https://update.creditsoft.app/downloads/creditsoft-intranet-client-installer-v%s.zip', $version));
 
             return $manifest;
@@ -288,14 +274,20 @@ class CreditsoftPublishRelease extends Command
         foreach ([
             base_path('browser-extension/creditsoft-dom-capture/manifest.json'),
             base_path('browser-extension/creditsoft-me-operator/manifest.json'),
-            base_path('intranet-client/package.json'),
         ] as $path) {
             $this->updateJsonFile($path, function (array $payload) use ($version): array {
-                $payload['version'] = $version;
+                $payload['version'] = CreditsoftReleaseVersion::chrome($version);
+                $payload['version_name'] = $version;
 
                 return $payload;
             });
         }
+        $this->updateJsonFile(base_path('intranet-client/package.json'), function (array $payload) use ($version): array {
+            $payload['version'] = CreditsoftReleaseVersion::npm($version);
+            $payload['creditsoftReleaseVersion'] = $version;
+
+            return $payload;
+        });
     }
 
     protected function writeEnvVersion(string $path, string $version, string $build): void

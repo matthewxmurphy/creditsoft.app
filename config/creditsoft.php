@@ -1,5 +1,9 @@
 <?php
 
+// Copyright (c) 2026 Matthew X Murphy. https://MatthewxMurphy.com
+// Product/support: https://builtnotbegged.com
+// SPDX-License-Identifier: MIT
+
 $creditsoftOwnerEmail = env('CREDITSOFT_OWNER_EMAIL', env('CREDITSOFT_ADMIN_EMAIL', 'owner@creditsoft.local'));
 $creditsoftOwnerName = env('CREDITSOFT_OWNER_NAME', env('CREDITSOFT_ADMIN_NAME', 'Office Owner'));
 $creditsoftOwnerPassword = env('CREDITSOFT_OWNER_PASSWORD', env('CREDITSOFT_ADMIN_PASSWORD', ''));
@@ -560,7 +564,7 @@ return [
         'current_version' => env('CREDITSOFT_APP_VERSION', '2026.4.28.10'),
         'current_build' => env('CREDITSOFT_APP_BUILD', env('CREDITSOFT_APP_VERSION', '2026.4.28.10')),
         'channel' => env('CREDITSOFT_UPDATE_CHANNEL', 'stable'),
-        'release_timezone' => env('CREDITSOFT_RELEASE_TIMEZONE', 'America/Los_Angeles'),
+        'release_timezone' => env('CREDITSOFT_RELEASE_TIMEZONE', 'America/Chicago'),
         'feed_url' => env('CREDITSOFT_UPDATE_FEED_URL', 'https://update.creditsoft.app/api/update-feed'),
         'fallback_feed_url' => env('CREDITSOFT_UPDATE_FEED_FALLBACK_URL', ''),
         'cache_minutes' => (int) env('CREDITSOFT_UPDATE_FEED_CACHE_MINUTES', 15),
