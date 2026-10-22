@@ -118,3 +118,7 @@ php artisan backup:monitor
 ## Backups
 
 Backup config is pre-wired for `local` and `wasabi` disks. Set the Wasabi credentials and `BACKUP_ARCHIVE_PASSWORD` in `.env` before enabling remote backup jobs in production.
+
+## Shared WordPress update support
+
+See [update setup, source enrollment, licensing and rollback](docs/WORDPRESS-UPDATES.md). The shared connector performs signed native updates; this source candidate does not publish or replace existing releases.

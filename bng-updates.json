@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "revision": "2026.10.12.001",
+  "repository": "https://github.com/matthewxmurphy/creditsoft.app",
+  "service": "https://updates.builtnotbegged.com",
+  "connector": {
+    "plugin": "bng-updates/bng-updates.php",
+    "minimum_version": "2026.10.12.001"
+  },
+  "publication": {
+    "approved": false
+  },
+  "components": [
+    {
+      "id": "creditsoft-api-bridge",
+      "kind": "plugin",
+      "source": "wordpress/creditsoft-api-bridge/creditsoft-api-bridge.php",
+      "mode": "native",
+      "baseline_version": "0.1.0",
+      "release_pending": true,
+      "headers": {
+        "name": "CreditSoft API Bridge",
+        "author": "CreditSoft",
+        "author_uri": "",
+        "license": "GPLv2 or later"
+      },
+      "distribution": "review-before-publication",
+      "update_uri": "https://updates.builtnotbegged.com/products/creditsoft-api-bridge",
+      "notes": "Requires the active shared connector at or above the declared minimum; adding Update URI alone does not install it. Reserve a new product release before packaging these changed bytes. Confirm the installed basename/stylesheet and complete ZIP root during release enrollment; no runtime target is guessed here."
+    }
+  ],
+  "notes": "Source enrollment only. Existing releases, licenses, owners and native auto-update preferences are preserved. Paid/private release delivery needs verified product-specific entitlement. No publication or fleet rollout is performed by this declaration."
+}

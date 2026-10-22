@@ -1,6 +1,7 @@
 <?php
 /**
  * Plugin Name: CreditSoft API Bridge
+ * Update URI: https://updates.builtnotbegged.com/products/creditsoft-api-bridge
  * Plugin URI: https://www.creditsoft.app/
  * Description: Free CreditSoft website bridge for lead intake, affiliate tracking, and API proxying. Requires a valid CreditSoft API key.
  * Version: 0.1.0
