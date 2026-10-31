@@ -126,6 +126,61 @@ The image is a conceptual role/backup diagram; its labels are not live node or
 provider state. Backup/service names and CTA destinations remain copied text and
 links, without connecting services or running migration/checkout workflows.
 
+## Contact and local Fluent Forms capture
+
+This source slice adds the faithful Contact page plus **local capture only**.
+Required name/email and email-format validation use Fluent Forms FREE itself.
+MX lookup, typo-domain suggestions, disposable-domain rejection, hard-bounce
+suppression, Brands FluentCRM delivery and live test-lead acceptance remain
+unfinished. No connection to a mail provider or the Brands hub is configured.
+
+Install Fluent Forms FREE separately (native target 6.2.16), then deliberately
+import `content/contact-form.fluentforms.json` through its standard form-import
+UI. The named form is **CreditSoft local capture**. It contains required `name`
+and `email` fields, no payment fields or integration feeds, empty notifications,
+and a neutral local-storage confirmation. Its extra form CSS class is
+`creditsoft-local-capture`, so the existing gold/dark CTA palette applies only to
+this selected form, including hover and keyboard focus. Import creates a new form only when
+an administrator explicitly requests it; the child never imports on activation.
+Existing forms and saved edits are not overwritten. Check the selected form's
+actual notification/integration settings before using it; later administrative
+changes remain that form's own settings.
+
+Use this site's real imported form ID, for example 123, to prepare Contact:
+
+```sh
+wp eval 'echo wp_json_encode(creditsoft_helium_contact_template(123));' > creditsoft-contact-import.json
+```
+
+Import the prepared Elementor file into a deliberately chosen Page through the
+same manual process above. The read-only preparer binds exactly one fixed marker
+and keeps all published Contact copy, list items and passive mailto/pricing/
+checkout destinations. It rejects missing, unpublished, malformed or payment
+forms. Runtime rendering emits no controls if its binding becomes unavailable.
+No generic shortcode text, custom submission endpoint or custom nonce handler
+is accepted: the wrapper delegates the numeric ID to the real Fluent Forms
+shortcode, whose standard submission pipeline validates and stores the entry.
+
+The same explicit placement works in an Elementor FREE Shortcode widget or an
+ordinary WordPress page/block:
+
+```text
+[creditsoft_intake form_id="123"]
+```
+
+For homepage capture, insert that shortcode into the chosen saved homepage; no
+home content is silently appended or rewritten. For a chosen tool page, combine
+it with `[creditsoft_tool slug="budget"]` (or another existing slug). An explicitly
+created/edited WordPress Page at that `/tools/` path takes precedence over the
+adapter's existing fallback route. Preserve any existing page and its ownership;
+this source creates no pages and does not automatically add forms to all twelve
+fallback routes. All existing calculator, homepage and Astro bytes remain intact.
+
+This import supplies no response-time, lead-routing or marketing-subscription
+promise. Local entries remain in the selected WordPress site's native Fluent
+Forms storage. No live lead, real mailbox, checkout or provider action is part of
+this source checkpoint.
+
 ## Focused checks and rollback
 
 ```sh
@@ -134,6 +189,8 @@ node --test wordpress/creditsoft-helium/tests/source-contract.test.mjs
 node --test wordpress/creditsoft-helium/tests/marketing-contract.test.mjs
 # New multi-office export only:
 node --test wordpress/creditsoft-helium/tests/multi-office-contract.test.mjs
+# New Contact/local-capture slice only:
+node --test wordpress/creditsoft-helium/tests/contact-contract.test.mjs
 ```
 
 `tests/native-stack.php` exercises the actual disposable WordPress/Gantry/Elementor
@@ -147,6 +204,10 @@ Rollback selects the previous theme and preserves pages, Elementor data, menus,
 existing theme settings and calculator source. Delete no user data or Gantry custom
 configuration as part of rollback. No deployment, DNS change, release tag or public
 package publication is performed by this source checkpoint.
+
+`tests/native-contact-capture.php` verifies only the new Contact/form slice in a
+disposable WordPress/Fluent Forms installation, including actual AJAX entry
+storage/rejection, explicit placements, unavailable bindings and edit preservation.
 
 New child work: copyright 2026 Matthew C. Murphy,
 [MatthewxMurphy.com](https://MatthewxMurphy.com),

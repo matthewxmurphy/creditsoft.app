@@ -37,3 +37,10 @@ including its original rendered labels. Like the published wordmark, this asset
 has no separate explicit license identifier in the source; its reuse here does
 not assign a new blanket grant to Astro, those assets or the wider repository.
 New export/helper/test work carries the existing scoped first-party notices.
+
+The Contact export preserves public `site-astro/src/pages/contact-us.astro` copy
+and passive destinations. The new binding and minimal form definition are scoped
+first-party work; their field/import structure targets the separately installed
+Fluent Forms FREE 6.2.16 API. No Fluent Forms vendor PHP/JS is bundled or relicensed
+by this child. Native rendering, validation, storage and admin import stay with
+that GPL-licensed upstream plugin.

@@ -102,3 +102,5 @@ function creditsoft_helium_marketing_template(string $slug): array
     }
     return creditsoft_helium_rebase_template_links($template);
 }
+
+require_once get_stylesheet_directory() . '/includes/contact-capture.php';

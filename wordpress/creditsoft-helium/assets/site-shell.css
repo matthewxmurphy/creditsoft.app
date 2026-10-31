@@ -85,3 +85,19 @@ body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset
 
 /* Keep literal API references readable inside the imported marketing pages. */
 .creditsoft-marketing code { white-space: normal; overflow-wrap: anywhere; word-break: normal; }
+
+/* Native local-capture controls inherit the existing CreditSoft CTA palette. */
+.creditsoft-local-capture .ff-btn-submit {
+  background: #f1c27a;
+  color: #141117;
+  border: 1px solid #f1c27a;
+}
+.creditsoft-local-capture .ff-btn-submit:hover {
+  background: #f7d398;
+  color: #141117;
+  border-color: #f7d398;
+}
+form.creditsoft-local-capture .ff-btn-submit:focus-visible {
+  outline: 3px solid #f1c27a;
+  outline-offset: 4px;
+}
