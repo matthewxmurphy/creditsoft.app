@@ -89,7 +89,8 @@ Prepare one deliberately selected export in WordPress:
 wp eval 'echo wp_json_encode(creditsoft_helium_marketing_template("about-us"));' > creditsoft-about-us-import.json
 ```
 
-The other supported selectors are `resources`, `docs` and `multi-office-nodes`. Import the prepared
+The other supported selectors are `resources`, `docs`, `multi-office-nodes`,
+`cookies`, `privacy` and `terms`. Import the prepared
 JSON through Elementor, insert it into a chosen Page, and use the existing
 **CreditSoft Elementor Home** page template as the shared content wrapper. Review
 any existing page and saved edits before explicitly replacing content. No helper
@@ -181,6 +182,30 @@ promise. Local entries remain in the selected WordPress site's native Fluent
 Forms storage. No live lead, real mailbox, checkout or provider action is part of
 this source checkpoint.
 
+## Existing policy-page copy
+
+`content/cookies.elementor.json`, `privacy.elementor.json` and
+`terms.elementor.json` preserve the current public Astro policy bodies at
+`site-astro/src/pages/{cookies,privacy,terms}.astro`: text, heading/list order,
+inline emphasis, mailto destinations and the existing **Last Updated: February
+2026** wording. There is no dynamic policy logic in these source bodies. No policy
+wording, date or business rule was revised; this is a faithful content export,
+not a legal/data-practice or consent-implementation assessment.
+
+Use the existing read-only preparer, for example:
+
+```sh
+wp eval 'echo wp_json_encode(creditsoft_helium_marketing_template("privacy"));' > creditsoft-privacy-import.json
+```
+
+The other selectors for this cohort are `cookies` and `terms`. Explicitly import
+into chosen Pages at the intended `/cookies`, `/privacy` and `/terms` paths using
+the same Elementor content wrapper. Preserve existing pages and saved edits;
+preparation and activation create, replace and publish nothing. These exports do
+not enable analytics, pixels, a cookie banner, checkout, forms or account flows.
+Existing forms, other exports, calculator source and version declarations remain
+unchanged.
+
 ## Focused checks and rollback
 
 ```sh
@@ -191,6 +216,8 @@ node --test wordpress/creditsoft-helium/tests/marketing-contract.test.mjs
 node --test wordpress/creditsoft-helium/tests/multi-office-contract.test.mjs
 # New Contact/local-capture slice only:
 node --test wordpress/creditsoft-helium/tests/contact-contract.test.mjs
+# New policy-copy cohort only:
+node --test wordpress/creditsoft-helium/tests/legal-contract.test.mjs
 ```
 
 `tests/native-stack.php` exercises the actual disposable WordPress/Gantry/Elementor

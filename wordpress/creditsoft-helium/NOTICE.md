@@ -44,3 +44,9 @@ first-party work; their field/import structure targets the separately installed
 Fluent Forms FREE 6.2.16 API. No Fluent Forms vendor PHP/JS is bundled or relicensed
 by this child. Native rendering, validation, storage and admin import stay with
 that GPL-licensed upstream plugin.
+
+The Cookies, Privacy and Terms exports preserve the current public Astro policy
+copy from `site-astro/src/pages/cookies.astro`, `privacy.astro` and `terms.astro`.
+New Elementor structure and parity tests carry the scoped first-party notices;
+this adaptation does not rewrite those policies or assign a blanket new license
+to the published copy or wider repository.

@@ -26,3 +26,7 @@
   CTA palette, including hover and visible keyboard focus, without changing other
   Fluent Forms instances or submission behavior. Bind that scope through the
   native extra-form-class setting.
+
+- Add explicit Cookies, Privacy and Terms exports with unchanged policy copy,
+  heading/list order, links and source update date. Keep import read-only and
+  preserve existing saved pages, forms, runtime integrations and versions.
