@@ -1,0 +1,19 @@
+{# New particle copyright 2026 Matthew C. Murphy; MatthewxMurphy.com / builtnotbegged.com. GPL-2.0-or-later. #}
+{% extends '@nucleus/partials/particle.html.twig' %}
+{% block particle %}
+<footer class="creditsoft-shell-footer">
+  <div class="creditsoft-footer-brand">
+    <a class="creditsoft-wordmark" href="{{ function('home_url', '/')|e('html_attr') }}" aria-label="CreditSoft home"><img src="{{ url(particle.image)|e('html_attr') }}" width="1073" height="282" alt="CreditSoft.app" loading="lazy" decoding="async"></a>
+    <small>Metro2-first credit repair software</small>
+    <h2>Built to feel like one product from the first visit to the office workflow.</h2>
+    <p>{{ particle.summary|e }}</p>
+    <a href="{{ function('esc_url', 'mailto:' ~ particle.contact)|e('html_attr') }}">{{ particle.contact|e }}</a>
+    <nav class="creditsoft-footer-social" aria-label="CreditSoft social links">{{ function('wp_nav_menu', {'theme_location': 'creditsoft-footer-social', 'container': false, 'echo': false, 'fallback_cb': false})|raw }}</nav>
+  </div>
+  <div class="creditsoft-footer-menus">
+    {% for label, location in {'Explore': 'creditsoft-footer-explore', 'Office': 'creditsoft-footer-office', 'Company': 'creditsoft-footer-company'} %}
+      <nav aria-label="{{ label|e('html_attr') }}"><h3>{{ label|e }}</h3>{{ function('wp_nav_menu', {'theme_location': location, 'container': false, 'echo': false, 'fallback_cb': false})|raw }}</nav>
+    {% endfor %}
+  </div>
+</footer>
+{% endblock %}

@@ -1,0 +1,63 @@
+<?php
+/**
+ * Copyright 2026 Matthew C. Murphy <https://MatthewxMurphy.com>.
+ * Product/support https://builtnotbegged.com; recorded policy identity Matthew X Murphy.
+ * SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft child 2026.10.1 UNRELEASED.
+ * Registers presentation only: activation never creates/imports pages, menus or content.
+ */
+defined('ABSPATH') || exit;
+const CREDITSOFT_HELIUM_VERSION = '2026.10.1';
+add_action('after_setup_theme', static function (): void {
+    register_nav_menus([
+        'creditsoft-primary' => 'CreditSoft primary navigation',
+        'creditsoft-footer-explore' => 'CreditSoft footer: Explore',
+        'creditsoft-footer-office' => 'CreditSoft footer: Office',
+        'creditsoft-footer-company' => 'CreditSoft footer: Company',
+        'creditsoft-footer-social' => 'CreditSoft footer: Social links',
+    ]);
+});
+add_filter('body_class', static function (array $classes): array {
+    $classes[] = 'creditsoft-site';
+    return $classes;
+});
+add_action('wp_enqueue_scripts', static function (): void {
+    wp_enqueue_style('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.css', [], CREDITSOFT_HELIUM_VERSION);
+    wp_enqueue_script('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.js', [], CREDITSOFT_HELIUM_VERSION, true);
+});
+
+/** Explicit import preparation only; preserve external/mailto links and each local path/query verbatim. */
+function creditsoft_helium_rebase_template_links(array $template): array
+{
+    $walk = static function (array &$elements) use (&$walk): void {
+        foreach ($elements as &$element) {
+            if (!is_array($element)) {
+                continue;
+            }
+            $url = $element['settings']['link']['url'] ?? null;
+            if (is_string($url) && str_starts_with($url, '/') && !str_starts_with($url, '//')) {
+                $element['settings']['link']['url'] = home_url($url);
+            }
+            if (isset($element['elements']) && is_array($element['elements'])) {
+                $walk($element['elements']);
+            }
+        }
+    };
+    if (isset($template['content']) && is_array($template['content'])) {
+        $walk($template['content']);
+    }
+    return $template;
+}
+
+/** Read-only source export; never imports, selects or rewrites a WordPress page. */
+function creditsoft_helium_homepage_template(): array
+{
+    $path = get_stylesheet_directory() . '/content/homepage.elementor.json';
+    if (!is_readable($path)) {
+        throw new RuntimeException('CreditSoft homepage source template is unavailable.');
+    }
+    $template = json_decode((string) file_get_contents($path), true);
+    if (!is_array($template)) {
+        throw new RuntimeException('CreditSoft homepage source template is invalid.');
+    }
+    return creditsoft_helium_rebase_template_links($template);
+}

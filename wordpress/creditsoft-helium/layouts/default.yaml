@@ -1,0 +1,39 @@
+# Copyright 2026 Matthew C. Murphy; https://MatthewxMurphy.com / https://builtnotbegged.com.
+# SPDX-License-Identifier: GPL-2.0-or-later. Gantry default layout; user edits live in its normal custom config.
+version: 2
+preset:
+  name: default
+layout:
+  /navigation/:
+    - [creditsoft-header-1001]
+  /container-main/:
+    -
+      - 'mainbar 100':
+          - [system-content-1002]
+  /footer/:
+    - [creditsoft-footer-1003]
+structure:
+  navigation:
+    type: section
+    attributes:
+      boxed: ''
+      class: creditsoft-navigation
+  mainbar:
+    type: section
+    subtype: main
+    attributes:
+      class: creditsoft-main
+  container-main:
+    attributes:
+      boxed: ''
+  footer:
+    type: section
+    subtype: footer
+    attributes:
+      boxed: ''
+      class: creditsoft-footer-section
+content:
+  creditsoft-header-1001:
+    title: CreditSoft header
+  creditsoft-footer-1003:
+    title: CreditSoft footer

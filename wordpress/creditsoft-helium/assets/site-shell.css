@@ -1,0 +1,84 @@
+/* Copyright 2026 Matthew C. Murphy <https://MatthewxMurphy.com>.
+ * Product/support https://builtnotbegged.com; recorded policy identity Matthew X Murphy.
+ * SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft child 2026.10.1 UNRELEASED.
+ * Child-only shell and content classes; no analytics or remote font dependency.
+ */
+body.creditsoft-site { background: #08080a; color: #f3f1eb; font-family: system-ui, sans-serif; }
+body.creditsoft-site #g-page-surround, body.creditsoft-site #g-container-main,
+body.creditsoft-site #g-mainbar, body.creditsoft-site #g-footer { background: #08080a; color: #f3f1eb; }
+body.creditsoft-site #g-navigation { background: #0d0d11; color: #f3f1eb; border-bottom: 1px solid #353139; }
+body.creditsoft-site #g-navigation .g-content, body.creditsoft-site #g-footer .g-content { margin: 0; padding: 0; }
+body.creditsoft-site #g-mainbar .g-content { margin: 0; padding: 0; }
+.creditsoft-shell-header, .creditsoft-shell-footer { max-width: 1220px; margin: auto; padding-inline: 24px; }
+.creditsoft-utility { display: flex; justify-content: space-between; gap: 24px; border-bottom: 1px solid #353139; padding-block: 10px; font-size: 12px; color: #c5c0cb; }
+.creditsoft-shell-header a, .creditsoft-shell-footer a { color: #f3f1eb; }
+.creditsoft-shell-header a:hover, .creditsoft-shell-footer a:hover { color: #f1c27a; }
+.creditsoft-nav-row { display: flex; align-items: center; gap: 22px; min-height: 92px; }
+.creditsoft-wordmark { display: inline-flex; flex-shrink: 0; width: 210px; max-width: 100%; }
+.creditsoft-wordmark img { display: block; width: 100%; height: auto; border: 0; border-radius: 0; }
+.creditsoft-primary-panel { flex: 1; min-width: 0; }
+.creditsoft-nav-list { display: flex; align-items: center; gap: 18px; padding: 0; margin: 0; list-style: none; font-size: 14px; }
+.creditsoft-nav-list li { position: relative; }
+.creditsoft-nav-list a { display: block; padding-block: 16px; }
+.creditsoft-nav-list .sub-menu { display: none; position: absolute; z-index: 100; min-width: 230px; padding: 16px; margin: 0; list-style: none; background: #17151c; border: 1px solid #51464d; }
+.creditsoft-nav-list .sub-menu a { padding-block: 8px; }
+.creditsoft-nav-list li:hover > .sub-menu, .creditsoft-nav-list li:focus-within > .sub-menu { display: block; }
+.creditsoft-nav-actions { display: flex; align-items: center; gap: 18px; flex-shrink: 0; font-size: 14px; }
+.creditsoft-shell-button { display: inline-block; padding: 12px 18px; border-radius: 6px; background: #f1c27a; color: #141117 !important; font-weight: 700; }
+.creditsoft-menu-toggle { display: none; min-height: 44px; padding: 10px 16px; border: 1px solid #8d7987; border-radius: 6px; background: transparent; color: #f3f1eb; font: inherit; }
+.creditsoft-shell-footer { display: grid; grid-template-columns: 1.1fr 1fr; gap: 64px; padding-block: 64px; border-top: 1px solid #353139; }
+.creditsoft-footer-brand { max-width: 60ch; }
+.creditsoft-footer-brand small { display: block; margin-top: 16px; color: #c5c0cb; }
+.creditsoft-footer-brand h2 { color: #f3f1eb; font-size: clamp(26px, 3vw, 42px); line-height: 1.15; margin-block: 24px 16px; }
+.creditsoft-footer-brand p { color: #c5c0cb; line-height: 1.8; }
+.creditsoft-footer-menus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.creditsoft-footer-menus h3 { font-size: 18px; color: #f3f1eb; }
+.creditsoft-footer-menus ul { list-style: none; padding: 0; margin: 0; }
+.creditsoft-footer-menus li { margin-bottom: 12px; overflow-wrap: anywhere; }
+.creditsoft-footer-menus a { color: #c5c0cb; }
+.creditsoft-home { color: #f3f1eb; --e-global-color-primary: #f3f1eb; --e-global-color-accent: #f1c27a; }
+.creditsoft-home .creditsoft-section.e-con { max-width: 1220px; margin-inline: auto; padding: 64px 24px; gap: 24px; }
+.creditsoft-home .creditsoft-hero.e-con { padding-block: 100px; background: radial-gradient(ellipse at 90% 10%, #253427 0, transparent 55%), #0d0d12; }
+.creditsoft-home .elementor-heading-title { color: #f3f1eb; line-height: 1.12; }
+.creditsoft-home h1.elementor-heading-title { max-width: 17ch; font-size: clamp(38px, 5.6vw, 76px); letter-spacing: -.045em; }
+.creditsoft-home h2.elementor-heading-title { font-size: clamp(30px, 4vw, 48px); letter-spacing: -.035em; }
+.creditsoft-home h3.elementor-heading-title { font-size: 24px; }
+.creditsoft-home h6.elementor-heading-title { --e-global-color-primary: #f1c27a; color: #f1c27a; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; }
+.creditsoft-home .elementor-widget-text-editor { max-width: 76ch; color: #c5c0cb; font-size: 18px; line-height: 1.8; }
+.creditsoft-home .elementor-widget-text-editor p { margin-bottom: 0; }
+.creditsoft-home .creditsoft-actions.e-con { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; gap: 14px; padding: 0; }
+.creditsoft-home .elementor-button { background: #f1c27a; color: #141117; padding: 16px 24px; border: 1px solid #f1c27a; border-radius: 6px; font-weight: 700; }
+.creditsoft-home .creditsoft-secondary { --e-global-color-accent: transparent; }
+.creditsoft-home .creditsoft-secondary .elementor-button { background: transparent; color: #f3f1eb; border-color: #80727d; }
+.creditsoft-home .creditsoft-feature-grid.e-con, .creditsoft-home .creditsoft-faq-grid.e-con { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; padding: 0; }
+.creditsoft-home .creditsoft-card.e-con { min-width: 0; padding: 28px; border: 1px solid #51464d; background: #15131a; gap: 16px; }
+.creditsoft-home .creditsoft-cta.e-con { margin-bottom: 64px; border: 1px solid #615340; background: #1d1816; }
+body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset: 4px; }
+@media (max-width: 1100px) { .creditsoft-wordmark { width: 170px; } .creditsoft-nav-list { gap: 12px; font-size: 13px; } .creditsoft-nav-actions { gap: 12px; } }
+@media (max-width: 980px) {
+  .creditsoft-nav-row { flex-wrap: wrap; gap: 16px; padding-block: 18px; }
+  .creditsoft-menu-toggle { display: block; margin-left: auto; }
+  .creditsoft-primary-panel { display: none; order: 4; flex-basis: 100%; }
+  .is-menu-open .creditsoft-primary-panel { display: block; }
+  .creditsoft-nav-list { display: block; }
+  .creditsoft-nav-list .sub-menu { display: block; position: static; padding: 0 0 0 20px; border: 0; background: transparent; }
+  .creditsoft-nav-list a { padding-block: 10px; }
+  .creditsoft-utility span { display: none; }
+  .creditsoft-utility { justify-content: flex-end; }
+  .creditsoft-shell-footer { grid-template-columns: 1fr; gap: 32px; }
+}
+@media (max-width: 600px) {
+  .creditsoft-shell-header, .creditsoft-shell-footer { padding-inline: 16px; }
+  .creditsoft-wordmark { width: 148px; }
+  .creditsoft-nav-actions > a:first-child { display: none; }
+  .creditsoft-nav-row { gap: 10px; }
+  .creditsoft-shell-button { padding: 12px; font-size: 13px; }
+  .creditsoft-menu-toggle { padding-inline: 12px; font-size: 13px; }
+  .creditsoft-home .creditsoft-section.e-con { padding: 44px 16px; }
+  .creditsoft-home .creditsoft-hero.e-con { padding-block: 60px; }
+  .creditsoft-home .creditsoft-feature-grid.e-con, .creditsoft-home .creditsoft-faq-grid.e-con { grid-template-columns: 1fr; }
+  .creditsoft-home .creditsoft-card.e-con { padding: 22px; }
+  .creditsoft-footer-menus { grid-template-columns: 1fr; }
+}
+
+.creditsoft-footer-social ul { display: flex; flex-wrap: wrap; gap: 16px; list-style: none; margin: 24px 0 0; padding: 0; }

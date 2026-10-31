@@ -1,0 +1,22 @@
+# Copyright 2026 Matthew C. Murphy; https://MatthewxMurphy.com / https://builtnotbegged.com.
+# SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft child 2026.10.1 UNRELEASED.
+name: CreditSoft Header
+description: Published CreditSoft branding with editable native WordPress navigation.
+type: particle
+icon: fa-header
+form:
+  fields:
+    enabled:
+      type: input.checkbox
+      label: Enabled
+      default: true
+    image:
+      type: input.imagepicker
+      label: Wordmark
+      default: gantry-theme://assets/creditsoft-wordmark.png
+    topbar:
+      type: textarea.textarea
+      label: Utility copy
+    contact:
+      type: input.text
+      label: Public contact address

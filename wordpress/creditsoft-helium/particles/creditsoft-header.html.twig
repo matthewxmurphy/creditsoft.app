@@ -1,0 +1,15 @@
+{# New particle copyright 2026 Matthew C. Murphy; MatthewxMurphy.com / builtnotbegged.com. GPL-2.0-or-later. #}
+{% extends '@nucleus/partials/particle.html.twig' %}
+{% block particle %}
+<header class="creditsoft-shell-header" data-creditsoft-header>
+  <div class="creditsoft-utility"><span>{{ particle.topbar|e }}</span><a href="{{ function('esc_url', 'mailto:' ~ particle.contact)|e('html_attr') }}">{{ particle.contact|e }}</a></div>
+  <div class="creditsoft-nav-row">
+    <a class="creditsoft-wordmark" href="{{ function('home_url', '/')|e('html_attr') }}" aria-label="CreditSoft home"><img src="{{ url(particle.image)|e('html_attr') }}" width="1073" height="282" alt="CreditSoft.app" decoding="async"></a>
+    <button class="creditsoft-menu-toggle" type="button" aria-expanded="false" aria-controls="creditsoft-primary-panel">Menu</button>
+    <nav id="creditsoft-primary-panel" class="creditsoft-primary-panel" aria-label="Primary navigation">
+      {{ function('wp_nav_menu', {'theme_location': 'creditsoft-primary', 'container': false, 'menu_class': 'creditsoft-nav-list', 'echo': false, 'fallback_cb': false})|raw }}
+    </nav>
+    <div class="creditsoft-nav-actions"><a href="{{ function('home_url', '/login')|e('html_attr') }}">Login</a><a class="creditsoft-shell-button" href="{{ function('home_url', '/subscribe')|e('html_attr') }}">Checkout</a></div>
+  </div>
+</header>
+{% endblock %}
