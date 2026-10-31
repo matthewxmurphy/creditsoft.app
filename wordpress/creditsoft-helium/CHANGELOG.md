@@ -12,3 +12,7 @@
   Astro copy, with a fixed read-only selector and unique guide anchors. Preserve
   existing pages, URL strings and edits; add no route, form or provider behavior.
 - Wrap long literal API references only within the new marketing exports.
+
+- Supply the explicit Multi-office nodes export with its unchanged public diagram,
+  complete source detail/bullet copy and one local full-image lightbox; keep import
+  preparation read-only and preserve existing pages and provider behavior.

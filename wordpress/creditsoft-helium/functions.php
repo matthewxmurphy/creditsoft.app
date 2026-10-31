@@ -69,6 +69,7 @@ function creditsoft_helium_marketing_template(string $slug): array
         'about-us' => 'about-us.elementor.json',
         'resources' => 'resources.elementor.json',
         'docs' => 'docs.elementor.json',
+        'multi-office-nodes' => 'multi-office-nodes.elementor.json',
     ];
     if (!isset($files[$slug])) {
         throw new InvalidArgumentException('CreditSoft marketing template is not supported.');
@@ -80,6 +81,24 @@ function creditsoft_helium_marketing_template(string $slug): array
     $template = json_decode((string) file_get_contents($path), true);
     if (!is_array($template)) {
         throw new RuntimeException('CreditSoft marketing source template is invalid.');
+    }
+    if ($slug === 'multi-office-nodes') {
+        // Resolve this one published diagram locally; import preparation never fetches a URL.
+        $prepareImage = static function (array &$elements) use (&$prepareImage): void {
+            foreach ($elements as &$element) {
+                if (!is_array($element)) {
+                    continue;
+                }
+                if (($element['widgetType'] ?? null) === 'image'
+                    && ($element['settings']['image']['url'] ?? null) === '/assets/images/product-proof/multi-office-node-topology.png') {
+                    $element['settings']['image']['url'] = get_stylesheet_directory_uri() . '/assets/multi-office-node-topology.png';
+                }
+                if (isset($element['elements']) && is_array($element['elements'])) {
+                    $prepareImage($element['elements']);
+                }
+            }
+        };
+        $prepareImage($template['content']);
     }
     return creditsoft_helium_rebase_template_links($template);
 }

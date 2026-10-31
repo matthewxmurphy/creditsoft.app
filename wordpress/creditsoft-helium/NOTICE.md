@@ -29,3 +29,11 @@ The source `about.astro` alias is documented rather than turned into a new runti
 redirect. New export structure, allowlisted preparation helper and focused tests
 use the same scoped first-party notices above; the underlying published copy and
 wider repository are not assigned a new blanket license by this adaptation.
+
+The Multi-office export preserves the selected public `site-lanes.ts` data and
+`[slug].astro` body. `assets/multi-office-node-topology.png` is an unchanged copy of
+`site-astro/public/assets/images/product-proof/multi-office-node-topology.png`,
+including its original rendered labels. Like the published wordmark, this asset
+has no separate explicit license identifier in the source; its reuse here does
+not assign a new blanket grant to Astro, those assets or the wider repository.
+New export/helper/test work carries the existing scoped first-party notices.

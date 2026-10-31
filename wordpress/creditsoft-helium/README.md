@@ -89,12 +89,12 @@ Prepare one deliberately selected export in WordPress:
 wp eval 'echo wp_json_encode(creditsoft_helium_marketing_template("about-us"));' > creditsoft-about-us-import.json
 ```
 
-The only other supported selectors are `resources` and `docs`. Import the prepared
+The other supported selectors are `resources`, `docs` and `multi-office-nodes`. Import the prepared
 JSON through Elementor, insert it into a chosen Page, and use the existing
 **CreditSoft Elementor Home** page template as the shared content wrapper. Review
 any existing page and saved edits before explicitly replacing content. No helper
 creates, overwrites or publishes pages, selects permalinks, or changes navigation.
-Configure the intended `/about-us`, `/resources/` and `/docs` page paths manually.
+Configure the intended page paths manually; these helpers register no routes.
 The source `/about` page points to `/about-us`; preserve that alias in the site's
 chosen redirect setup if needed. This child adds no redirect handler.
 
@@ -102,8 +102,29 @@ API, license, update, CRM and provider routes mentioned in these pages are copie
 prose/code strings, not new endpoints, calls or guarantees. Contact/login links
 remain link strings only. This cohort adds no forms, account/pricing/checkout
 logic, legal policy, external social/video integration or live service work.
-Screenshot-backed Features and the other Astro pages are outside this small
-cohort; no product screenshots or lightbox assets are copied here.
+The Features index and other Astro pages remain outside this small cohort. The
+separate Multi-office export below includes exactly one published topology diagram.
+
+### Multi-office nodes
+
+`content/multi-office-nodes.elementor.json` is a separate, explicit export for a
+chosen `/multi-office-nodes` Page. It preserves the selected lane from
+`site-astro/src/lib/site-lanes.ts` and its generic `[slug].astro` body: heading,
+summary, exact alt/caption, context, all three detail sections and nine items,
+three bullet/detail pairs, and the original contact/login/features link strings.
+Prepare it with `creditsoft_helium_marketing_template("multi-office-nodes")` and
+use the same reviewed, manual Elementor import process above. No page is created
+or overwritten by preparation or theme activation.
+
+The sole diagram is an unchanged copy of the published
+`multi-office-node-topology.png`, displayed full-size without cropping. Only this
+export's exact known source-image path is resolved to the local child asset URI.
+Preparation performs no remote fetch, accepts no arbitrary asset path and creates
+no Media Library record. The editable Free image widget retains the source alt
+and caption and uses Elementor's native file lightbox for full-image viewing.
+The image is a conceptual role/backup diagram; its labels are not live node or
+provider state. Backup/service names and CTA destinations remain copied text and
+links, without connecting services or running migration/checkout workflows.
 
 ## Focused checks and rollback
 
@@ -111,6 +132,8 @@ cohort; no product screenshots or lightbox assets are copied here.
 node --test wordpress/creditsoft-helium/tests/source-contract.test.mjs
 # New marketing cohort only:
 node --test wordpress/creditsoft-helium/tests/marketing-contract.test.mjs
+# New multi-office export only:
+node --test wordpress/creditsoft-helium/tests/multi-office-contract.test.mjs
 ```
 
 `tests/native-stack.php` exercises the actual disposable WordPress/Gantry/Elementor
