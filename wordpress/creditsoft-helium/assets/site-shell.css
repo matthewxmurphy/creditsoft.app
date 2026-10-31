@@ -82,3 +82,6 @@ body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset
 }
 
 .creditsoft-footer-social ul { display: flex; flex-wrap: wrap; gap: 16px; list-style: none; margin: 24px 0 0; padding: 0; }
+
+/* Keep literal API references readable inside the imported marketing pages. */
+.creditsoft-marketing code { white-space: normal; overflow-wrap: anywhere; word-break: normal; }

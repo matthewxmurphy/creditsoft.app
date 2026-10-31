@@ -71,10 +71,46 @@ paths. This slice adds no forms, CRM, checkout logic, analytics, Meta, chat SDK 
 remote social widgets. The broader site migration and live integrations remain
 separate from this homepage/shell source preparation.
 
+## Explicit static marketing pages
+
+Three additional, text-only Elementor FREE exports preserve the displayed copy
+and CTA destinations from the existing public Astro `about-us.astro`,
+`resources.astro` and `docs.astro` bodies. They use the same real page-content
+wrapper and scoped presentation as the homepage; no runtime route is installed.
+The docs page promotes its existing primary heading to an H1 without changing
+its words. Resources keeps `user-guide`, `admin-guide`, `crm-guide` and
+`ai-settings` exactly once each instead of copying the source's duplicate IDs.
+The legacy `/resources#/user-guide/introduction` remains displayed code text;
+this adds no hash router.
+
+Prepare one deliberately selected export in WordPress:
+
+```sh
+wp eval 'echo wp_json_encode(creditsoft_helium_marketing_template("about-us"));' > creditsoft-about-us-import.json
+```
+
+The only other supported selectors are `resources` and `docs`. Import the prepared
+JSON through Elementor, insert it into a chosen Page, and use the existing
+**CreditSoft Elementor Home** page template as the shared content wrapper. Review
+any existing page and saved edits before explicitly replacing content. No helper
+creates, overwrites or publishes pages, selects permalinks, or changes navigation.
+Configure the intended `/about-us`, `/resources/` and `/docs` page paths manually.
+The source `/about` page points to `/about-us`; preserve that alias in the site's
+chosen redirect setup if needed. This child adds no redirect handler.
+
+API, license, update, CRM and provider routes mentioned in these pages are copied
+prose/code strings, not new endpoints, calls or guarantees. Contact/login links
+remain link strings only. This cohort adds no forms, account/pricing/checkout
+logic, legal policy, external social/video integration or live service work.
+Screenshot-backed Features and the other Astro pages are outside this small
+cohort; no product screenshots or lightbox assets are copied here.
+
 ## Focused checks and rollback
 
 ```sh
 node --test wordpress/creditsoft-helium/tests/source-contract.test.mjs
+# New marketing cohort only:
+node --test wordpress/creditsoft-helium/tests/marketing-contract.test.mjs
 ```
 
 `tests/native-stack.php` exercises the actual disposable WordPress/Gantry/Elementor

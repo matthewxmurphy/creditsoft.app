@@ -61,3 +61,25 @@ function creditsoft_helium_homepage_template(): array
     }
     return creditsoft_helium_rebase_template_links($template);
 }
+
+/** Prepare one explicitly selected static marketing export; never create or replace a page. */
+function creditsoft_helium_marketing_template(string $slug): array
+{
+    $files = [
+        'about-us' => 'about-us.elementor.json',
+        'resources' => 'resources.elementor.json',
+        'docs' => 'docs.elementor.json',
+    ];
+    if (!isset($files[$slug])) {
+        throw new InvalidArgumentException('CreditSoft marketing template is not supported.');
+    }
+    $path = get_stylesheet_directory() . '/content/' . $files[$slug];
+    if (!is_readable($path)) {
+        throw new RuntimeException('CreditSoft marketing source template is unavailable.');
+    }
+    $template = json_decode((string) file_get_contents($path), true);
+    if (!is_array($template)) {
+        throw new RuntimeException('CreditSoft marketing source template is invalid.');
+    }
+    return creditsoft_helium_rebase_template_links($template);
+}
