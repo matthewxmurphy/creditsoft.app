@@ -5,15 +5,20 @@ document.querySelectorAll('[data-creditsoft-header]').forEach(header => {
     const button = header.querySelector('.creditsoft-menu-toggle');
     const panel = header.querySelector('.creditsoft-primary-panel');
     if (!button || !panel) return;
+    const mobile = window.matchMedia('(max-width: 980px)');
+    const setOpen = opened => {
+        header.classList.toggle('is-menu-open', opened);
+        button.setAttribute('aria-expanded', String(opened));
+    };
     const close = focus => {
-        header.classList.remove('is-menu-open'); button.setAttribute('aria-expanded', 'false');
+        setOpen(false);
         if (focus) button.focus();
     };
-    button.addEventListener('click', () => {
-        const opened = button.getAttribute('aria-expanded') !== 'true';
-        header.classList.toggle('is-menu-open', opened); button.setAttribute('aria-expanded', String(opened));
-    });
+    button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
     header.addEventListener('keydown', event => { if (event.key === 'Escape' && header.classList.contains('is-menu-open')) close(true); });
     document.addEventListener('click', event => { if (!header.contains(event.target)) close(false); });
-    window.matchMedia('(max-width: 980px)').addEventListener('change', event => { if (!event.matches) close(false); });
+    mobile.addEventListener('change', event => { if (!event.matches) close(false); });
+    // The fallback menu may already have keyboard focus if this script arrived late.
+    if (mobile.matches && panel.contains(document.activeElement)) setOpen(true);
+    header.classList.add('is-menu-enhanced');
 });

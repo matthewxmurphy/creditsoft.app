@@ -42,3 +42,6 @@
 
 - Use the published CreditSoft browser and Apple touch icons as the fallback
   and honor icons configured in WordPress or Gantry.
+
+- Keep the assigned mobile menu visible until its toggle is ready, so visitors
+  can use the navigation when the menu script is blocked or unavailable.
