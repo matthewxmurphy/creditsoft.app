@@ -89,3 +89,5 @@
   Media Library bindings for reviewed replacement clips and posters.
 - Add the editable Client portal feature page with the original feature copy
   and links rebased to the configured WordPress home.
+- Add editable Backup Redundancy and Tech Stack feature pages with original
+  copy and links rebased to the configured WordPress home.
