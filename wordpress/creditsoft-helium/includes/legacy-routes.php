@@ -6,8 +6,8 @@
  */
 defined('ABSPATH') || exit;
 
-/** Preserve the single Astro About alias after the operator publishes its replacement. */
-function creditsoft_helium_redirect_legacy_about(): void
+/** Preserve a known Astro page alias after the operator publishes its replacement. */
+function creditsoft_helium_redirect_legacy_page(string $alias_slug, string $target_slug): void
 {
     $method = $_SERVER['REQUEST_METHOD'] ?? '';
     if (!in_array($method, ['GET', 'HEAD'], true) || !is_404() || is_preview()) {
@@ -15,7 +15,7 @@ function creditsoft_helium_redirect_legacy_about(): void
     }
 
     $path = wp_parse_url(wp_unslash($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
-    $alias = wp_parse_url(home_url('/about'), PHP_URL_PATH);
+    $alias = wp_parse_url(home_url('/' . $alias_slug), PHP_URL_PATH);
     if (!is_string($alias) || ($path !== $alias && $path !== $alias . '/')) {
         return;
     }
@@ -24,17 +24,17 @@ function creditsoft_helium_redirect_legacy_about(): void
     add_filter('do_redirect_guess_404_permalink', '__return_false');
 
     // Draft/private Pages reserve the legacy slug even when the visitor sees a 404.
-    if (get_page_by_path('about', OBJECT, ['page'])) {
+    if (get_page_by_path($alias_slug, OBJECT, ['page'])) {
         return;
     }
-    $target = get_page_by_path('about-us', OBJECT, ['page']);
+    $target = get_page_by_path($target_slug, OBJECT, ['page']);
     if (!$target || $target->post_status !== 'publish' || $target->post_password !== '') {
         return;
     }
 
     $destination = get_permalink($target);
     // Require the intended same-site path, including the preview base, even if a plugin filters permalinks.
-    if (!$destination || untrailingslashit($destination) !== untrailingslashit(home_url('/about-us'))) {
+    if (!$destination || untrailingslashit($destination) !== untrailingslashit(home_url('/' . $target_slug))) {
         return;
     }
     // An origin-relative Location preserves the preview's IPv6 authority without a safe-redirect host fallback.
@@ -45,8 +45,11 @@ function creditsoft_helium_redirect_legacy_about(): void
     }
 }
 
-// Decide this exact alias before WordPress tries to guess a similar slug on a 404.
-add_action('template_redirect', 'creditsoft_helium_redirect_legacy_about', 1);
+// Decide these exact aliases before WordPress tries to guess a similar slug on a 404.
+add_action('template_redirect', static function (): void {
+    creditsoft_helium_redirect_legacy_page('about', 'about-us');
+    creditsoft_helium_redirect_legacy_page('pricing', 'pricing-plan');
+}, 1);
 
 /** Preserve the old static homepage address, including campaign parameters. */
 function creditsoft_helium_redirect_legacy_home(): void

@@ -33,6 +33,8 @@
 
 - Preserve legacy `/about` links after the public `/about-us` Page is published.
   Honor the site's URL base and existing editor-owned About pages.
+- Preserve legacy `/pricing` links after the exact public `/pricing-plan` Page
+  is published. Prevent WordPress from guessing a different page for that alias.
 
 - Add an editable `/releases` export with all four archived notes in their
   original order.
