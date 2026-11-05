@@ -61,3 +61,5 @@
   WordPress sitemap is enabled.
 - Allow an operator to place the selected Fluent Forms intake below the tools
   index and all virtual calculators with one explicit WordPress option.
+- Keep the fallback tools and contact form inside one main landmark when the
+  active Gantry outline already wraps its content in a main section.

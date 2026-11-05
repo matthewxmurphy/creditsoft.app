@@ -20,6 +20,25 @@ add_filter('body_class', static function (array $classes): array {
     $classes[] = 'creditsoft-site';
     return $classes;
 });
+add_filter('creditsoft_financial_tools_classic_content_tag', static function (string $tag): string {
+    if (!class_exists(\Gantry\Framework\Gantry::class)) {
+        return $tag;
+    }
+
+    $gantry = \Gantry\Framework\Gantry::instance();
+    if (!isset($gantry['theme'], $gantry['configuration'])) {
+        return $tag;
+    }
+
+    $layout = $gantry['theme']->loadLayout();
+    foreach ($layout->referencesByType('system', 'content') as $content) {
+        $section = $layout->getParentId($content->id);
+        if (($section->subtype ?? null) === 'main') {
+            return 'div';
+        }
+    }
+    return $tag;
+});
 add_action('wp_enqueue_scripts', static function (): void {
     wp_enqueue_style('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.css', [], CREDITSOFT_HELIUM_VERSION);
     wp_enqueue_script('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.js', [], CREDITSOFT_HELIUM_VERSION, true);

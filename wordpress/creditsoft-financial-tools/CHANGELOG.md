@@ -12,3 +12,5 @@
   paths out of the tools sitemap so WordPress handles their discovery.
 - Let the site append content below the virtual tools index and calculator pages
   before the theme prints its asset tags.
+- Let classic themes use a neutral tools wrapper when they supply the main
+  landmark.

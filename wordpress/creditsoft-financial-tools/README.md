@@ -85,6 +85,10 @@ to append below the calculator or index on fallback routes. The template runs
 it before the header so integrations can enqueue their assets. The calculator
 shortcode, block and saved WordPress Pages use their own content.
 
+A classic theme that supplies the surrounding main landmark can return `div`
+from `creditsoft_financial_tools_classic_content_tag`. The wrapper retains its
+`primary` ID. The block theme template uses its own main landmark.
+
 The native WordPress sitemap index includes the virtual tools index and calculator
 URLs when core indexing and pretty permalinks are enabled. Entries use the
 configured site URL and omit exact Page reservations (including draft and private

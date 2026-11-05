@@ -10,7 +10,8 @@ $content = CreditSoft_Financial_Tools::virtualContent();
 $content .= apply_filters('creditsoft_financial_tools_virtual_after_content', '');
 if (!wp_is_block_theme()) {
     get_header();
-    echo '<main id="primary">' . $content . '</main>';
+    $tag = apply_filters('creditsoft_financial_tools_classic_content_tag', 'main') === 'div' ? 'div' : 'main';
+    echo '<' . $tag . ' id="primary">' . $content . '</' . $tag . '>';
     get_footer();
     return;
 }
