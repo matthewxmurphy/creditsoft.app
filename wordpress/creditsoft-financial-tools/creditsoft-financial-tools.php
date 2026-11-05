@@ -32,6 +32,7 @@ final class CreditSoft_Financial_Tools
         add_filter('exit_on_http_head', [self::class, 'headExit']);
         add_filter('template_include', [self::class, 'virtualTemplate'], 99);
         add_filter('document_title_parts', [self::class, 'documentTitle']);
+        add_action('wp_sitemaps_init', [self::class, 'registerSitemap']);
     }
 
     public static function register(): void
@@ -42,6 +43,15 @@ final class CreditSoft_Financial_Tools
             ['wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor'], self::VERSION, true);
         add_shortcode('creditsoft_tool', [self::class, 'shortcode']);
         register_block_type(__DIR__ . '/blocks/financial-tool', ['render_callback' => [self::class, 'block']]);
+    }
+
+    public static function registerSitemap(WP_Sitemaps $server): void
+    {
+        if (!$server->sitemaps_enabled()) {
+            return;
+        }
+        require_once __DIR__ . '/includes/sitemap.php';
+        wp_register_sitemap_provider('creditsofttools', new CreditSoft_Financial_Tools_Sitemap());
     }
 
     /** The catalog is generated from the unchanged public module, never from request data. */
@@ -242,9 +252,44 @@ final class CreditSoft_Financial_Tools
         } else {
             return null;
         }
+        return self::hasReservedPage($slug) ? null : $slug;
+    }
+
+    private static function hasReservedPage(string $slug): bool
+    {
         // A non-public page still owns its exact URL even when an anonymous query is a 404.
         $pagePath = $slug === '' ? 'tools' : 'tools/' . $slug;
-        return get_page_by_path($pagePath, OBJECT, ['page']) !== null ? null : $slug;
+        return get_page_by_path($pagePath, OBJECT, ['page']) !== null;
+    }
+
+    /** List only the tool URLs this adapter can serve with front-controller rewrites. */
+    public static function sitemapUrls(): array
+    {
+        global $wp_rewrite;
+        if (!$wp_rewrite->using_mod_rewrite_permalinks()) {
+            return [];
+        }
+
+        $slugs = [''];
+        foreach (self::catalog()['tools'] ?? [] as $tool) {
+            $slug = $tool['slug'] ?? null;
+            if (is_string($slug) && preg_match('/^[a-z-]+$/D', $slug) === 1) {
+                $slugs[] = $slug;
+            }
+        }
+
+        $entries = [];
+        foreach ($slugs as $slug) {
+            $path = $slug === '' ? '/tools/' : '/tools/' . $slug . '/';
+            if (self::hasReservedPage($slug) || !apply_filters('creditsoft_financial_tools_sitemap_include', true, $path)) {
+                continue;
+            }
+            $url = home_url($path);
+            if (!url_to_postid($url)) {
+                $entries[] = ['loc' => $url];
+            }
+        }
+        return $entries;
     }
 
     /** Prevent core's 404 permalink guess only for this exact virtual candidate. */

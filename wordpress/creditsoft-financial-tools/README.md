@@ -80,6 +80,15 @@ otherwise-unowned tools route, so a root `/budget/` page cannot redirect
 control. Removing this plugin removes only its fallback routes
 and rendering; no created pages, stored entries or schema need rollback.
 
+The native WordPress sitemap index includes the virtual tools index and calculator
+URLs when core indexing and pretty permalinks are enabled. Entries use the
+configured site URL and omit exact Page reservations (including draft and private
+pages) and URLs WordPress resolves to a post. Core remains responsible for its
+own content entries. An integration with a custom virtual route can return
+`false` from `creditsoft_financial_tools_sitemap_include` for that root-relative
+path. This does not change routing or override a sitemap plugin or a site’s
+indexing setting.
+
 ## License and maintenance
 
 New adapter files: copyright 2026 Matthew C. Murphy, GPL-2.0-or-later; full text in

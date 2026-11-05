@@ -7,3 +7,6 @@
   keep core HEAD exits bodyless and preserve exact private/draft page paths.
 - Preserve published calculator modules; scope new styling and enforce one live
   calculator per page. Leave the existing site, leads, checkout and deployment alone.
+- Include the virtual tools index and calculator URLs in WordPress’s native
+  sitemap when indexing and pretty permalinks are enabled. Keep editor-owned
+  paths out of the tools sitemap so WordPress handles their discovery.
