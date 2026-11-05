@@ -195,6 +195,8 @@ function creditsoft_helium_marketing_template(string $slug): array
         'tech-stack' => 'tech-stack.elementor.json',
         'reporting' => 'reporting.elementor.json',
         'roadmap' => 'roadmap.elementor.json',
+        'compliance' => 'compliance.elementor.json',
+        'disputes' => 'disputes.elementor.json',
         'cookies' => 'cookies.elementor.json',
         'privacy' => 'privacy.elementor.json',
         'terms' => 'terms.elementor.json',

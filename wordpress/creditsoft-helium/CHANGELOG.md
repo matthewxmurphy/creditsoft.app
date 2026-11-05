@@ -93,3 +93,5 @@
   copy and links rebased to the configured WordPress home.
 - Add editable Reporting and Roadmap feature pages with original copy and
   links rebased to the configured WordPress home.
+- Add editable Compliance and Disputes feature pages with original workflow
+  copy and links rebased to the configured WordPress home.
