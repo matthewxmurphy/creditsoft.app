@@ -59,3 +59,5 @@
   WordPress staff access and editor-owned customer pages.
 - Preserve the legacy sitemap address below the host root when the native
   WordPress sitemap is enabled.
+- Allow an operator to place the selected Fluent Forms intake below the tools
+  index and all virtual calculators with one explicit WordPress option.

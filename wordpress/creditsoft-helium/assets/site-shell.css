@@ -112,6 +112,19 @@ body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset
   .creditsoft-home .creditsoft-release-grid.e-con { grid-template-columns: 1fr; }
 }
 
+.creditsoft-tools-intake {
+  box-sizing: border-box;
+  width: calc(100% - 32px);
+  max-width: 640px;
+  margin: 32px auto;
+  padding: clamp(16px, 4vw, 32px);
+  background: #121218;
+}
+.creditsoft-tools-intake h2 { margin-top: 0; }
+@media print {
+  .creditsoft-tools-intake { display: none; }
+}
+
 /* Native local-capture controls inherit the existing CreditSoft CTA palette. */
 .creditsoft-local-capture .ff-btn-submit {
   background: #f1c27a;

@@ -7,6 +7,7 @@
  */
 defined('ABSPATH') || exit;
 $content = CreditSoft_Financial_Tools::virtualContent();
+$content .= apply_filters('creditsoft_financial_tools_virtual_after_content', '');
 if (!wp_is_block_theme()) {
     get_header();
     echo '<main id="primary">' . $content . '</main>';

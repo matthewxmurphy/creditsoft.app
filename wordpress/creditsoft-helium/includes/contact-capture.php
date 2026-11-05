@@ -38,6 +38,21 @@ function creditsoft_helium_intake_shortcode($attributes): string
 }
 add_shortcode('creditsoft_intake', 'creditsoft_helium_intake_shortcode');
 
+/** Place the operator-selected form after a virtual tool or the tools index. */
+add_filter('creditsoft_financial_tools_virtual_after_content', static function (string $after): string {
+    $form = creditsoft_helium_intake_shortcode([
+        'form_id' => get_option('creditsoft_tools_intake_form_id', ''),
+    ]);
+    if ($form === '') {
+        return $after;
+    }
+
+    return $after . '<section class="creditsoft-tools-intake" aria-labelledby="creditsoft-tools-intake-title">'
+        . '<h2 id="creditsoft-tools-intake-title">Contact CreditSoft</h2>'
+        . '<p>Use this form to contact CreditSoft. Calculator entries stay in your browser.</p>'
+        . $form . '</section>';
+});
+
 /** Read-only export preparation; choose an existing form and import the resulting Page deliberately. */
 function creditsoft_helium_contact_template(int $formId): array
 {

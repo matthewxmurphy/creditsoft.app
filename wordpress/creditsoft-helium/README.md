@@ -216,12 +216,20 @@ ordinary WordPress page/block:
 ```
 
 For homepage capture, insert that shortcode into the chosen saved homepage; no
-home content is silently appended or rewritten. For a chosen tool page, combine
-it with `[creditsoft_tool slug="budget"]` (or another existing slug). An explicitly
-created/edited WordPress Page at that `/tools/` path takes precedence over the
-adapter's existing fallback route. Preserve any existing page and its ownership;
-this source creates no pages and does not automatically add forms to all twelve
-fallback routes. All existing calculator, homepage and Astro bytes remain intact.
+home content is silently appended or rewritten. On the tools index and all
+twelve calculator fallback routes, an operator can place the same form below
+the tools with one site option. Use the site's reviewed form ID:
+
+```sh
+wp option update creditsoft_tools_intake_form_id 123
+```
+
+Set the option to `0` to turn off that placement. The existing shortcode
+validation suppresses the entire contact section if the selected form becomes
+unavailable. The contact form receives its own inputs. Calculator values stay
+in the browser. Saved WordPress Pages at the tools URLs take precedence over
+the fallback routes and can place the contact shortcode alongside
+`[creditsoft_tool slug="budget"]` or another calculator shortcode.
 
 This import supplies no response-time, lead-routing or marketing-subscription
 promise. Local entries remain in the selected WordPress site's native Fluent

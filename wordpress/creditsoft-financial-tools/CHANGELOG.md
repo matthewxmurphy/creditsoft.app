@@ -10,3 +10,5 @@
 - Include the virtual tools index and calculator URLs in WordPress’s native
   sitemap when indexing and pretty permalinks are enabled. Keep editor-owned
   paths out of the tools sitemap so WordPress handles their discovery.
+- Let the site append content below the virtual tools index and calculator pages
+  before the theme prints its asset tags.

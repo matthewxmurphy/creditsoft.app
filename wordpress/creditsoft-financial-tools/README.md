@@ -80,6 +80,11 @@ otherwise-unowned tools route, so a root `/budget/` page cannot redirect
 control. Removing this plugin removes only its fallback routes
 and rendering; no created pages, stored entries or schema need rollback.
 
+The `creditsoft_financial_tools_virtual_after_content` filter accepts trusted HTML
+to append below the calculator or index on fallback routes. The template runs
+it before the header so integrations can enqueue their assets. The calculator
+shortcode, block and saved WordPress Pages use their own content.
+
 The native WordPress sitemap index includes the virtual tools index and calculator
 URLs when core indexing and pretty permalinks are enabled. Entries use the
 configured site URL and omit exact Page reservations (including draft and private

@@ -118,7 +118,7 @@ final class CreditSoft_Financial_Tools
                 <p class="tool-kicker"><?php echo esc_html($tool['category']); ?></p>
                 <h1><?php echo esc_html($tool['title']); ?></h1>
                 <p class="tool-lede"><?php echo esc_html($tool['description']); ?></p>
-                <p class="tool-privacy">Your entries stay in this page and are not saved or submitted. No account is needed.</p>
+                <p class="tool-privacy">Your calculator entries stay in this page. No account is needed to calculate.</p>
                 <?php self::attribution(); ?>
             </header>
             <div class="tool-workspace">
@@ -216,7 +216,7 @@ final class CreditSoft_Financial_Tools
         <section class="creditsoft-financial-tools financial-tools">
             <header class="tools-intro"><h1>Free financial tools</h1>
                 <p class="tool-lede">Twelve calculators and planning worksheets. No account required.</p>
-                <p class="tool-privacy">Your entries stay in this page. They are not saved to an account or submitted to CreditSoft or Credit Sense.</p>
+                <p class="tool-privacy">Calculator entries stay in your browser.</p>
                 <?php self::attribution(); ?>
             </header>
             <nav aria-label="Financial tools" class="tools-grid">
