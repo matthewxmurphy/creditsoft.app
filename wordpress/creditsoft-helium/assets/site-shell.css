@@ -10,6 +10,9 @@ body.creditsoft-site #g-navigation { background: #0d0d11; color: #f3f1eb; border
 body.creditsoft-site #g-navigation .g-content, body.creditsoft-site #g-footer .g-content { margin: 0; padding: 0; }
 body.creditsoft-site #g-mainbar .g-content { margin: 0; padding: 0; }
 .creditsoft-shell-header, .creditsoft-shell-footer { max-width: 1220px; margin: auto; padding-inline: 24px; }
+.creditsoft-shell-header { position: relative; }
+.creditsoft-skip-link { position: absolute; inset-block-start: 8px; inset-inline-start: 24px; z-index: 101; }
+.creditsoft-skip-link:not(:focus) { clip-path: inset(50%); }
 .creditsoft-utility { display: flex; justify-content: space-between; gap: 24px; border-bottom: 1px solid #353139; padding-block: 10px; font-size: 12px; color: #c5c0cb; }
 .creditsoft-shell-header a, .creditsoft-shell-footer a { color: #f3f1eb; }
 .creditsoft-shell-header a:hover, .creditsoft-shell-footer a:hover { color: #f1c27a; }

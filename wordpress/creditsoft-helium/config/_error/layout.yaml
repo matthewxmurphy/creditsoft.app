@@ -24,6 +24,8 @@ structure:
     subtype: main
     attributes:
       class: creditsoft-main
+      extra:
+        tabindex: '-1'
   container-main:
     attributes:
       boxed: ''

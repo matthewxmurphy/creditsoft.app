@@ -2,6 +2,11 @@
 {% extends '@nucleus/partials/particle.html.twig' %}
 {% block particle %}
 <header class="creditsoft-shell-header" data-creditsoft-header>
+  {% set main = gantry.theme.loadLayout().referencesByType('section', 'main')|first %}
+  {% if main and main.children %}
+    {% set main_id = main.attributes.id ?: 'g-' ~ main.id %}
+    <a class="creditsoft-skip-link creditsoft-shell-button" href="#{{ main_id|url_encode|e('html_attr') }}">Skip to main content</a>
+  {% endif %}
   <div class="creditsoft-utility"><span>{{ particle.topbar|e }}</span><a href="{{ function('esc_url', 'mailto:' ~ particle.contact)|e('html_attr') }}">{{ particle.contact|e }}</a></div>
   <div class="creditsoft-nav-row">
     <a class="creditsoft-wordmark" href="{{ function('home_url', '/')|e('html_attr') }}" aria-label="CreditSoft home"><img src="{{ url(particle.image)|e('html_attr') }}" width="1073" height="282" alt="CreditSoft.app" decoding="async"></a>
