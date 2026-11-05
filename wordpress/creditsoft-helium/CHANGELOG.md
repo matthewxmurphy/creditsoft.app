@@ -95,3 +95,5 @@
   links rebased to the configured WordPress home.
 - Add editable Compliance and Disputes feature pages with original workflow
   copy and links rebased to the configured WordPress home.
+- Add editable Local-first CRM and Migration feature pages with original
+  copy and links rebased to the configured WordPress home.
