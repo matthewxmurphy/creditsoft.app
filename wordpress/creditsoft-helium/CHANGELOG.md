@@ -35,6 +35,8 @@
   Honor the site's URL base and existing editor-owned About pages.
 - Preserve legacy `/pricing` links after the exact public `/pricing-plan` Page
   is published. Prevent WordPress from guessing a different page for that alias.
+- Prevent unresolved `/account` and `/customer-dashboard` requests from guessing
+  similarly named pages while keeping native Pages and old-slug redirects.
 
 - Add an editable `/releases` export with all four archived notes in their
   original order.
