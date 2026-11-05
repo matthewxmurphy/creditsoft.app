@@ -34,6 +34,12 @@ touch shortcuts. A WordPress Site Icon takes precedence. Gantry’s configured
 favicon or touch icon takes precedence for the matching icon types. The
 Customizer displays WordPress’s own preview.
 
+Direct GET and HEAD requests for `/favicon.svg`, `/favicon.ico` and
+`/apple-touch-icon.png` can redirect temporarily to the published icons bundled
+in the child. Existing routes take precedence, as does the WordPress Site Icon
+handler for `/favicon.ico` when a Site Icon is configured. The redirect uses the
+local theme asset path when the theme assets and site share an origin.
+
 Official contracts:
 
 - [Gantry WordPress child themes](https://docs.gantry.org/gantry5/theme-development/create-child-theme-wordpress)

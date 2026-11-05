@@ -76,3 +76,55 @@ function creditsoft_helium_redirect_legacy_home(): void
 }
 
 add_action('template_redirect', 'creditsoft_helium_redirect_legacy_home', 1);
+
+/** Keep the published icon URLs available to clients that request them directly. */
+function creditsoft_helium_redirect_legacy_icon(): void
+{
+    $method = $_SERVER['REQUEST_METHOD'] ?? '';
+    if (!in_array($method, ['GET', 'HEAD'], true) || is_preview() || get_query_var('preview') !== '') {
+        return;
+    }
+
+    $home = wp_parse_url(home_url('/'));
+    if (!is_array($home) || !isset($home['scheme'], $home['host'])) {
+        return;
+    }
+    $base = trailingslashit($home['path'] ?? '/');
+    $path = explode('?', wp_unslash($_SERVER['REQUEST_URI'] ?? ''), 2)[0];
+    if (!str_starts_with($path, $base)) {
+        return;
+    }
+    $icon = substr($path, strlen($base));
+    if (!in_array($icon, ['favicon.svg', 'favicon.ico', 'apple-touch-icon.png'], true)) {
+        return;
+    }
+
+    $is_ico = $icon === 'favicon.ico';
+    if ((!is_404() && !($is_ico && is_favicon())) || ($is_ico && (has_site_icon() || get_site_icon_url(32)))) {
+        return;
+    }
+    if (!is_file(get_stylesheet_directory() . '/assets/' . $icon)) {
+        return;
+    }
+
+    $asset = wp_parse_url(get_stylesheet_directory_uri() . '/assets/' . $icon);
+    $scheme = strtolower($home['scheme']);
+    $default_port = $scheme === 'https' ? 443 : 80;
+    if (!in_array($scheme, ['http', 'https'], true) || !is_array($asset)
+        || strtolower($asset['scheme'] ?? '') !== $scheme
+        || strcasecmp($asset['host'] ?? '', $home['host']) !== 0
+        || ($asset['port'] ?? $default_port) !== ($home['port'] ?? $default_port)
+        || isset($asset['user']) || isset($asset['pass']) || isset($asset['query']) || isset($asset['fragment'])) {
+        return;
+    }
+    $location = $asset['path'] ?? '';
+    if ($location === $path || !str_starts_with($location, '/') || str_starts_with($location, '//')
+        || wp_sanitize_redirect($location) !== $location) {
+        return;
+    }
+    if (wp_safe_redirect($location, 302, 'CreditSoft')) {
+        exit;
+    }
+}
+
+add_action('template_redirect', 'creditsoft_helium_redirect_legacy_icon', 1);

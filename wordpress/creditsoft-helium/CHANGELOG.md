@@ -51,3 +51,5 @@
 - Restore the browser’s visible open and closed markers on the homepage FAQ.
 - Preserve the `/index.html` homepage redirect and its query string on ordinary
   and tilde URL bases.
+- Preserve direct requests to the three published CreditSoft icon URLs and honor
+  WordPress’s configured Site Icon for `/favicon.ico`.
