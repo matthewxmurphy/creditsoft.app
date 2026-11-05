@@ -91,3 +91,5 @@
   and links rebased to the configured WordPress home.
 - Add editable Backup Redundancy and Tech Stack feature pages with original
   copy and links rebased to the configured WordPress home.
+- Add editable Reporting and Roadmap feature pages with original copy and
+  links rebased to the configured WordPress home.

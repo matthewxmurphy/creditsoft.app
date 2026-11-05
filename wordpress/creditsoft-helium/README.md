@@ -150,8 +150,8 @@ wp eval 'echo wp_json_encode(creditsoft_helium_marketing_template("about-us"));'
 ```
 
 The other supported selectors are `resources`, `docs`, `multi-office-nodes`,
-`client-portal`, `backup-redundancy`, `tech-stack`, `cookies`, `privacy`,
-`terms` and `releases`. Import the prepared
+`client-portal`, `backup-redundancy`, `tech-stack`, `reporting`, `roadmap`,
+`cookies`, `privacy`, `terms` and `releases`. Import the prepared
 JSON through Elementor, insert it into a chosen Page, and use the existing
 **CreditSoft Elementor Home** page template as the shared content wrapper. Review
 any existing page and saved edits before explicitly replacing content. No helper
@@ -199,6 +199,15 @@ feature pages. Import each into a chosen Page at its original slug. The
 exports retain the existing feature copy and the Start intake, Login and
 Back to feature overview links. Add reviewed replacement proof images in
 Elementor before accepting the preview.
+
+### Reporting and Roadmap
+
+Prepare the editable feature pages with
+`creditsoft_helium_marketing_template("reporting")` and
+`creditsoft_helium_marketing_template("roadmap")`. Import each into a chosen
+Page at its original slug. The exports retain the existing feature copy and
+the Start intake, Login and Back to feature overview links. Add reviewed
+replacement dashboard images in Elementor before accepting the preview.
 
 ### Multi-office nodes
 

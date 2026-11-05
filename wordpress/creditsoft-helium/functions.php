@@ -193,6 +193,8 @@ function creditsoft_helium_marketing_template(string $slug): array
         'client-portal' => 'client-portal.elementor.json',
         'backup-redundancy' => 'backup-redundancy.elementor.json',
         'tech-stack' => 'tech-stack.elementor.json',
+        'reporting' => 'reporting.elementor.json',
+        'roadmap' => 'roadmap.elementor.json',
         'cookies' => 'cookies.elementor.json',
         'privacy' => 'privacy.elementor.json',
         'terms' => 'terms.elementor.json',

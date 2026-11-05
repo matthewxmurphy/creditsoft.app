@@ -24,7 +24,8 @@ The route lists below normalize trailing slashes. Prepared pages require the exp
 | `/login`, `/sign-in`, `/account`, `/customer-dashboard` | Map CreditSoft customer access separately from WordPress staff access. The Astro `/login` and `/sign-in` paths show the account access form. The WordPress draft uses the branded 404 at those paths until an explicit route is available. The draft also stops WordPress from guessing a similarly named page for unresolved `/account` and `/customer-dashboard` requests. Published Pages and explicit WordPress old-slug redirects retain their native behavior. In Astro, `/customer-dashboard` leads to `/account/` and carries query parameters. |
 | `/client-portal` | The editable feature page preserves the public product copy and the intake, login and features links. Import it at the original slug and add a reviewed replacement for the app screenshot. Customer sign-in is tracked separately. |
 | `/backup-redundancy`, `/tech-stack` | Editable exports preserve the product copy and links. Import both at their original slugs and add reviewed replacement proof images. |
-| `/api-bridge`, `/compliance`, `/disputes`, `/email-providers`, `/local-first-crm`, `/metro2`, `/migration`, `/outsourcing`, `/reporting`, `/roadmap`, `/social-media`, `/websites` | Twelve indexed feature lanes still need a page or approved destination. |
+| `/reporting`, `/roadmap` | Editable exports preserve the original copy and links. Import at their original slugs and add reviewed replacement dashboard images. |
+| `/api-bridge`, `/compliance`, `/disputes`, `/email-providers`, `/local-first-crm`, `/metro2`, `/migration`, `/outsourcing`, `/social-media`, `/websites` | Ten indexed feature lanes still need a page or approved destination. |
 
 ## Linked gaps and service routes
 
