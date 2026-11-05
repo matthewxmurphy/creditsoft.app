@@ -122,7 +122,7 @@ final class CreditSoft_Financial_Tools
                 <?php self::attribution(); ?>
             </header>
             <div class="tool-workspace">
-                <form class="tool-inputs" autocomplete="off" onsubmit="return false">
+                <form class="tool-inputs" method="dialog" autocomplete="off" onsubmit="return false">
                     <h2>Your inputs</h2>
                     <p class="tool-hint">Prefilled amounts are examples. Replace them with the numbers you want to explore.</p>
                     <div class="tool-fields"><?php foreach ($tool['fields'] as $field) { self::field($field); } ?></div>

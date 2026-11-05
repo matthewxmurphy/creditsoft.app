@@ -69,7 +69,7 @@ try {
         [$status,$html] = $request('/tools/' . $tool['slug'] . '/');
         $xp = $document($html);
         $check($status === 200 && $xp->query('//*[@data-financial-tool="' . $tool['slug'] . '"]')->length === 1, 'Virtual calculator has its exact selector.');
-        $check($xp->query('//form[contains(@class,"tool-inputs")]')->length === 1, 'One live calculator form per virtual route.');
+        $check($xp->query('//form[contains(@class,"tool-inputs") and @method="dialog"]')->length === 1, 'One local-only calculator form per virtual route.');
         $check(str_contains($html, esc_html($tool['method'])) && str_contains($html, 'Credit Sense Credit Repair'), 'Assumptions and normal attribution remain present.');
         $hasAssets($xp);
         foreach ($tool['fields'] as $field) {
