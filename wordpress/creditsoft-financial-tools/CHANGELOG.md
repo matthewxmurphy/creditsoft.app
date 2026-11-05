@@ -5,6 +5,8 @@
 - Adapt the existing 12 calculators to a shared WordPress shortcode/dynamic block.
 - Add exact GET/HEAD fallback `/tools/` routes only for otherwise-unowned 404s;
   keep core HEAD exits bodyless and preserve exact private/draft page paths.
+- Prevent WordPress from guessing a different public permalink when a draft
+  or private Page reserves an exact calculator URL or the tools index.
 - Preserve published calculator modules; scope new styling and enforce one live
   calculator per page. Leave the existing site, leads, checkout and deployment alone.
 - Include the virtual tools index and calculator URLs in WordPress’s native

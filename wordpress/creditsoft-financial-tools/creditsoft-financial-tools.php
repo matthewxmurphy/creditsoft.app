@@ -28,6 +28,7 @@ final class CreditSoft_Financial_Tools
     public static function boot(): void
     {
         add_action('init', [self::class, 'register']);
+        add_filter('do_redirect_guess_404_permalink', [self::class, 'allowPermalinkGuess']);
         add_filter('redirect_canonical', [self::class, 'canonicalRedirect']);
         add_filter('exit_on_http_head', [self::class, 'headExit']);
         add_filter('template_include', [self::class, 'virtualTemplate'], 99);
@@ -246,8 +247,8 @@ final class CreditSoft_Financial_Tools
         <?php return (string) ob_get_clean();
     }
 
-    /** Match only an otherwise-unowned request; selection has no rewrite or query side effect. */
-    private static function eligibleVirtualSlug(): ?string
+    /** Match exact tools paths on front-end GET/HEAD requests that WordPress resolved as 404. */
+    private static function requestedToolSlug(): ?string
     {
         if (!is_404() || is_admin() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST)
             || !in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', ['GET', 'HEAD'], true)) {
@@ -266,7 +267,13 @@ final class CreditSoft_Financial_Tools
         } else {
             return null;
         }
-        return self::hasReservedPage($slug) ? null : $slug;
+        return $slug;
+    }
+
+    private static function eligibleVirtualSlug(): ?string
+    {
+        $slug = self::requestedToolSlug();
+        return $slug !== null && !self::hasReservedPage($slug) ? $slug : null;
     }
 
     private static function hasReservedPage(string $slug): bool
@@ -311,7 +318,17 @@ final class CreditSoft_Financial_Tools
         return $entries;
     }
 
-    /** Prevent core's 404 permalink guess only for this exact virtual candidate. */
+    /** Keep an exact reserved path from redirecting to a similarly named public page. */
+    public static function allowPermalinkGuess(bool $guess): bool
+    {
+        if (!$guess) {
+            return false;
+        }
+        $slug = self::requestedToolSlug();
+        return $slug === null || !self::hasReservedPage($slug);
+    }
+
+    /** Let an otherwise-unowned virtual candidate reach its template. */
     public static function canonicalRedirect($redirect)
     {
         return self::eligibleVirtualSlug() !== null ? false : $redirect;
