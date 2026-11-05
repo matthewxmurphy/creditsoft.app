@@ -68,7 +68,7 @@ body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset
   .creditsoft-nav-row { flex-wrap: wrap; gap: 16px; padding-block: 18px; }
   .is-menu-enhanced .creditsoft-menu-toggle { display: block; margin-left: auto; }
   .creditsoft-primary-panel { order: 4; flex-basis: 100%; }
-  .is-menu-enhanced:not(.is-menu-open) .creditsoft-primary-panel { display: none; }
+  .is-menu-enhanced.is-menu-mobile:not(.is-menu-open) .creditsoft-primary-panel { display: none; }
   .creditsoft-shell-header:not(.is-menu-enhanced) .creditsoft-nav-actions { margin-left: auto; }
   .creditsoft-nav-list { display: block; }
   .creditsoft-nav-list .sub-menu { display: block; position: static; padding: 0 0 0 20px; border: 0; background: transparent; }

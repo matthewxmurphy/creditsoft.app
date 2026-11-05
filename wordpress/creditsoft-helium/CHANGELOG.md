@@ -45,6 +45,8 @@
 
 - Keep the assigned mobile menu visible until its toggle is ready, so visitors
   can use the navigation when the menu script is blocked or unavailable.
+- Keep the focused navigation link visible and the menu expanded when the
+  viewport narrows from desktop to mobile.
 
 - Preserve the homepage FAQ’s four independently collapsible answers in the
   Elementor export. Each answer starts open, matching the Astro homepage.

@@ -17,8 +17,13 @@ document.querySelectorAll('[data-creditsoft-header]').forEach(header => {
     button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
     header.addEventListener('keydown', event => { if (event.key === 'Escape' && header.classList.contains('is-menu-open')) close(true); });
     document.addEventListener('click', event => { if (!header.contains(event.target)) close(false); });
-    mobile.addEventListener('change', event => { if (!event.matches) close(false); });
-    // The fallback menu may already have keyboard focus if this script arrived late.
-    if (mobile.matches && panel.contains(document.activeElement)) setOpen(true);
+    const updateViewport = () => {
+        const isMobile = mobile.matches;
+        setOpen(isMobile && panel.contains(document.activeElement));
+        // Decide whether to keep focus before the mobile CSS can hide the panel.
+        header.classList.toggle('is-menu-mobile', isMobile);
+    };
+    mobile.addEventListener('change', updateViewport);
+    updateViewport();
     header.classList.add('is-menu-enhanced');
 });
