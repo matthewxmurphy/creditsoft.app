@@ -4,6 +4,7 @@
 <header class="creditsoft-shell-header" data-creditsoft-header>
   {% set main = gantry.theme.loadLayout().referencesByType('section', 'main')|first %}
   {% if main and main.children %}
+    {% do function('creditsoft_helium_prepare_skip_target', main) %}
     {% set main_id = main.attributes.id ?: 'g-' ~ main.id %}
     <a class="creditsoft-skip-link creditsoft-shell-button" href="#{{ main_id|url_encode|e('html_attr') }}">Skip to main content</a>
   {% endif %}

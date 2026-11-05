@@ -49,6 +49,8 @@
   viewport narrows from desktop to mobile.
 - Add a keyboard link that skips the navigation and focuses the main content
   on the shipped default and error layouts.
+- Focus the skip target on older saved outlines while preserving editor-set
+  tag attributes and the saved layout files.
 
 - Preserve the homepage FAQ’s four independently collapsible answers in the
   Elementor export. Each answer starts open, matching the Astro homepage.

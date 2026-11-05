@@ -85,6 +85,26 @@ add_action('wp_head', static function (): void {
 
 require_once get_stylesheet_directory() . '/includes/legacy-routes.php';
 
+/** Make the active skip target focusable without saving any outline changes. */
+function creditsoft_helium_prepare_skip_target(object $main): void
+{
+    $extra = $main->attributes->extra ?? [];
+    if (!is_array($extra)) {
+        return;
+    }
+
+    foreach ($extra as $key => $value) {
+        $names = is_array($value) ? array_keys($value) : [$key];
+        foreach ($names as $name) {
+            if (strcasecmp((string) $name, 'tabindex') === 0) {
+                return;
+            }
+        }
+    }
+
+    $main->attributes->extra = $extra + ['tabindex' => '-1'];
+}
+
 /** Explicit import preparation only; preserve external/mailto links and each local path/query verbatim. */
 function creditsoft_helium_rebase_template_links(array $template): array
 {
