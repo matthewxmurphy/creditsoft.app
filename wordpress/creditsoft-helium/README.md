@@ -215,8 +215,16 @@ ordinary WordPress page/block:
 [creditsoft_intake form_id="123"]
 ```
 
-For homepage capture, insert that shortcode into the chosen saved homepage; no
-home content is silently appended or rewritten. On the tools index and all
+For a new homepage import, pass the reviewed form ID to the homepage exporter.
+The returned Elementor template adds an editable Contact CreditSoft section
+with the same native shortcode:
+
+```sh
+wp eval 'echo wp_json_encode(creditsoft_helium_homepage_template(123));' > creditsoft-homepage-with-intake.json
+```
+
+Import the export into the page you choose. For an existing saved homepage,
+place the shortcode in Elementor where you want the form. On the tools index and all
 twelve calculator fallback routes, an operator can place the same form below
 the tools with one site option. Use the site's reviewed form ID:
 

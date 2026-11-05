@@ -109,7 +109,7 @@ function creditsoft_helium_rebase_template_links(array $template): array
 }
 
 /** Read-only source export; never imports, selects or rewrites a WordPress page. */
-function creditsoft_helium_homepage_template(): array
+function creditsoft_helium_homepage_template(?int $formId = null): array
 {
     $path = get_stylesheet_directory() . '/content/homepage.elementor.json';
     if (!is_readable($path)) {
@@ -119,6 +119,42 @@ function creditsoft_helium_homepage_template(): array
     if (!is_array($template)) {
         throw new RuntimeException('CreditSoft homepage source template is invalid.');
     }
+
+    if ($formId !== null) {
+        if (!creditsoft_helium_intake_form($formId)) {
+            throw new InvalidArgumentException('Select an existing published Fluent Forms contact form.');
+        }
+        if (!is_array($template['content'][0]['elements'] ?? null)) {
+            throw new RuntimeException('CreditSoft homepage content container is unavailable.');
+        }
+        $template['content'][0]['elements'][] = [
+            'id' => '0000033',
+            'elType' => 'container',
+            'isInner' => false,
+            'settings' => [
+                'css_classes' => 'creditsoft-section creditsoft-home-intake',
+                'content_width' => 'full',
+                'flex_direction' => 'column',
+            ],
+            'elements' => [
+                [
+                    'id' => '0000034',
+                    'elType' => 'widget',
+                    'widgetType' => 'heading',
+                    'settings' => ['title' => 'Contact CreditSoft', 'header_size' => 'h2'],
+                    'elements' => [],
+                ],
+                [
+                    'id' => '0000035',
+                    'elType' => 'widget',
+                    'widgetType' => 'shortcode',
+                    'settings' => ['shortcode' => '[creditsoft_intake form_id="' . $formId . '"]'],
+                    'elements' => [],
+                ],
+            ],
+        ];
+    }
+
     return creditsoft_helium_rebase_template_links($template);
 }
 

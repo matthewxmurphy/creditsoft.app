@@ -63,3 +63,5 @@
   index and all virtual calculators with one explicit WordPress option.
 - Keep the fallback tools and contact form inside one main landmark when the
   active Gantry outline already wraps its content in a main section.
+- Prepare an editable homepage intake section when an operator supplies a
+  reviewed Fluent Forms ID to the Elementor export.

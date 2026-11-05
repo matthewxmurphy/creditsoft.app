@@ -112,7 +112,7 @@ body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset
   .creditsoft-home .creditsoft-release-grid.e-con { grid-template-columns: 1fr; }
 }
 
-.creditsoft-tools-intake {
+.creditsoft-tools-intake, .creditsoft-home .creditsoft-home-intake.e-con {
   box-sizing: border-box;
   width: calc(100% - 32px);
   max-width: 640px;
