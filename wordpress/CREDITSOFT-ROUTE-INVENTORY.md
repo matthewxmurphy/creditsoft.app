@@ -31,3 +31,30 @@ The proposed WordPress menus, shipped Elementor exports and fixed header links p
 The Astro pricing page and checkout request quotes through `/api/checkout-request.php`. Checkout also sends its submission to that endpoint. The public source separately includes `/api/lead.php`, `/api/license-validate-request.php`, `/api/license-validate.php`, `/api/license.php`, `/api/update-feed` and `/api/update-feed.php`. Identify the approved host and routing for each service before cutover. Preserve the behavior of the three internal license rewrites at `/license/validate`, `/license/validate.json` and `/api/verify`, including their optional trailing slash. Internal rewrites keep validation parameters out of redirect locations. The draft preserves the legacy `/index.html` 301 to the configured homepage for otherwise-missing GET and HEAD requests, including query strings. The direct `/favicon.svg`, `/favicon.ico` and `/apple-touch-icon.png` URLs can redirect temporarily to the published bytes in the child theme on the same origin. WordPress takes over `/favicon.ico` when a Site Icon is configured. [Astro rewrite source](../site-astro/public/.htaccess)
 
 Before cutover, confirm the customer and purchase destinations, service routing and approved proof assets. Then publish the prepared pages and assign the reviewed menus on the authorized preview. Verify the routes against the actual preview, followed by the approved Brands lead and checkout acceptance. Keep this inventory with the cutover review so the owner can assess every remaining path.
+
+## Replace the private child theme on an existing preview
+
+WordPress’s native ZIP replacement removes the installed `creditsoft-helium`
+directory, including Gantry’s theme-local `custom/` files. A saved layout can
+therefore disappear while the site still returns HTTP 200. The saved Elementor
+page, menu assignments and Fluent Forms settings live in the WordPress database.
+The installer can clear Elementor’s generated asset metadata, which rebuilds
+when the page is requested.
+
+For an authorized replacement or rollback, use the exact private ZIP and its
+SHA-256 manifest. Both tested ZIPs use the same proposal version, so the version
+alone cannot distinguish them.
+
+1. Record the active child theme path, the homepage, menu and selected form.
+   Archive the active child’s `custom/` directory outside the theme and verify
+   that the archive contains the saved outlines. Keep the previous verified ZIP
+   and its manifest available for rollback.
+2. Install the selected local ZIP with `wp theme install <approved-zip> --force`.
+   Restore `custom/` into the active child before verifying the pages. Confirm
+   that the installed package and restored custom files match their respective
+   manifests and that WordPress can read the restored files.
+3. Check the homepage and budget calculator at the actual preview URL. Verify
+   that the saved layout renders and the expected menu and form are present on
+   both pages. Keep the pre-replacement backup through acceptance. If a rollback
+   is needed, install the previous verified ZIP, restore that known-good
+   `custom/` archive, and repeat the same hash and page checks.
