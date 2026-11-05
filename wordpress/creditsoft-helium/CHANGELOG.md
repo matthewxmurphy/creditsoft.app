@@ -33,3 +33,6 @@
 
 - Preserve legacy `/about` links after the public `/about-us` Page is published.
   Honor the site's URL base and existing editor-owned About pages.
+
+- Add an editable `/releases` export with all four archived notes in their
+  original order.

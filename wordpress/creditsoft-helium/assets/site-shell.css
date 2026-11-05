@@ -86,6 +86,17 @@ body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset
 /* Keep literal API references readable inside the imported marketing pages. */
 .creditsoft-marketing code { white-space: normal; overflow-wrap: anywhere; word-break: normal; }
 
+.creditsoft-home .creditsoft-release-grid.e-con {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding: 0;
+}
+.creditsoft-home .creditsoft-release-grid h2.elementor-heading-title { font-size: 2rem; }
+@media (max-width: 900px) {
+  .creditsoft-home .creditsoft-release-grid.e-con { grid-template-columns: 1fr; }
+}
+
 /* Native local-capture controls inherit the existing CreditSoft CTA palette. */
 .creditsoft-local-capture .ff-btn-submit {
   background: #f1c27a;

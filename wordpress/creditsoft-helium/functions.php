@@ -75,6 +75,7 @@ function creditsoft_helium_marketing_template(string $slug): array
         'cookies' => 'cookies.elementor.json',
         'privacy' => 'privacy.elementor.json',
         'terms' => 'terms.elementor.json',
+        'releases' => 'releases.elementor.json',
     ];
     if (!isset($files[$slug])) {
         throw new InvalidArgumentException('CreditSoft marketing template is not supported.');

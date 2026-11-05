@@ -90,7 +90,7 @@ wp eval 'echo wp_json_encode(creditsoft_helium_marketing_template("about-us"));'
 ```
 
 The other supported selectors are `resources`, `docs`, `multi-office-nodes`,
-`cookies`, `privacy` and `terms`. Import the prepared
+`cookies`, `privacy`, `terms` and `releases`. Import the prepared
 JSON through Elementor, insert it into a chosen Page, and use the existing
 **CreditSoft Elementor Home** page template as the shared content wrapper. Review
 any existing page and saved edits before explicitly replacing content. No helper
@@ -102,6 +102,10 @@ preview. It applies only to a missing `/about` route and leaves the slug reserve
 if an editor already owns a Page there, including a draft or private Page. On
 that exact missing route, WordPress does not guess a similarly named page when
 the intended redirect cannot run.
+
+The `releases` export is the editable public release history from Astro. Its four
+archived entries retain their order, version labels and descriptions. Import it
+into a chosen WordPress Page and set the `releases` slug when ready.
 
 API, license, update, CRM and provider routes mentioned in these pages are copied
 prose/code strings, not new endpoints, calls or guarantees. Contact/login links
