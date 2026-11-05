@@ -1,0 +1,33 @@
+# CreditSoft WordPress route inventory
+
+This is the pre-cutover source inventory for Task 118, checked against the CreditSoft Astro site and WordPress draft at `c729bc985992d908f65378028cb601070917ed89` on 2026-11-05 UTC. Astro’s published sitemap contains 40 paths. The draft supplies the tools index and 12 calculators, and it prepares seven indexed pages for import. The other 20 indexed paths still need an implementation or approved destination. Across indexed and unindexed pages, 28 of the 52 ordinary page URLs need a mapping.
+
+The source inventory covers 56 surfaces: 52 ordinary page URLs, the Astro error document and three text/XML endpoints. Fifty public paths, including a missing-route control, were checked with HTTP HEAD. Thirty-one same-origin slash redirects were followed. The 49 existing paths returned 200 and the missing route returned 404. The account, sign-in, purchase and renewal paths were inspected in source. [Published sitemap](https://www.creditsoft.app/sitemap.xml)
+
+## Pages and crawler endpoints
+
+The route lists below normalize trailing slashes. Prepared pages require the explicit WordPress setup described in the child theme. Native routes are supplied by WordPress or the tools adapter when those components and settings are in place. [Theme setup](creditsoft-helium/README.md) · [Tools adapter](creditsoft-financial-tools/README.md)
+
+| Astro paths | Draft coverage and action before cutover |
+| --- | --- |
+| `/`, `/about-us`, `/contact-us`, `/docs`, `/resources`, `/releases`, `/multi-office-nodes` | Seven indexed pages have Elementor exports. Import and publish at the intended slugs, select the homepage, and configure the approved contact form binding. |
+| `/cookies`, `/privacy`, `/terms` | Three policy pages outside the Astro sitemap have Elementor exports. Import and publish at the original slugs. |
+| `/tools/`, `/tools/budget/`, `/tools/comparison/`, `/tools/negative/`, `/tools/optimizer/`, `/tools/payoff/`, `/tools/prep/`, `/tools/readiness/`, `/tools/recommendation/`, `/tools/simulator/`, `/tools/strategy/`, `/tools/timeline/`, `/tools/utilization/` | The adapter supplies all 13 original paths on otherwise-unowned requests. Exact WordPress Pages take precedence. The native tools sitemap follows WordPress indexing settings. |
+| `/about` | The draft supplies a native 301 to `/about-us/` once the target is published, subject to existing WordPress Page ownership. |
+| `/404.html` | The old public error document returns 200 when requested directly. WordPress supplies a branded 404 for missing URLs. Decide whether direct requests for the old file need an explicit mapping. |
+| `/sitemap.xml`, `/robots.txt` | WordPress supplies `/wp-sitemap.xml` and `robots.txt` when configured. An isolated root install returned a core 301 from `/sitemap.xml` to `/wp-sitemap.xml`. Verify the alias at the intended host and compare crawl policy before cutover. Astro explicitly disallows `/admin/`, `/api/` and `/vendor/`. |
+| `/social-preview-urls.txt` | Astro publishes the sitemap paths in plain text. Decide whether consumers still need this endpoint and where it should live. |
+| `/features` | The overview still needs approved proof images and an Elementor page. |
+| `/videos` | The existing two local clips and the `watch` query links need a reviewed WordPress page and media mapping. |
+| `/downloads`, `/updates` | The Astro downloads page shows three download buttons that point to the homepage. `/updates` points to `/downloads`. Confirm the approved download destinations before building the page and alias. |
+| `/pricing`, `/pricing-plan`, `/checkout`, `/subscribe`, `/renewal` | Map the pricing and payment flow together. `/pricing` points to `/pricing-plan`. `/subscribe` points to `/checkout/?plan=professional&billing=monthly&payment=zelle`. Preserve approved `plan`, `billing` and `payment` values and the quote/request contract below. |
+| `/login`, `/sign-in`, `/account`, `/customer-dashboard` | Map CreditSoft customer access separately from WordPress staff access. `/login` and `/sign-in` show the account access form. `/customer-dashboard` leads to `/account/` and carries query parameters in the Astro client. A missing `/login` may redirect to WordPress’s own login on pretty permalinks. |
+| `/api-bridge`, `/backup-redundancy`, `/client-portal`, `/compliance`, `/disputes`, `/email-providers`, `/local-first-crm`, `/metro2`, `/migration`, `/outsourcing`, `/reporting`, `/roadmap`, `/social-media`, `/tech-stack`, `/websites` | Fifteen indexed feature lanes still need a page or approved destination. The sixteenth, `/multi-office-nodes`, has an export listed above. |
+
+## Linked gaps and service routes
+
+The proposed WordPress menus, shipped Elementor exports and fixed header links point to 17 local paths that have no draft equivalent. The menu JSON is setup data and requires assignment. Prioritize the four links that lead into customer access or purchase: `/login`, `/subscribe`, `/pricing-plan` and `/checkout`. The other 13 are `/api-bridge`, `/backup-redundancy`, `/client-portal`, `/compliance`, `/email-providers`, `/features`, `/local-first-crm`, `/metro2`, `/migration`, `/outsourcing`, `/social-media`, `/tech-stack` and `/videos`. The Office link points to the separate `https://admin.creditsoft.app` destination. [Menu setup data](creditsoft-helium/content/navigation.json)
+
+The Astro pricing page and checkout request quotes through `/api/checkout-request.php`. Checkout also sends its submission to that endpoint. The public source separately includes `/api/lead.php`, `/api/license-validate-request.php`, `/api/license-validate.php`, `/api/license.php`, `/api/update-feed` and `/api/update-feed.php`. Identify the approved host and routing for each service before cutover. Preserve the behavior of the three internal license rewrites at `/license/validate`, `/license/validate.json` and `/api/verify`, including their optional trailing slash. Internal rewrites keep validation parameters out of redirect locations. The legacy `/index.html` 301 to `/` and direct requests for `/favicon.svg`, `/favicon.ico` and `/apple-touch-icon.png` also need a decision on exact path parity. The WordPress theme already supplies the three icon assets through the page head. [Astro rewrite source](../site-astro/public/.htaccess)
+
+Before cutover, confirm the customer and purchase destinations, service routing and approved proof assets. Then publish the prepared pages and assign the reviewed menus on the authorized preview. Verify the routes against the actual preview, followed by the approved Brands lead and checkout acceptance. Keep this inventory with the cutover review so the owner can assess every remaining path.
