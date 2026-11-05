@@ -38,7 +38,7 @@ function creditsoft_helium_intake_shortcode($attributes): string
 }
 add_shortcode('creditsoft_intake', 'creditsoft_helium_intake_shortcode');
 
-/** Preserve the source of a marked intake submitted through a subdirectory site. */
+/** Preserve the public source of a marked intake when WordPress uses a subdirectory. */
 function creditsoft_helium_intake_source_url(array $submission): array
 {
     $posted = $_POST['data'] ?? null;
@@ -46,15 +46,17 @@ function creditsoft_helium_intake_source_url(array $submission): array
         return $submission;
     }
 
-    $site = trailingslashit(site_url('/'));
-    $base = wp_parse_url($site, PHP_URL_PATH);
-    if (!is_string($base) || $base === '/' || !str_starts_with($base, '/') || str_starts_with($base, '//')) {
+    $home = trailingslashit(home_url('/'));
+    $base = wp_parse_url($home, PHP_URL_PATH);
+    $coreBase = wp_parse_url(site_url('/'), PHP_URL_PATH);
+    if (!is_string($base) || !str_starts_with($base, '/') || str_starts_with($base, '//')
+        || ($base === '/' && $coreBase === '/')) {
         return $submission;
     }
 
     parse_str(wp_unslash($posted), $payload);
     $referrer = $payload['_wp_http_referer'] ?? null;
-    if (!is_string($referrer) || !str_starts_with($referrer, $base)
+    if (!is_string($referrer) || !str_starts_with($referrer, $base) || str_starts_with($referrer, '//')
         || str_contains($referrer, '#') || sanitize_url($referrer) !== $referrer) {
         return $submission;
     }
@@ -87,7 +89,7 @@ function creditsoft_helium_intake_source_url(array $submission): array
         return $submission;
     }
 
-    $sourceUrl = $site . substr($referrer, strlen($base));
+    $sourceUrl = $home . substr($referrer, strlen($base));
     if (strlen($sourceUrl) > 255) {
         return $submission;
     }

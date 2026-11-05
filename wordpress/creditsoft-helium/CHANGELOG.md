@@ -67,3 +67,5 @@
   reviewed Fluent Forms ID to the Elementor export.
 - Preserve one tilde base and the original query encoding in source attribution
   for the marked native Fluent Forms intake.
+- Attribute marked intake submissions to the public site URL when WordPress core
+  lives in a separate directory.
