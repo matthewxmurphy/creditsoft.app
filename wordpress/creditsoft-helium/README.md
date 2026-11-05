@@ -29,6 +29,11 @@ WordPress keeps its native HTTP 404 status. The recovery link uses the configure
 homepage URL, including any subdirectory or `/~UUID/` base. The child does not
 register a new route or require an imported Elementor page for the error screen.
 
+The child uses the three published CreditSoft icons for browser tabs and Apple
+touch shortcuts. A WordPress Site Icon takes precedence. Gantry’s configured
+favicon or touch icon takes precedence for the matching icon types. The
+Customizer displays WordPress’s own preview.
+
 Official contracts:
 
 - [Gantry WordPress child themes](https://docs.gantry.org/gantry5/theme-development/create-child-theme-wordpress)

@@ -24,6 +24,28 @@ add_action('wp_enqueue_scripts', static function (): void {
     wp_enqueue_style('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.css', [], CREDITSOFT_HELIUM_VERSION);
     wp_enqueue_script('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.js', [], CREDITSOFT_HELIUM_VERSION, true);
 });
+add_action('wp_head', static function (): void {
+    if (has_site_icon() || is_customize_preview()) {
+        return;
+    }
+
+    $gantry_assets = [];
+    if (class_exists(\Gantry\Framework\Gantry::class)) {
+        $gantry = \Gantry\Framework\Gantry::instance();
+        if (isset($gantry['config'])) {
+            $gantry_assets = $gantry['config']->get('page.assets', []);
+        }
+    }
+
+    $asset_base = get_stylesheet_directory_uri() . '/assets/';
+    if (empty($gantry_assets['favicon']) && empty($gantry_assets['touchicon'])) {
+        printf("<link rel=\"icon\" href=\"%s\" type=\"image/svg+xml\" />\n", esc_url($asset_base . 'favicon.svg'));
+        printf("<link rel=\"alternate icon\" href=\"%s\" />\n", esc_url($asset_base . 'favicon.ico'));
+    }
+    if (empty($gantry_assets['touchicon'])) {
+        printf("<link rel=\"apple-touch-icon\" href=\"%s\" />\n", esc_url($asset_base . 'apple-touch-icon.png'));
+    }
+}, 100);
 
 require_once get_stylesheet_directory() . '/includes/legacy-routes.php';
 

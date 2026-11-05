@@ -39,3 +39,6 @@
 
 - Give missing URLs a CreditSoft recovery screen with the normal site header,
   footer and homepage link while preserving the HTTP 404 status.
+
+- Use the published CreditSoft browser and Apple touch icons as the fallback
+  and honor icons configured in WordPress or Gantry.

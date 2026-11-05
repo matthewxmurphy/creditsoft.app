@@ -15,7 +15,9 @@ LLC; copyright (C) 2007–2022 Tiger12, LLC; GNU GPLv2 and later.
 
 The wordmark at `assets/creditsoft-wordmark.png` is an unchanged copy of the public
 CreditSoft `site-astro/public/brand/creditsoft-wordmark.png`. Homepage/navigation
-copy comes from the existing public Astro defaults and components. Those source
+copy comes from the existing public Astro defaults and components. The browser
+and Apple touch icons are unchanged copies of `site-astro/public/favicon.svg`,
+`site-astro/public/favicon.ico` and `site-astro/public/apple-touch-icon.png`. Those source
 assets have no explicit separate license identifier; this notice does not assign
 a new blanket grant to those assets or the wider CreditSoft repository.
 
