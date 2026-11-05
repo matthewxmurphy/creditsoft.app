@@ -16,3 +16,4 @@
   landmark.
 - Declare the canonical tools URLs on rendered fallback pages, using the same
   paths as the sitemap and preserving the configured WordPress home base.
+- Keep the published page descriptions on the tools index and calculator fallbacks.

@@ -6,7 +6,7 @@
  * Existing theme chrome is retained; no Gantry or Elementor runtime is bundled.
  */
 defined('ABSPATH') || exit;
-add_action('wp_head', [CreditSoft_Financial_Tools::class, 'printCanonical']);
+add_action('wp_head', [CreditSoft_Financial_Tools::class, 'printHeadMetadata']);
 $content = CreditSoft_Financial_Tools::virtualContent();
 $content .= apply_filters('creditsoft_financial_tools_virtual_after_content', '');
 if (!wp_is_block_theme()) {

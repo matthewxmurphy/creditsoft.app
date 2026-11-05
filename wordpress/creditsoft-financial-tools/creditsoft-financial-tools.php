@@ -331,11 +331,20 @@ final class CreditSoft_Financial_Tools
         return self::$virtual === '' ? self::index() : self::render((string) self::$virtual);
     }
 
-    /** Match the sitemap address once the virtual template actually owns the request. */
-    public static function printCanonical(): void
+    /** Render the canonical address and published description for the virtual template. */
+    public static function printHeadMetadata(): void
     {
-        if (self::$virtual !== null) {
-            printf("<link rel=\"canonical\" href=\"%s\" />\n", esc_url(home_url(self::virtualPath(self::$virtual))));
+        if (self::$virtual === null) {
+            return;
+        }
+
+        printf("<link rel=\"canonical\" href=\"%s\" />\n", esc_url(home_url(self::virtualPath(self::$virtual))));
+        // The index copy comes from site-astro/src/pages/tools/index.astro.
+        $description = self::$virtual === ''
+            ? 'Twelve free calculators and planning worksheets for budgeting, debt payoff, utilization and credit conversations. No account required.'
+            : (self::find(self::$virtual)['description'] ?? '');
+        if (is_string($description) && $description !== '') {
+            printf("<meta name=\"description\" content=\"%s\" />\n", esc_attr($description));
         }
     }
 

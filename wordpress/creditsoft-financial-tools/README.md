@@ -84,7 +84,8 @@ Each rendered fallback page declares the same canonical URL as the tools
 sitemap: its slash-terminated path under the configured WordPress home,
 including any preview mount. The canonical URL omits request query parameters.
 Native WordPress pages keep their own canonical output, and the site’s indexing
-setting remains in effect.
+setting remains in effect. The fallback also prints the published description
+for the tools index or the requested calculator.
 
 The `creditsoft_financial_tools_virtual_after_content` filter accepts trusted HTML
 to append below the calculator or index on fallback routes. The template runs
