@@ -97,6 +97,19 @@ function creditsoft_helium_preserve_missing_customer_sign_in(): void
 
 add_action('template_redirect', 'creditsoft_helium_preserve_missing_customer_sign_in', 1);
 
+/** Keep an unresolved checkout request from guessing a similarly named page. */
+add_filter('do_redirect_guess_404_permalink', static function (bool $guess): bool {
+    if (!is_404()) {
+        return $guess;
+    }
+
+    $path = explode('?', wp_unslash($_SERVER['REQUEST_URI'] ?? ''), 2)[0];
+    $checkout = wp_parse_url(home_url('/checkout'), PHP_URL_PATH);
+    return is_string($checkout) && ($path === $checkout || $path === $checkout . '/')
+        ? false
+        : $guess;
+});
+
 /** Preserve the legacy sitemap address when WordPress is installed below the host root. */
 function creditsoft_helium_redirect_legacy_sitemap(): void
 {

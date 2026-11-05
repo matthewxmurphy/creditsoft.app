@@ -57,6 +57,8 @@
   native robots response when indexing is enabled.
 - Keep unresolved customer sign-in URLs on the branded 404 and preserve
   WordPress staff access and editor-owned customer pages.
+- Keep missing checkout links on the branded 404 when a similarly named page
+  exists. Preserve normal routing for a published Checkout page.
 - Preserve the legacy sitemap address below the host root when the native
   WordPress sitemap is enabled.
 - Allow an operator to place the selected Fluent Forms intake below the tools
