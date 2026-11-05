@@ -40,7 +40,11 @@ add_filter('creditsoft_financial_tools_classic_content_tag', static function (st
     return $tag;
 });
 add_action('wp_enqueue_scripts', static function (): void {
-    wp_enqueue_style('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.css', [], CREDITSOFT_HELIUM_VERSION);
+    $shell_css = '/assets/site-shell.css';
+    $shell_file = get_stylesheet_directory() . $shell_css;
+    $shell_hash = is_readable($shell_file) ? hash_file('sha256', $shell_file) : false;
+    $shell_version = $shell_hash ? CREDITSOFT_HELIUM_VERSION . '-' . substr($shell_hash, 0, 12) : CREDITSOFT_HELIUM_VERSION;
+    wp_enqueue_style('creditsoft-shell', get_stylesheet_directory_uri() . $shell_css, [], $shell_version);
     wp_enqueue_script('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.js', [], CREDITSOFT_HELIUM_VERSION, true);
 });
 // Extend WordPress's wildcard group before core adds its sitemap URL.
@@ -224,3 +228,4 @@ function creditsoft_helium_marketing_template(string $slug): array
 }
 
 require_once get_stylesheet_directory() . '/includes/contact-capture.php';
+require_once get_stylesheet_directory() . '/includes/videos.php';

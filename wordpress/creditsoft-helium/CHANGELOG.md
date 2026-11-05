@@ -85,3 +85,5 @@
   for the marked native Fluent Forms intake.
 - Attribute marked intake submissions to the public site URL when WordPress core
   lives in a separate directory.
+- Add the editable Videos page with both legacy watch links and explicit local
+  Media Library bindings for reviewed replacement clips and posters.

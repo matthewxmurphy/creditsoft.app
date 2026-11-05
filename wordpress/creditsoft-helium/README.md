@@ -104,6 +104,33 @@ paths. This slice adds no forms, CRM, checkout logic, analytics, Meta, chat SDK 
 remote social widgets. The broader site migration and live integrations remain
 separate from this homepage/shell source preparation.
 
+## Video library
+
+Import `content/videos.elementor.json` through Elementor's saved-template UI.
+Insert it into a chosen Page with the `videos` slug. Use the **CreditSoft
+Elementor Home** page template for the shared content shell. The heading and
+intro can be edited in Elementor.
+
+The Video Library shortcode widget starts without media. Once reviewed
+replacement clips and stills are in the local WordPress Media Library, edit the
+widget and enter their attachment IDs. The poster attributes are optional.
+
+```text
+[creditsoft_video_library companion="123" companion_poster="124" app="125" app_poster="126"]
+```
+
+Use the reviewed Companion walkthrough for `companion` and the reviewed app
+overview for `app`. Each video must be a local, same-origin MP4 attachment.
+JPEG, PNG and WebP attachments can be used as posters. If a clip has no valid
+attachment, its playlist entry shows that it is unavailable. The player uses
+native controls and does not autoplay. The published Page preserves
+`?watch=smartcredit-companion` and `?watch=creditsoft-app`. A missing or unknown
+selection opens the Companion entry.
+
+Verify the Page, both links and each media response at the intended preview
+base. The preview still needs reviewed replacement clips and stills before the
+library is ready for visitors.
+
 ## Explicit static marketing pages
 
 Three additional, text-only Elementor FREE exports preserve the displayed copy
