@@ -201,6 +201,8 @@ function creditsoft_helium_marketing_template(string $slug): array
         'migration' => 'migration.elementor.json',
         'api-bridge' => 'api-bridge.elementor.json',
         'email-providers' => 'email-providers.elementor.json',
+        'metro2' => 'metro2.elementor.json',
+        'outsourcing' => 'outsourcing.elementor.json',
         'cookies' => 'cookies.elementor.json',
         'privacy' => 'privacy.elementor.json',
         'terms' => 'terms.elementor.json',

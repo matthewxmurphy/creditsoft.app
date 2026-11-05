@@ -99,3 +99,5 @@
   copy and links rebased to the configured WordPress home.
 - Add editable API Bridge and Email Providers pages with the original product
   copy and links rebased to the configured WordPress home.
+- Add editable Metro2 and Outsourcing pages with the original review and
+  automation copy and links rebased to the configured WordPress home.
