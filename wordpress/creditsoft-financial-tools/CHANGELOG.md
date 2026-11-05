@@ -14,3 +14,5 @@
   before the theme prints its asset tags.
 - Let classic themes use a neutral tools wrapper when they supply the main
   landmark.
+- Declare the canonical tools URLs on rendered fallback pages, using the same
+  paths as the sitemap and preserving the configured WordPress home base.

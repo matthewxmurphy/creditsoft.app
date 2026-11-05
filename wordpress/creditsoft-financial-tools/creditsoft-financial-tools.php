@@ -262,6 +262,11 @@ final class CreditSoft_Financial_Tools
         return get_page_by_path($pagePath, OBJECT, ['page']) !== null;
     }
 
+    private static function virtualPath(string $slug): string
+    {
+        return $slug === '' ? '/tools/' : '/tools/' . $slug . '/';
+    }
+
     /** List only the tool URLs this adapter can serve with front-controller rewrites. */
     public static function sitemapUrls(): array
     {
@@ -280,7 +285,7 @@ final class CreditSoft_Financial_Tools
 
         $entries = [];
         foreach ($slugs as $slug) {
-            $path = $slug === '' ? '/tools/' : '/tools/' . $slug . '/';
+            $path = self::virtualPath($slug);
             if (self::hasReservedPage($slug) || !apply_filters('creditsoft_financial_tools_sitemap_include', true, $path)) {
                 continue;
             }
@@ -324,6 +329,14 @@ final class CreditSoft_Financial_Tools
     public static function virtualContent(): string
     {
         return self::$virtual === '' ? self::index() : self::render((string) self::$virtual);
+    }
+
+    /** Match the sitemap address once the virtual template actually owns the request. */
+    public static function printCanonical(): void
+    {
+        if (self::$virtual !== null) {
+            printf("<link rel=\"canonical\" href=\"%s\" />\n", esc_url(home_url(self::virtualPath(self::$virtual))));
+        }
     }
 
     public static function documentTitle(array $parts): array

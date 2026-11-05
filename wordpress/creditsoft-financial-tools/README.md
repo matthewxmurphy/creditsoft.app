@@ -80,6 +80,12 @@ otherwise-unowned tools route, so a root `/budget/` page cannot redirect
 control. Removing this plugin removes only its fallback routes
 and rendering; no created pages, stored entries or schema need rollback.
 
+Each rendered fallback page declares the same canonical URL as the tools
+sitemap: its slash-terminated path under the configured WordPress home,
+including any preview mount. The canonical URL omits request query parameters.
+Native WordPress pages keep their own canonical output, and the site’s indexing
+setting remains in effect.
+
 The `creditsoft_financial_tools_virtual_after_content` filter accepts trusted HTML
 to append below the calculator or index on fallback routes. The template runs
 it before the header so integrations can enqueue their assets. The calculator
