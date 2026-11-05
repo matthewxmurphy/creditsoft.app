@@ -65,3 +65,5 @@
   active Gantry outline already wraps its content in a main section.
 - Prepare an editable homepage intake section when an operator supplies a
   reviewed Fluent Forms ID to the Elementor export.
+- Preserve one tilde base and the original query encoding in source attribution
+  for the marked native Fluent Forms intake.

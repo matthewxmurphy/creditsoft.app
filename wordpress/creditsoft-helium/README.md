@@ -193,6 +193,10 @@ Existing forms and saved edits are not overwritten. Check the selected form's
 actual notification/integration settings before using it; later administrative
 changes remain that form's own settings.
 
+On a subdirectory site, the `creditsoft-local-capture` form class also marks
+the intake whose source URL should retain the configured base once and keep
+the original query encoding in saved Fluent Forms entries.
+
 Use this site's real imported form ID, for example 123, to prepare Contact:
 
 ```sh
