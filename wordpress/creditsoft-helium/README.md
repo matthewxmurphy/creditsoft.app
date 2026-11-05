@@ -21,7 +21,13 @@ only the documented parent/common stream fallback plus maintenance attribution.
 The child layout and two particles own the shell. The real selected WordPress page
 uses `templates/creditsoft-home.php`: normal page loop/`the_content()` inside the
 actual Helium header/footer buffering pipeline. There is one Gantry/Timber document,
-not a second hand-built HTML page. Other pages keep the parent's normal templates.
+not a second hand-built HTML page. Other content pages keep the parent's normal templates.
+
+Missing routes use a CreditSoft recovery message and the child’s default Gantry
+error layout. A saved Gantry error outline takes precedence over the layout defaults.
+WordPress keeps its native HTTP 404 status. The recovery link uses the configured
+homepage URL, including any subdirectory or `/~UUID/` base. The child does not
+register a new route or require an imported Elementor page for the error screen.
 
 Official contracts:
 

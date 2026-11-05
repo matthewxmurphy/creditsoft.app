@@ -36,3 +36,6 @@
 
 - Add an editable `/releases` export with all four archived notes in their
   original order.
+
+- Give missing URLs a CreditSoft recovery screen with the normal site header,
+  footer and homepage link while preserving the HTTP 404 status.
