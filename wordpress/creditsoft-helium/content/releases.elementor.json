@@ -1,0 +1,250 @@
+{
+  "title": "CreditSoft Release Notes",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "0000017",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000004",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"eyebrow\">Release notes</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Short notes that tell staff what changed.",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>A release page should be readable in seconds and useful when someone just wants the latest version.</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "0000016",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000015",
+              "elType": "container",
+              "isInner": true,
+              "settings": {
+                "css_classes": "creditsoft-release-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000008",
+                  "elType": "container",
+                  "isInner": true,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "html_tag": "article"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000005",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p class=\"eyebrow\">CTO diagnostics</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000006",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "2026.4.27.1",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000007",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>The local Docker self-view now collapses into the real host node so two-node offices do not look like three servers.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "000000c",
+                  "elType": "container",
+                  "isInner": true,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "html_tag": "article"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000009",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p class=\"eyebrow\">Office update lane</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000a",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "2026.4.26.1",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000b",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Cleaner release notes and a tighter install surface.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000010",
+                  "elType": "container",
+                  "isInner": true,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "html_tag": "article"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000d",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p class=\"eyebrow\">Companion lane</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000e",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "2026.4.26.0",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000f",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Browser companion package and side panel flow.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000014",
+                  "elType": "container",
+                  "isInner": true,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "html_tag": "article"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000011",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p class=\"eyebrow\">Renewal lane</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000012",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "2026.4.25.2",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000013",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Updated pricing, renewal, and docs navigation.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

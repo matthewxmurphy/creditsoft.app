@@ -1,0 +1,225 @@
+{
+  "title": "CreditSoft API Docs",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "000006f",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "000005e",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "000005b",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "API docs",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "000005c",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Updates are for installers. People go to the public site.",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "000005d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>The update lane exists for automatic update metadata, installer packages, and daily license heartbeats. Human visitors should be sent back to www.creditsoft.app.</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "000006e",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000061",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-card",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000005f",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p><code>GET /api/update-feed</code></p>"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000060",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>Machine-readable update metadata for installers and office nodes.</p>"
+                  },
+                  "elements": []
+                }
+              ]
+            },
+            {
+              "id": "0000064",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-card",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000062",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p><code>GET or POST https://api.creditsoft.app/license/validate</code></p>"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000063",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>License validation runs with update checks so packages are only offered to active or grace-period offices.</p>"
+                  },
+                  "elements": []
+                }
+              ]
+            },
+            {
+              "id": "0000067",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-card",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000065",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p><code>GET /api/install-ads</code></p>"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000066",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>Installer creative and sponsored install cards.</p>"
+                  },
+                  "elements": []
+                }
+              ]
+            },
+            {
+              "id": "000006a",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-card",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000068",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p><code>GET /api/site-data</code></p>"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000069",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>Combined site data for leads, reviews, and plans.</p>"
+                  },
+                  "elements": []
+                }
+              ]
+            },
+            {
+              "id": "000006d",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-card",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000006b",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p><code>GET /api/leads</code></p>"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "000006c",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>Public lead intake and qualification submissions.</p>"
+                  },
+                  "elements": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

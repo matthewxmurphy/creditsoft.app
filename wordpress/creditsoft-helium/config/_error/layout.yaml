@@ -1,0 +1,42 @@
+# Copyright 2026 Matthew C. Murphy; https://MatthewxMurphy.com / https://builtnotbegged.com.
+# SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft error outline defaults.
+version: 2
+preset:
+  name: _error
+layout:
+  /navigation/:
+    - [creditsoft-header-1001]
+  /container-main/:
+    -
+      - 'mainbar 100':
+          - [system-content-1002]
+  /footer/:
+    - [creditsoft-footer-1003]
+structure:
+  navigation:
+    type: section
+    subtype: div
+    attributes:
+      boxed: ''
+      class: creditsoft-navigation
+  mainbar:
+    type: section
+    subtype: main
+    attributes:
+      class: creditsoft-main
+      extra:
+        tabindex: '-1'
+  container-main:
+    attributes:
+      boxed: ''
+  footer:
+    type: section
+    subtype: div
+    attributes:
+      boxed: ''
+      class: creditsoft-footer-section
+content:
+  creditsoft-header-1001:
+    title: CreditSoft header
+  creditsoft-footer-1003:
+    title: CreditSoft footer

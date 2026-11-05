@@ -1,0 +1,6 @@
+# Copyright 2026 Matthew C. Murphy; https://MatthewxMurphy.com / https://builtnotbegged.com.
+# SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft child 2026.10.1 UNRELEASED.
+enabled: '1'
+image: gantry-theme://assets/creditsoft-wordmark.png
+summary: 'CreditSoft gives offices a cleaner website, portal, update lane, and operations surface without looking like generic software.'
+contact: hello@creditsoft.app

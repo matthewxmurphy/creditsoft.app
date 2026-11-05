@@ -1,0 +1,245 @@
+{
+  "title": "Contact CreditSoft",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "0000014",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing creditsoft-contact",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000005",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Contact us",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Talk to CreditSoft before checkout if the rollout needs a human plan.",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000004",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Use this lane for migration, multi-office, managed website, or lease questions. If you already know the plan, start checkout from pricing and pay with the checkout reference in the Zelle memo or Cash App note.</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "0000013",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000012",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000000b",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000006",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "What helps us route it",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000007",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<ul><li>How many active clients the office manages</li><li>Which monitoring system or report source is in use</li><li>Whether migration, outsourcing, or a managed website is part of the rollout</li><li>Who should own the CreditSoft account dashboard and license email</li><li>Whether the office wants monthly, annual, lease, or 10-year terms</li></ul>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000a",
+                      "elType": "container",
+                      "isInner": false,
+                      "settings": {
+                        "css_classes": "creditsoft-actions",
+                        "content_width": "full",
+                        "flex_direction": "column"
+                      },
+                      "elements": [
+                        {
+                          "id": "0000008",
+                          "elType": "widget",
+                          "widgetType": "button",
+                          "settings": {
+                            "text": "Email CreditSoft",
+                            "link": {
+                              "url": "mailto:hello@creditsoft.app",
+                              "is_external": "",
+                              "nofollow": ""
+                            },
+                            "_css_classes": ""
+                          },
+                          "elements": []
+                        },
+                        {
+                          "id": "0000009",
+                          "elType": "widget",
+                          "widgetType": "button",
+                          "settings": {
+                            "text": "Choose a plan",
+                            "link": {
+                              "url": "/pricing-plan",
+                              "is_external": "",
+                              "nofollow": ""
+                            },
+                            "_css_classes": "creditsoft-secondary"
+                          },
+                          "elements": []
+                        }
+                      ]
+                    },
+                    {
+                      "id": "0000001",
+                      "elType": "widget",
+                      "widgetType": "shortcode",
+                      "settings": {
+                        "shortcode": "[creditsoft_intake form_id=\"__CREDITSOFT_FORM_ID__\"]"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000011",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000c",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Checkout lane",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000d",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Checkout creates a trackable CreditSoft reference first. After that, the payment screen shows Cash App and Zelle instructions with the exact note needed to match payment history, customer info, and license access.</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000e",
+                      "elType": "widget",
+                      "widgetType": "button",
+                      "settings": {
+                        "text": "Review plans",
+                        "link": {
+                          "url": "/pricing-plan",
+                          "is_external": "",
+                          "nofollow": ""
+                        },
+                        "_css_classes": "creditsoft-secondary"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000f",
+                      "elType": "widget",
+                      "widgetType": "button",
+                      "settings": {
+                        "text": "Start Enterprise checkout",
+                        "link": {
+                          "url": "/checkout/?plan=professional&billing=monthly&payment=zelle",
+                          "is_external": "",
+                          "nofollow": ""
+                        },
+                        "_css_classes": "creditsoft-secondary"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000010",
+                      "elType": "widget",
+                      "widgetType": "button",
+                      "settings": {
+                        "text": "Start Enterprise Pro checkout",
+                        "link": {
+                          "url": "/checkout/?plan=enterprise&billing=monthly&payment=zelle",
+                          "is_external": "",
+                          "nofollow": ""
+                        },
+                        "_css_classes": "creditsoft-secondary"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

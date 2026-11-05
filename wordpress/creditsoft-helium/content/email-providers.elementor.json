@@ -1,0 +1,251 @@
+{
+  "title": "Email providers and CRM notifications | CreditSoft",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "0000015",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000007",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"eyebrow\">Delivery</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Email providers and CRM notifications",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Office notices, billing follow-up, provider-login alerts, and portal messages need reliable delivery through the provider an office already trusts.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000006",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000004",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Start intake",
+                    "link": {
+                      "url": "/contact-us",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": ""
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000005",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Login",
+                    "link": {
+                      "url": "/login",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0000014",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000011",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-release-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000000a",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "html_tag": "article"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000008",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Microsoft 365 and Google Workspace",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000009",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Built into the CreditSoft product direction so the public site, portal, and office node stay connected.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "000000d",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "html_tag": "article"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000b",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Amazon SES, SendGrid, Mailgun, Postmark, Brevo, SMTP.com",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000c",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Built into the CreditSoft product direction so the public site, portal, and office node stay connected.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000010",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "html_tag": "article"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000e",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Custom SMTP support",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000f",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Built into the CreditSoft product direction so the public site, portal, and office node stay connected.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "0000013",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000012",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Back to feature overview",
+                    "link": {
+                      "url": "/features",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

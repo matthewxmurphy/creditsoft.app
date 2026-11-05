@@ -1,0 +1,22 @@
+# Copyright 2026 Matthew C. Murphy; https://MatthewxMurphy.com / https://builtnotbegged.com.
+# SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft child 2026.10.1 UNRELEASED.
+name: CreditSoft Footer
+description: Editable public copy and native WordPress footer menu locations.
+type: particle
+icon: fa-columns
+form:
+  fields:
+    enabled:
+      type: input.checkbox
+      label: Enabled
+      default: true
+    image:
+      type: input.imagepicker
+      label: Wordmark
+      default: gantry-theme://assets/creditsoft-wordmark.png
+    summary:
+      type: textarea.textarea
+      label: Summary
+    contact:
+      type: input.text
+      label: Public contact address

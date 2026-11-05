@@ -1,0 +1,511 @@
+{
+  "title": "CreditSoft Homepage — source template",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "0000032",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000008",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Welcome to CreditSoft",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Build, Launch, and Run a Credit Repair Office Without Looking Like Generic SaaS",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>CreditSoft gives offices a branded website, client portal, update lane, and local-first operations surface that feels like one real product instead of a stitched stack.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000006",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000004",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Get Started",
+                    "link": {
+                      "url": "/contact-us",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": ""
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000005",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "See Metro2 Review",
+                    "link": {
+                      "url": "/metro2",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                }
+              ]
+            },
+            {
+              "id": "0000007",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Intranet based · PWA-ready · Migration aware · Brand control</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "0000019",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000009",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Why CreditSoft",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000a",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "The site should look like the product behind it.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000b",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>The public site now carries the same product map as the office system: Metro2 review, CRM, portal, API bridge, and compliance lanes.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000018",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000000e",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000c",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Branded website and portal",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000d",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Keep the public site, client portal, intake, and update lane under one cleaner brand system.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000011",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000f",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Local-first office operations",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000010",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Run the real office from a local-first intranet instead of forcing every workflow into a generic cloud CRM.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000014",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000012",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Migration-aware from day one",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000013",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Imports, letters, updates, and browser rails are designed to help an office move without starting over.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000017",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000015",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Admin and review control",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000016",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Manage leads, plan pricing, reviews, privacy requests, and licenses from a site-admin lane that matches the product.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "000002a",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "000001a",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "FAQ",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "000001b",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Answers before the office ever has to ask.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000001c",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>This keeps the common objections and setup questions in the site instead of buried in support replies.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000029",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-faq-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000001f",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000001e",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<details open><summary>Is CreditSoft only a website?</summary><p>No. The website is just one lane. CreditSoft also includes the client portal, update lane, and local-first office workspace.</p></details>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000022",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000021",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<details open><summary>Can this replace a stitched-together stack?</summary><p>That is the goal. The product is designed to reduce the number of separate tools an office needs to look professional and stay operational.</p></details>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000025",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000024",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<details open><summary>Do you help with migration?</summary><p>Yes. Import, mapping, branded site setup, and workflow transition are all part of the migration direction.</p></details>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000028",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000027",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<details open><summary>Is the browser companion included?</summary><p>It is included on the higher lanes and can be part of the rollout plan for offices that want more automation help.</p></details>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0000031",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-cta",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "000002b",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Try CreditSoft",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "000002c",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Start with the site, then move into the full office lane when you are ready.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000002d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Start with the public site, then move into the full office lane when you are ready.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000030",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000002e",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Start Intake",
+                    "link": {
+                      "url": "/contact-us",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": ""
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "000002f",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "See Pricing",
+                    "link": {
+                      "url": "/pricing-plan",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

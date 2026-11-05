@@ -1,0 +1,746 @@
+{
+  "title": "Multi-office nodes for different cities, states, or VA offices | CreditSoft",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "0000044",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing creditsoft-multi-office",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000008",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Node topology",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Multi-office nodes for different cities, states, or VA offices",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000004",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>The intended deployment is not one fragile machine. Offices can run primary, replica, and backup-light nodes in different places, with each node's backup role matched to the hardware it actually has.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000007",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000005",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Start intake",
+                    "link": {
+                      "url": "/contact-us",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": ""
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000006",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Login",
+                    "link": {
+                      "url": "/login",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                }
+              ]
+            },
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "image",
+              "settings": {
+                "image": {
+                  "url": "/assets/images/product-proof/multi-office-node-topology.png",
+                  "id": 0,
+                  "alt": "CreditSoft node topology visual showing a primary office node, peer office replica, backup-light weak node, and off-node backup lanes."
+                },
+                "image_size": "full",
+                "caption_source": "custom",
+                "caption": "Replica and backup topology",
+                "link_to": "file",
+                "open_lightbox": "yes"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "000000e",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000009",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Product proof",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000a",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Replica and backup topology in the CreditSoft workspace",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000b",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Click the screenshot to open the full-size shadow-box view. This page should never feel like a text-only placeholder when the feature menu sends someone here.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000d",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000000c",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Back to feature overview",
+                    "link": {
+                      "url": "/features",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": ""
+                  },
+                  "elements": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "000001c",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "000000f",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Replica policy",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000010",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Do not let the weakest machine define every office.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000011",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Multi-office only works when each node has an honest role. Strong nodes can replicate and store archives. Weak nodes can still participate without carrying work they cannot safely hold.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000001b",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000014",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000012",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Strong nodes protect the cluster",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000013",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Desktops, workstations, or servers with enough disk and memory can act as active replicas and receive peer backup copies.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000017",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000015",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Weak nodes stay backup-light",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000016",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Small offices, low-storage laptops, or small ARM devices can keep local workflow online while skipping heavy peer archive duties.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "000001a",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000018",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Visibility stays separate from storage",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000019",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Managers can see node health and office activity without forcing every machine to behave like the main archive server.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "000002a",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "000001d",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Backup lanes",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "000001e",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Backups should not depend on only another office computer.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000001f",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>CreditSoft should let each office choose local, cloud, and peer-mirror lanes based on the hardware and compliance posture of that location.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000029",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000022",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000020",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Wasabi archive",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000021",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Use S3-compatible Wasabi storage as the durable off-machine archive when a local node should not be the only safety net.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000025",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000023",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Dropbox or Google Drive handoff",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000024",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Use familiar shared-folder lanes for exports, staged document mirrors, and non-technical handoff workflows.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000028",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000026",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Local flash and external drives",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000027",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Support USB flash drives, external SSDs, NVMe/SATA storage, and large local drives for offices that want physical backup copies.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0000038",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "000002b",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Hardware fit",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "000002c",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "The node can be flexible, but the math still has to be honest.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000002d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>CreditSoft should run on supported office hardware without pretending all hardware has the same storage, memory, or uptime profile.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000037",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000030",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000002e",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Supported targets",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000002f",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Plan for macOS, Ubuntu/Linux/BSD, Windows 11+, and small ARM systems when they have enough memory, disk, and container support.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000033",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000031",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Capacity follows the role",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000032",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>A backup node needs real storage. A visibility node can be lighter. A replica node should be sized like it may need to recover the office.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000036",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000034",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Locations are the point",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000035",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Nodes are meant for different cities, states, or VA offices so one building, ISP, or workstation does not become the whole business.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0000043",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000042",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000003b",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000039",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Replica roles should match the weakest node",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000003a",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>A cluster is only as durable as the smallest node allowed to replicate, so strong nodes should carry the heavy backup work.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "000003e",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000003c",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Weak offices can run backup-light",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000003d",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>A low-disk or low-memory office can stay useful for local work and manager visibility without being forced to store every archive.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000041",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000003f",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Wasabi, Dropbox, Google Drive, and local drives",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000040",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Off-node backup lanes keep replicas honest: Wasabi for durable archives, Dropbox or Google Drive for handoff, and removable drives for local copies.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
