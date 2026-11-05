@@ -71,6 +71,11 @@
     .creditsoft-financial-tools .tool-related, .creditsoft-financial-tools .tool-back,
     .creditsoft-financial-tools .tool-actions, .creditsoft-financial-tools .tool-add,
     .creditsoft-financial-tools .tool-remove, .creditsoft-financial-tools .tool-print { display: none; }
+    /* Editing disables worksheet printing while the previous figures stay visible on screen. */
+    .creditsoft-financial-tools .tool-output:has(> [data-print]:disabled):has(> [data-result-metrics] > *, > [data-result-items] > *)
+        > :is([data-result-headline], [data-result-metrics], [data-result-items]) {
+        display: none;
+    }
     .creditsoft-financial-tools .tool-workspace { display: block; }
     .creditsoft-financial-tools .tool-inputs, .creditsoft-financial-tools .tool-output { position: static; background: white; color: black; border: 1px solid #777; break-inside: avoid; margin-bottom: 20px; }
     .creditsoft-financial-tools p, .creditsoft-financial-tools a, .creditsoft-financial-tools h1,

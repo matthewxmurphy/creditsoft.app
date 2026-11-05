@@ -19,3 +19,5 @@
 - Keep the published page descriptions on the tools index and calculator fallbacks.
 - Keep calculator inputs out of HTTP requests when Enter is pressed with
   JavaScript unavailable.
+- Omit stale results from browser prints after calculator inputs change and
+  show the instruction to recalculate.
