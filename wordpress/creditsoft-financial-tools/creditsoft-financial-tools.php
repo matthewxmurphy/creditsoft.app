@@ -37,7 +37,12 @@ final class CreditSoft_Financial_Tools
 
     public static function register(): void
     {
-        wp_register_style('creditsoft-financial-tools', plugins_url('assets/adapter.css', __FILE__), [], self::VERSION);
+        $stylesheet = 'assets/adapter.css';
+        $stylesheet_path = __DIR__ . '/' . $stylesheet;
+        $stylesheet_hash = is_readable($stylesheet_path) ? hash_file('sha256', $stylesheet_path) : false;
+        // Private ZIP replacements can change the CSS while keeping the proposal version.
+        $stylesheet_version = $stylesheet_hash === false ? self::VERSION : self::VERSION . '-' . substr($stylesheet_hash, 0, 12);
+        wp_register_style('creditsoft-financial-tools', plugins_url($stylesheet, __FILE__), [], $stylesheet_version);
         wp_register_script_module('creditsoft-financial-tools', plugins_url('assets/client.mjs', __FILE__), [], self::VERSION);
         wp_register_script('creditsoft-financial-tools-editor', plugins_url('assets/editor.js', __FILE__),
             ['wp-blocks', 'wp-element', 'wp-components', 'wp-block-editor'], self::VERSION, true);
