@@ -25,3 +25,5 @@
   private plugin replacement at the same proposal version.
 - Stack calculator inputs and results when a shortcode or block is placed in
   a narrow WordPress column.
+- Apply the CSS classes saved in the WordPress editor to the published
+  calculator block.

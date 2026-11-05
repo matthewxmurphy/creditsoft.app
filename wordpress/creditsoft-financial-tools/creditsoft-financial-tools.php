@@ -93,7 +93,7 @@ final class CreditSoft_Financial_Tools
         if (is_array($raw) && array_key_exists('slug', $raw) && !is_string($raw['slug'])) {
             return self::invalid();
         }
-        return is_string($attributes['slug'] ?? null) ? self::render($attributes['slug']) : self::invalid();
+        return is_string($attributes['slug'] ?? null) ? self::render($attributes['slug'], $block !== null) : self::invalid();
     }
 
     private static function invalid(): string
@@ -102,7 +102,7 @@ final class CreditSoft_Financial_Tools
     }
 
     /** One live form per page preserves the published client's first-root contract. */
-    public static function render(string $slug): string
+    public static function render(string $slug, bool $isBlock = false): string
     {
         $tool = self::find($slug);
         if ($tool === null) {
@@ -115,9 +115,13 @@ final class CreditSoft_Financial_Tools
         self::$rendered = true;
         wp_enqueue_style('creditsoft-financial-tools');
         wp_enqueue_script_module('creditsoft-financial-tools');
+        $classes = 'creditsoft-financial-tools financial-tools';
+        $wrapper = $isBlock
+            ? get_block_wrapper_attributes(['class' => $classes])
+            : 'class="' . esc_attr($classes) . '"';
         ob_start();
         ?>
-        <section class="creditsoft-financial-tools financial-tools" data-financial-tool="<?php echo esc_attr($slug); ?>">
+        <section <?php echo $wrapper; ?> data-financial-tool="<?php echo esc_attr($slug); ?>">
             <header class="tools-intro">
                 <a class="tool-back" href="<?php echo esc_url(home_url('/tools/')); ?>">← All financial tools</a>
                 <p class="tool-kicker"><?php echo esc_html($tool['category']); ?></p>
