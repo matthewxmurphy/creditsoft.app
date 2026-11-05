@@ -23,3 +23,5 @@
   show the instruction to recalculate.
 - Give changed calculator styles a new URL so browsers load them after a
   private plugin replacement at the same proposal version.
+- Stack calculator inputs and results when a shortcode or block is placed in
+  a narrow WordPress column.

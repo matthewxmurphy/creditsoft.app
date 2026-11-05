@@ -66,6 +66,18 @@
     .creditsoft-financial-tools .tool-metrics > div { flex-direction: column; gap: 5px; }
     .creditsoft-financial-tools .tool-metrics dd { text-align: left; }
 }
+@media screen {
+    /* A shortcode or block can sit in a narrow editor column on a wide screen. */
+    .creditsoft-financial-tools { container: creditsoft-tools / inline-size; }
+    @container creditsoft-tools (max-width: 540px) {
+        .creditsoft-financial-tools .tool-workspace, .creditsoft-financial-tools .tool-fields,
+        .creditsoft-financial-tools .tool-account .tool-fields { grid-template-columns: minmax(0, 1fr); }
+        .creditsoft-financial-tools .tool-actions .button { min-width: 0; max-width: 100%; white-space: normal; }
+        .creditsoft-financial-tools .tool-output { position: static; }
+        .creditsoft-financial-tools .tool-metrics > div { flex-direction: column; gap: 5px; }
+        .creditsoft-financial-tools .tool-metrics dd { text-align: left; }
+    }
+}
 @media print {
     .creditsoft-financial-tools { --cs-text: black; --cs-soft: black; --cs-muted: black; --cs-accent: black; --cs-line: #777; width: 100%; max-width: none; margin: 0; padding: 0; background: white; color: black; }
     .creditsoft-financial-tools .tool-related, .creditsoft-financial-tools .tool-back,
