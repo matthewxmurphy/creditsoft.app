@@ -25,7 +25,8 @@ body.creditsoft-site #g-mainbar .g-content { margin: 0; padding: 0; }
 .creditsoft-nav-list a { display: block; padding-block: 16px; }
 .creditsoft-nav-list .sub-menu { display: none; position: absolute; z-index: 100; min-width: 230px; padding: 16px; margin: 0; list-style: none; background: #17151c; border: 1px solid #51464d; }
 .creditsoft-nav-list .sub-menu a { padding-block: 8px; }
-.creditsoft-nav-list li:hover > .sub-menu, .creditsoft-nav-list li:focus-within > .sub-menu { display: block; }
+.creditsoft-nav-list li:not(.is-submenu-dismissed):hover > .sub-menu,
+.creditsoft-nav-list li:not(.is-submenu-dismissed):focus-within > .sub-menu { display: block; }
 .creditsoft-nav-actions { display: flex; align-items: center; gap: 18px; flex-shrink: 0; font-size: 14px; }
 .creditsoft-shell-button { display: inline-block; padding: 12px 18px; border-radius: 6px; background: #f1c27a; color: #141117 !important; font-weight: 700; }
 .creditsoft-menu-toggle { display: none; min-height: 44px; padding: 10px 16px; border: 1px solid #8d7987; border-radius: 6px; background: transparent; color: #f3f1eb; font: inherit; }

@@ -47,6 +47,8 @@
   can use the navigation when the menu script is blocked or unavailable.
 - Keep the focused navigation link visible and the menu expanded when the
   viewport narrows from desktop to mobile.
+- Let Escape dismiss an open desktop dropdown and return keyboard focus to
+  its parent link when focus was inside the dropdown.
 - Add a keyboard link that skips the navigation and focuses the main content
   on the shipped default and error layouts.
 - Focus the skip target on older saved outlines while preserving editor-set

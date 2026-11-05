@@ -17,8 +17,28 @@ document.querySelectorAll('[data-creditsoft-header]').forEach(header => {
     button.addEventListener('click', () => setOpen(button.getAttribute('aria-expanded') !== 'true'));
     header.addEventListener('keydown', event => { if (event.key === 'Escape' && header.classList.contains('is-menu-open')) close(true); });
     document.addEventListener('click', event => { if (!header.contains(event.target)) close(false); });
+    const dropdowns = panel.querySelectorAll('.creditsoft-nav-list > .menu-item-has-children');
+    const restoreDropdown = dropdown => dropdown.classList.remove('is-submenu-dismissed');
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('pointerenter', () => restoreDropdown(dropdown));
+        dropdown.addEventListener('focusin', event => {
+            if (!dropdown.contains(event.relatedTarget)) restoreDropdown(dropdown);
+        });
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || event.defaultPrevented || mobile.matches) return;
+        dropdowns.forEach(dropdown => {
+            if (!dropdown.matches(':hover, :focus-within')) return;
+            const submenu = dropdown.querySelector(':scope > .sub-menu');
+            if (submenu?.contains(document.activeElement)) {
+                dropdown.querySelector(':scope > a')?.focus();
+            }
+            dropdown.classList.add('is-submenu-dismissed');
+        });
+    });
     const updateViewport = () => {
         const isMobile = mobile.matches;
+        dropdowns.forEach(restoreDropdown);
         setOpen(isMobile && panel.contains(document.activeElement));
         // Decide whether to keep focus before the mobile CSS can hide the panel.
         header.classList.toggle('is-menu-mobile', isMobile);
