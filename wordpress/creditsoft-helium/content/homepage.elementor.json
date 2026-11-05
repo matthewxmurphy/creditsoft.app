@@ -345,21 +345,11 @@
                   },
                   "elements": [
                     {
-                      "id": "000001d",
-                      "elType": "widget",
-                      "widgetType": "heading",
-                      "settings": {
-                        "title": "Is CreditSoft only a website?",
-                        "header_size": "h3"
-                      },
-                      "elements": []
-                    },
-                    {
                       "id": "000001e",
                       "elType": "widget",
                       "widgetType": "text-editor",
                       "settings": {
-                        "editor": "<p>No. The website is just one lane. CreditSoft also includes the client portal, update lane, and local-first office workspace.</p>"
+                        "editor": "<details open><summary>Is CreditSoft only a website?</summary><p>No. The website is just one lane. CreditSoft also includes the client portal, update lane, and local-first office workspace.</p></details>"
                       },
                       "elements": []
                     }
@@ -376,21 +366,11 @@
                   },
                   "elements": [
                     {
-                      "id": "0000020",
-                      "elType": "widget",
-                      "widgetType": "heading",
-                      "settings": {
-                        "title": "Can this replace a stitched-together stack?",
-                        "header_size": "h3"
-                      },
-                      "elements": []
-                    },
-                    {
                       "id": "0000021",
                       "elType": "widget",
                       "widgetType": "text-editor",
                       "settings": {
-                        "editor": "<p>That is the goal. The product is designed to reduce the number of separate tools an office needs to look professional and stay operational.</p>"
+                        "editor": "<details open><summary>Can this replace a stitched-together stack?</summary><p>That is the goal. The product is designed to reduce the number of separate tools an office needs to look professional and stay operational.</p></details>"
                       },
                       "elements": []
                     }
@@ -407,21 +387,11 @@
                   },
                   "elements": [
                     {
-                      "id": "0000023",
-                      "elType": "widget",
-                      "widgetType": "heading",
-                      "settings": {
-                        "title": "Do you help with migration?",
-                        "header_size": "h3"
-                      },
-                      "elements": []
-                    },
-                    {
                       "id": "0000024",
                       "elType": "widget",
                       "widgetType": "text-editor",
                       "settings": {
-                        "editor": "<p>Yes. Import, mapping, branded site setup, and workflow transition are all part of the migration direction.</p>"
+                        "editor": "<details open><summary>Do you help with migration?</summary><p>Yes. Import, mapping, branded site setup, and workflow transition are all part of the migration direction.</p></details>"
                       },
                       "elements": []
                     }
@@ -438,21 +408,11 @@
                   },
                   "elements": [
                     {
-                      "id": "0000026",
-                      "elType": "widget",
-                      "widgetType": "heading",
-                      "settings": {
-                        "title": "Is the browser companion included?",
-                        "header_size": "h3"
-                      },
-                      "elements": []
-                    },
-                    {
                       "id": "0000027",
                       "elType": "widget",
                       "widgetType": "text-editor",
                       "settings": {
-                        "editor": "<p>It is included on the higher lanes and can be part of the rollout plan for offices that want more automation help.</p>"
+                        "editor": "<details open><summary>Is the browser companion included?</summary><p>It is included on the higher lanes and can be part of the rollout plan for offices that want more automation help.</p></details>"
                       },
                       "elements": []
                     }
