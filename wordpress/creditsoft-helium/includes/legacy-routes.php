@@ -77,6 +77,26 @@ function creditsoft_helium_redirect_legacy_home(): void
 
 add_action('template_redirect', 'creditsoft_helium_redirect_legacy_home', 1);
 
+/** Keep unresolved CreditSoft customer sign-in paths separate from staff access. */
+function creditsoft_helium_preserve_missing_customer_sign_in(): void
+{
+    if (!is_404()) {
+        return;
+    }
+
+    $path = explode('?', wp_unslash($_SERVER['REQUEST_URI'] ?? ''), 2)[0];
+    foreach (['/login', '/sign-in'] as $slug) {
+        $customer_path = wp_parse_url(home_url($slug), PHP_URL_PATH);
+        if (is_string($customer_path) && ($path === $customer_path || $path === $customer_path . '/')) {
+            remove_action('template_redirect', 'redirect_canonical');
+            remove_action('template_redirect', 'wp_redirect_admin_locations', 1000);
+            return;
+        }
+    }
+}
+
+add_action('template_redirect', 'creditsoft_helium_preserve_missing_customer_sign_in', 1);
+
 /** Keep the published icon URLs available to clients that request them directly. */
 function creditsoft_helium_redirect_legacy_icon(): void
 {

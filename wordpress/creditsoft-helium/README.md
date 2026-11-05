@@ -29,6 +29,10 @@ WordPress keeps its native HTTP 404 status. The recovery link uses the configure
 homepage URL, including any subdirectory or `/~UUID/` base. The child does not
 register a new route or require an imported Elementor page for the error screen.
 
+The CreditSoft customer URLs `/login` and `/sign-in` use the branded 404 until
+an explicit route is available. Published WordPress pages at those paths take
+precedence. Staff continue to sign in through `/wp-login.php` and `/wp-admin/`.
+
 The child uses the three published CreditSoft icons for browser tabs and Apple
 touch shortcuts. A WordPress Site Icon takes precedence. Gantry’s configured
 favicon or touch icon takes precedence for the matching icon types. The
