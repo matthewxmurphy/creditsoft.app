@@ -114,6 +114,11 @@ if an editor already owns a Page there, including a draft or private Page. On
 that exact missing route, WordPress does not guess a similarly named page when
 the intended redirect cannot run.
 
+The old `/index.html` address redirects to the configured homepage for GET and
+HEAD when WordPress would otherwise return 404. The redirect keeps the query
+string and any configured subdirectory or `/~UUID/` base. WordPress applies its
+usual routing rules to query parameters such as `tag` on the destination.
+
 The `releases` export is the editable public release history from Astro. Its four
 archived entries retain their order, version labels and descriptions. Import it
 into a chosen WordPress Page and set the `releases` slug when ready.

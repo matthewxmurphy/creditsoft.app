@@ -49,3 +49,5 @@
 - Preserve the homepage FAQ’s four independently collapsible answers in the
   Elementor export. Each answer starts open, matching the Astro homepage.
 - Restore the browser’s visible open and closed markers on the homepage FAQ.
+- Preserve the `/index.html` homepage redirect and its query string on ordinary
+  and tilde URL bases.

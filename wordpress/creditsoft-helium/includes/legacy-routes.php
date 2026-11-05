@@ -47,3 +47,32 @@ function creditsoft_helium_redirect_legacy_about(): void
 
 // Decide this exact alias before WordPress tries to guess a similar slug on a 404.
 add_action('template_redirect', 'creditsoft_helium_redirect_legacy_about', 1);
+
+/** Preserve the old static homepage address, including campaign parameters. */
+function creditsoft_helium_redirect_legacy_home(): void
+{
+    $method = $_SERVER['REQUEST_METHOD'] ?? '';
+    if (!in_array($method, ['GET', 'HEAD'], true) || !is_404() || is_preview() || get_query_var('preview') !== '') {
+        return;
+    }
+
+    $request = explode('?', wp_unslash($_SERVER['REQUEST_URI'] ?? ''), 2);
+    $alias = wp_parse_url(home_url('/index.html'), PHP_URL_PATH);
+    if (!is_string($alias) || $request[0] !== $alias) {
+        return;
+    }
+
+    $location = wp_parse_url(home_url('/'), PHP_URL_PATH);
+    if (!is_string($location) || !str_starts_with($location, '/') || str_starts_with($location, '//')) {
+        return;
+    }
+    $query = $request[1] ?? '';
+    if ($query !== '') {
+        $location .= '?' . $query;
+    }
+    if (wp_safe_redirect($location, 301, 'CreditSoft')) {
+        exit;
+    }
+}
+
+add_action('template_redirect', 'creditsoft_helium_redirect_legacy_home', 1);
