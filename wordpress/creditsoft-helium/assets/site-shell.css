@@ -52,7 +52,14 @@ body.creditsoft-site #g-mainbar .g-content { margin: 0; padding: 0; }
 .creditsoft-home .creditsoft-secondary .elementor-button { background: transparent; color: #f3f1eb; border-color: #80727d; }
 .creditsoft-home .creditsoft-feature-grid.e-con, .creditsoft-home .creditsoft-faq-grid.e-con { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; padding: 0; }
 .creditsoft-home .creditsoft-card.e-con { min-width: 0; padding: 28px; border: 1px solid #51464d; background: #15131a; gap: 16px; }
-.creditsoft-home .creditsoft-faq-grid details > summary { color: #f3f1eb; cursor: pointer; font-weight: 700; line-height: 1.35; }
+.creditsoft-home .creditsoft-faq-grid details > summary {
+  display: revert;
+  list-style: revert;
+  color: #f3f1eb;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1.35;
+}
 .creditsoft-home .creditsoft-faq-grid details > p { margin-top: 14px; }
 .creditsoft-home .creditsoft-cta.e-con { margin-bottom: 64px; border: 1px solid #615340; background: #1d1816; }
 body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset: 4px; }
