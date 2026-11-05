@@ -76,7 +76,7 @@ separate from this homepage/shell source preparation.
 Three additional, text-only Elementor FREE exports preserve the displayed copy
 and CTA destinations from the existing public Astro `about-us.astro`,
 `resources.astro` and `docs.astro` bodies. They use the same real page-content
-wrapper and scoped presentation as the homepage; no runtime route is installed.
+wrapper and scoped presentation as the homepage.
 The docs page promotes its existing primary heading to an H1 without changing
 its words. Resources keeps `user-guide`, `admin-guide`, `crm-guide` and
 `ai-settings` exactly once each instead of copying the source's duplicate IDs.
@@ -95,9 +95,13 @@ JSON through Elementor, insert it into a chosen Page, and use the existing
 **CreditSoft Elementor Home** page template as the shared content wrapper. Review
 any existing page and saved edits before explicitly replacing content. No helper
 creates, overwrites or publishes pages, selects permalinks, or changes navigation.
-Configure the intended page paths manually; these helpers register no routes.
-The source `/about` page points to `/about-us`; preserve that alias in the site's
-chosen redirect setup if needed. This child adds no redirect handler.
+Configure the intended page paths manually. Once the public `/about-us` Page is
+published, the child preserves the Astro `/about` alias with a permanent redirect
+for GET and HEAD. It uses the site's own URL base, including `/~UUID/` on a
+preview. It applies only to a missing `/about` route and leaves the slug reserved
+if an editor already owns a Page there, including a draft or private Page. On
+that exact missing route, WordPress does not guess a similarly named page when
+the intended redirect cannot run.
 
 API, license, update, CRM and provider routes mentioned in these pages are copied
 prose/code strings, not new endpoints, calls or guarantees. Contact/login links

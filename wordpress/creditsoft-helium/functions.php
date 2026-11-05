@@ -25,6 +25,8 @@ add_action('wp_enqueue_scripts', static function (): void {
     wp_enqueue_script('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.js', [], CREDITSOFT_HELIUM_VERSION, true);
 });
 
+require_once get_stylesheet_directory() . '/includes/legacy-routes.php';
+
 /** Explicit import preparation only; preserve external/mailto links and each local path/query verbatim. */
 function creditsoft_helium_rebase_template_links(array $template): array
 {

@@ -30,3 +30,6 @@
 - Add explicit Cookies, Privacy and Terms exports with unchanged policy copy,
   heading/list order, links and source update date. Keep import read-only and
   preserve existing saved pages, forms, runtime integrations and versions.
+
+- Preserve legacy `/about` links after the public `/about-us` Page is published.
+  Honor the site's URL base and existing editor-owned About pages.
