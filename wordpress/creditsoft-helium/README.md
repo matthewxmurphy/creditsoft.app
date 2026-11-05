@@ -51,6 +51,11 @@ and sitemap. If the web server serves a physical robots file, include the
 exclusions there during cutover. On a shared tilde host, crawlers read the
 host-root robots file. Verify the preview's indexing settings separately.
 
+With pretty permalinks, WordPress supplies the legacy `/sitemap.xml` alias at
+the site root. At a subdirectory base such as `/~UUID/`, the child redirects
+an otherwise-missing exact GET or HEAD request to the native sitemap index
+when WordPress has sitemaps enabled.
+
 Official contracts:
 
 - [Gantry WordPress child themes](https://docs.gantry.org/gantry5/theme-development/create-child-theme-wordpress)

@@ -97,6 +97,38 @@ function creditsoft_helium_preserve_missing_customer_sign_in(): void
 
 add_action('template_redirect', 'creditsoft_helium_preserve_missing_customer_sign_in', 1);
 
+/** Preserve the legacy sitemap address when WordPress is installed below the host root. */
+function creditsoft_helium_redirect_legacy_sitemap(): void
+{
+    $method = $_SERVER['REQUEST_METHOD'] ?? '';
+    if (!is_404() || !in_array($method, ['GET', 'HEAD'], true) || is_preview() || get_query_var('preview') !== '') {
+        return;
+    }
+
+    $home = trailingslashit(home_url('/'));
+    $base = wp_parse_url($home, PHP_URL_PATH);
+    $path = explode('?', wp_unslash($_SERVER['REQUEST_URI'] ?? ''), 2)[0];
+    if (!is_string($base) || $base === '/' || $path !== $base . 'sitemap.xml'
+        || !wp_sitemaps_get_server()->sitemaps_enabled()) {
+        return;
+    }
+
+    $index = get_sitemap_url('index');
+    if (!is_string($index) || !str_starts_with($index, $home)) {
+        return;
+    }
+
+    // A relative Location keeps the IPv6 authority from the original request.
+    $location = wp_make_link_relative($index);
+    if ($location === $base . 'wp-sitemap.xml'
+        && str_starts_with($location, '/') && !str_starts_with($location, '//')
+        && wp_sanitize_redirect($location) === $location && wp_safe_redirect($location, 301, 'CreditSoft')) {
+        exit;
+    }
+}
+
+add_action('template_redirect', 'creditsoft_helium_redirect_legacy_sitemap', 99);
+
 /** Keep the published icon URLs available to clients that request them directly. */
 function creditsoft_helium_redirect_legacy_icon(): void
 {

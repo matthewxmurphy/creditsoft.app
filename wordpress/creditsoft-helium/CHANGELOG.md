@@ -57,3 +57,5 @@
   native robots response when indexing is enabled.
 - Keep unresolved customer sign-in URLs on the branded 404 and preserve
   WordPress staff access and editor-owned customer pages.
+- Preserve the legacy sitemap address below the host root when the native
+  WordPress sitemap is enabled.
