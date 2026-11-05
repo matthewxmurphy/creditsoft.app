@@ -27,3 +27,5 @@
   a narrow WordPress column.
 - Apply the CSS classes saved in the WordPress editor to the published
   calculator block.
+- Ask editors to choose a calculator when a saved block refers to an
+  unavailable tool. Refresh the editor script URL when its contents change.

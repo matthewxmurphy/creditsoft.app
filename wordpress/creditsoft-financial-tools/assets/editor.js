@@ -14,10 +14,15 @@
         title: 'CreditSoft financial tool', category: 'widgets', icon: 'chart-area',
         attributes: { slug: { type: 'string', default: 'budget' } }, supports: { html: false, multiple: false },
         edit: function (props) {
+            const slug = props.attributes.slug;
+            const supported = options.some(function (option) { return option.value === slug; });
+            const choices = supported ? options : [{ value: '', label: 'Choose a financial tool', disabled: true }, ...options];
             return el('div', wp.blockEditor.useBlockProps(),
-                el(wp.components.SelectControl, { label: 'Financial tool', value: props.attributes.slug,
-                    options: options, onChange: function (slug) { props.setAttributes({ slug: slug }); } }),
-                el('p', {}, 'The selected calculator runs locally on the published page. Use one calculator per page.'));
+                el(wp.components.SelectControl, { label: 'Financial tool', value: supported ? slug : '',
+                    options: choices, onChange: function (choice) { props.setAttributes({ slug: choice }); } }),
+                el('p', {}, supported
+                    ? 'The selected calculator runs locally on the published page. Use one calculator per page.'
+                    : 'The saved calculator is unavailable. Choose a financial tool to restore this block.'));
         },
         save: function () { return null; }
     });
