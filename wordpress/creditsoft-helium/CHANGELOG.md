@@ -53,3 +53,5 @@
   and tilde URL bases.
 - Preserve direct requests to the three published CreditSoft icon URLs and honor
   WordPress’s configured Site Icon for `/favicon.ico`.
+- Carry the published admin, API and vendor crawler exclusions into WordPress's
+  native robots response when indexing is enabled.

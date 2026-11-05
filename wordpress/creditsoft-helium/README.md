@@ -40,6 +40,13 @@ in the child. Existing routes take precedence, as does the WordPress Site Icon
 handler for `/favicon.ico` when a Site Icon is configured. The redirect uses the
 local theme asset path when the theme assets and site share an origin.
 
+The native WordPress `robots.txt` response carries CreditSoft's published
+`/admin/`, `/api/` and `/vendor/` exclusions when search indexing is enabled.
+The rules use the WordPress home path, and WordPress supplies its own admin rules
+and sitemap. If the web server serves a physical robots file, include the
+exclusions there during cutover. On a shared tilde host, crawlers read the
+host-root robots file. Verify the preview's indexing settings separately.
+
 Official contracts:
 
 - [Gantry WordPress child themes](https://docs.gantry.org/gantry5/theme-development/create-child-theme-wordpress)

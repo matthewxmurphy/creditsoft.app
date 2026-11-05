@@ -24,6 +24,23 @@ add_action('wp_enqueue_scripts', static function (): void {
     wp_enqueue_style('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.css', [], CREDITSOFT_HELIUM_VERSION);
     wp_enqueue_script('creditsoft-shell', get_stylesheet_directory_uri() . '/assets/site-shell.js', [], CREDITSOFT_HELIUM_VERSION, true);
 });
+// Extend WordPress's wildcard group before core adds its sitemap URL.
+add_filter('robots_txt', static function (string $output, bool $public): string {
+    if (!$public) {
+        return $output;
+    }
+
+    $path = wp_parse_url(home_url('/'), PHP_URL_PATH);
+    if (!is_string($path) || !str_starts_with($path, '/')) {
+        return $output;
+    }
+
+    $path = trailingslashit($path);
+    foreach (['admin/', 'api/', 'vendor/'] as $directory) {
+        $output .= 'Disallow: ' . $path . $directory . "\n";
+    }
+    return $output;
+}, -1, 2);
 add_action('wp_head', static function (): void {
     if (has_site_icon() || is_customize_preview()) {
         return;
