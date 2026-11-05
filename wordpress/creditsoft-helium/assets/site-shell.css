@@ -127,6 +127,15 @@ body.creditsoft-site :focus-visible { outline: 3px solid #f1c27a; outline-offset
 .creditsoft-tools-intake h2 { margin-top: 0; }
 @media print {
   .creditsoft-tools-intake { display: none; }
+  body.creditsoft-site:has(.creditsoft-financial-tools[data-financial-tool])
+  :is(#g-navigation, #g-footer, .creditsoft-shell-header, .creditsoft-shell-footer) {
+    display: none;
+  }
+  body.creditsoft-site:has(.creditsoft-financial-tools[data-financial-tool])
+  :is(#g-page-surround, #g-container-main, #g-mainbar) {
+    background: white;
+    color: black;
+  }
 }
 
 /* Native local-capture controls inherit the existing CreditSoft CTA palette. */

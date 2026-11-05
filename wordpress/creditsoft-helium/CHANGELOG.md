@@ -53,6 +53,8 @@
   on the shipped default and error layouts.
 - Focus the skip target on older saved outlines while preserving editor-set
   tag attributes and the saved layout files.
+- Print calculator worksheets on a white background without the site header
+  or footer.
 
 - Preserve the homepage FAQ’s four independently collapsible answers in the
   Elementor export. Each answer starts open, matching the Astro homepage.
