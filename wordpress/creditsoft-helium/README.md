@@ -151,8 +151,8 @@ wp eval 'echo wp_json_encode(creditsoft_helium_marketing_template("about-us"));'
 
 The other supported selectors are `resources`, `docs`, `multi-office-nodes`,
 `client-portal`, `backup-redundancy`, `tech-stack`, `reporting`, `roadmap`,
-`compliance`, `disputes`, `local-first-crm`, `migration`, `cookies`,
-`privacy`, `terms` and `releases`. Import the prepared
+`compliance`, `disputes`, `local-first-crm`, `migration`, `api-bridge`,
+`email-providers`, `cookies`, `privacy`, `terms` and `releases`. Import the prepared
 JSON through Elementor, insert it into a chosen Page, and use the existing
 **CreditSoft Elementor Home** page template as the shared content wrapper. Review
 any existing page and saved edits before explicitly replacing content. No helper
@@ -229,6 +229,15 @@ chosen Page at its original slug. Both exports retain the feature copy and
 the Start intake, Login and Back to feature overview links. Add a reviewed
 replacement for the shared roster screenshot in Elementor before accepting
 the preview.
+
+### API Bridge and Email Providers
+
+Prepare these feature pages with
+`creditsoft_helium_marketing_template("api-bridge")` and
+`creditsoft_helium_marketing_template("email-providers")`. Import each into a
+chosen Page at its original slug. Both exports retain the product copy and
+the Start intake, Login and Back to feature overview links. Add reviewed
+replacement settings screenshots in Elementor before accepting the preview.
 
 ### Multi-office nodes
 

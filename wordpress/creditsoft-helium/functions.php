@@ -199,6 +199,8 @@ function creditsoft_helium_marketing_template(string $slug): array
         'disputes' => 'disputes.elementor.json',
         'local-first-crm' => 'local-first-crm.elementor.json',
         'migration' => 'migration.elementor.json',
+        'api-bridge' => 'api-bridge.elementor.json',
+        'email-providers' => 'email-providers.elementor.json',
         'cookies' => 'cookies.elementor.json',
         'privacy' => 'privacy.elementor.json',
         'terms' => 'terms.elementor.json',

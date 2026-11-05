@@ -97,3 +97,5 @@
   copy and links rebased to the configured WordPress home.
 - Add editable Local-first CRM and Migration feature pages with original
   copy and links rebased to the configured WordPress home.
+- Add editable API Bridge and Email Providers pages with the original product
+  copy and links rebased to the configured WordPress home.
