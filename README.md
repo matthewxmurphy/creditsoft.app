@@ -9,6 +9,19 @@ own the shared header and footer. Follow the [WordPress deployment and rollback
 instructions](wordpress/migration/README.md) for website changes. The former
 public static-site source and deployment pipeline have been retired.
 
+### Public website dependencies
+
+Install the matching Gantry WordPress framework and `g5_helium` parent theme at
+**6.0.0-alpha.1**. Install the existing **CPH Mobile Navigation
+2026.10.05.001** plugin separately for the native `cph_mobile` menu and its
+Otterbox-style nested drawer. These dependency versions are independent of the
+CreditSoft child-theme build.
+
+The verified shared CPH package is
+`cph-mobile-navigation-2026.10.05.001.zip` from the Skyline delivery. Its SHA-256 is
+`4de51126df1ae3c9109dc52a8f5299be36867d1a946a0476be0b4973e557fb63`.
+The package is installed unchanged and is not bundled in the CreditSoft theme.
+
 ## Stack
 
 - Laravel 13
