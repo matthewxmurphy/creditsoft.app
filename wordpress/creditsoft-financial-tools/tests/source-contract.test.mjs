@@ -7,14 +7,6 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { tools, sourceLink } from '../assets/catalog.mjs';
 const component = new URL('../', import.meta.url);
-const repository = new URL('../../', component);
-
-test('adopted modules preserve published Astro source exactly', async () => {
-    for (const name of ['catalog.mjs', 'client.mjs', 'model.mjs']) {
-        assert.deepEqual(await readFile(new URL(`assets/${name}`, component)),
-            await readFile(new URL(`site-astro/src/lib/financial-tools/${name}`, repository)));
-    }
-});
 
 test('PHP catalog is generated from all twelve existing descriptors', async () => {
     const data = JSON.parse(await readFile(new URL('assets/catalog.json', component), 'utf8'));

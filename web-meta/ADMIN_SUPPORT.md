@@ -1,20 +1,22 @@
 # CreditSoft Admin Subdomain Support Files
 
-`admin.creditsoft.app` is a small PHP admin app that is intentionally shared with the public site tree. The admin subdomain wrappers in `web-meta/admin-subdomain/` load files from the live server's `public_html/admin/` folder, and `public_html/admin/index.php` also requires several legacy support files from the top of `public_html`.
+`admin.creditsoft.app` remains a separate PHP office/admin service. The public
+site now runs WordPress and Gantry 6. Existing admin subdomain wrappers and API
+routes reach their retained service files through scoped links in the
+panel-managed public root.
 
-The active PHP support files should be kept in `site-astro/public/` and mirrored into the built `web/` folder before deploy. That keeps Astro/static deploys from wiping the admin app back to an older live-only copy. The live backup folders are emergency recovery, not the canonical source.
+The maintained PHP support source is `web/`. The former duplicate public build
+tree has been removed. Do not copy the whole `web/` folder over WordPress.
 
-If an Astro/static deploy replaces `public_html`, the admin page can turn into a blank `500` when these files are missing:
+These existing support files remain required by the separate admin service:
 
 - `site-content-config.php`
 - `site-seo-config.php`
 - `site-map-config.php`
 - `meta-social-manager.php`
 
-The live server keeps a PHP backup folder named like `public_html_php_backup_YYYYMMDDHHMMSS`. Restore the support files after a site deploy with:
-
-```bash
-/Users/mmurphy/Desktop/CreditSoft/scripts/restore-live-admin-support.sh
-```
-
-The script copies the newest backup versions back into live `public_html` and runs the admin entrypoint through PHP as a smoke test.
+Use `wordpress/migration/link-services.sh` and the adjacent migration instructions
+to preserve the current service links. It is not a blanket restore from an older
+PHP backup. Private backups and customer/service data stay outside theme
+packages and public source archives. Verify the actual admin and API responses
+after a routing or service update.

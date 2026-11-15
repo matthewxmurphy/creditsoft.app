@@ -2,9 +2,9 @@
 # https://MatthewxMurphy.com / https://builtnotbegged.com; GPL-2.0-or-later.
 # Parent-derived configuration is GPL; original Helium attribution is retained in NOTICE.md.
 details:
-  name: CreditSoft Helium Child
-  version: '2026.10.1'
-  date: 'October 31, 2026'
+  name: CreditSoft Gantry 6
+  version: '2026.11.15.2'
+  date: 'November 15, 2026'
   icon: paper-plane
   author:
     name: 'Matthew C. Murphy'
@@ -18,7 +18,7 @@ details:
 
   copyright: 'Child modifications copyright 2026 Matthew C. Murphy; inherited Helium/Gantry notices retained in NOTICE.md and includes/theme.php.'
   license: GPL-2.0-or-later
-  description: Unreleased CreditSoft child; inherited Helium configuration and GPL notices retained.
+  description: Preserved CreditSoft design with native WordPress content and editable Gantry particles.
   images:
     thumbnail: 'admin/images/preset1.png'
     preview: 'admin/images/preset1.png'
@@ -79,7 +79,7 @@ configuration:
       - custom
 
   dependencies:
-    gantry: '5.5'
+    gantry: '6.0.0-alpha.1'
 
   section-variations:
     Padding Variations:

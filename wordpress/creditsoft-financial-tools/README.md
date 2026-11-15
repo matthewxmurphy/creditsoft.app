@@ -1,9 +1,9 @@
 # CreditSoft Financial Tools — WordPress adapter
 
-Unreleased source proposal **2026.10.1** (`YYYY.M.P`, unpadded month and patch per
-Task 118). This is not a reserved or published release. It prepares the existing
-12 calculators for WordPress while leaving the Astro site and all other pages
-untouched. It does not complete the full Gantry/Elementor marketing-site rebuild.
+WordPress adapter **2026.10.1**, with the twelve maintained browser calculators.
+The public site now uses native WordPress Pages and the dedicated Gantry 6 theme.
+Existing Pages take precedence over this adapter's optional fallback routes.
+The public static-site source and deployment pipeline have been retired.
 
 ## Interfaces
 
@@ -30,14 +30,14 @@ The route template uses the site's existing classic or block-theme header/footer
 Gantry and Elementor are not bundled, activated or claimed compatible by inference;
 shortcode/block integration is the intended boundary for their later site shell.
 
-The adopted catalog, model and browser client are byte-for-byte copies of the
-current public Astro modules. No formula, input bound, default, result wording,
+The adopted catalog, model and browser client preserve the published calculator
+modules. No formula, input bound, default, result wording,
 source attribution or score/approval disclaimer is redefined. `assets/catalog.json`
 is the PHP-readable descriptor generated from that catalog, not a second model.
 
 ```sh
 node wordpress/creditsoft-financial-tools/scripts/prepare-catalog.mjs
-node --test wordpress/creditsoft-financial-tools/tests/source-contract.test.mjs
+node --test wordpress/creditsoft-financial-tools/tests/*.test.mjs
 ```
 
 Run `tests/native-acceptance.php` with WP-CLI `eval-file` only in a disposable
@@ -59,7 +59,7 @@ Remove the owned containers/network after browser checks. Native/browser
 acceptance remains separate from source checks and does not prove Gantry or
 Elementor compatibility.
 Do not run deployment/release helpers or submit lead/checkout forms to test this
-adapter. The existing Astro model suite need not be repeated for an unchanged model.
+adapter. The existing numeric/boundary model suite is retained in `tests/model.test.mjs`.
 
 ## Privacy and compatibility
 

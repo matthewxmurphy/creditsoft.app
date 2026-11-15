@@ -6,7 +6,7 @@ helper, tests and documentation: copyright 2026 Matthew C. Murphy
 SPDX-License-Identifier: GPL-2.0-or-later. Recorded project-policy identity:
 Matthew X Murphy. This grant is limited to these newly authored adapter files.
 
-The following assets are adopted unchanged from public
+The following assets are adopted unchanged from historical public
 [matthewxmurphy/creditsoft.app](https://github.com/matthewxmurphy/creditsoft.app),
 commit `1de0826794d8c13e9da59f3eaf83a90e4680d8f7`:
 

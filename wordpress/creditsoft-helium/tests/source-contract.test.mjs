@@ -4,12 +4,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-const root = new URL('../', import.meta.url), repo = new URL('../../', root);
+const root = new URL('../', import.meta.url);
 const read = name => readFile(new URL(name, root), 'utf8');
 
 test('one child identity and actual parent fallback are bound', async () => {
     const version = (await read('VERSION')).trim();
-    assert.match(version, /^\d{4}\.(?:[1-9]|1[0-2])\.[1-9]\d*$/);
+    assert.match(version, /^\d{4}\.(?:[1-9]|1[0-2])\.(?:[1-9]|[12]\d|3[01])\.[1-9]\d*$/);
     const style = await read('style.css'), yaml = await read('gantry/theme.yaml'), theme = await read('includes/theme.php');
     assert.ok(style.includes('Template: g5_helium\n'));
     assert.ok(style.includes(`Version: ${version}\n`));
@@ -28,7 +28,7 @@ test('explicit free homepage and menus preserve public source and wordmark', asy
     walk(page.content); assert.equal(new Set(ids).size, ids.length);
     assert.ok(widgets.every(row => ['heading', 'text-editor', 'button'].includes(row.widgetType)));
     const title = widgets.find(row => row.widgetType === 'heading' && row.settings.header_size === 'h1').settings.title;
-    const source = await readFile(new URL('site-astro/src/lib/preview-content.ts', repo), 'utf8');
+    const source = await readFile(new URL('content/preserved/pages/home.html', root), 'utf8');
     assert.ok(source.includes(title));
     assert.ok(!JSON.stringify(page).includes('placeholder'));
     const navigation = JSON.parse(await read('content/navigation.json'));
@@ -36,7 +36,7 @@ test('explicit free homepage and menus preserve public source and wordmark', asy
     assert.ok(navigation['creditsoft-primary'].some(row => row.url === '/tools/'));
     assert.equal(navigation['creditsoft-footer-social'].length, 4);
     assert.deepEqual(await readFile(new URL('assets/creditsoft-wordmark.png', root)),
-        await readFile(new URL('site-astro/public/brand/creditsoft-wordmark.png', repo)));
+        await readFile(new URL('assets/preserved/brand/creditsoft-wordmark.png', root)));
 });
 
 test('activation is non-destructive and selected pages use the real content loop', async () => {

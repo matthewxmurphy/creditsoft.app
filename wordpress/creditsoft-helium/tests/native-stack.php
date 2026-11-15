@@ -73,7 +73,7 @@ try {
     update_option('show_on_front', 'page'); update_option('page_on_front', $homeId);
     $hero = 'Build, Launch, and Run a Credit Repair Office Without Looking Like Generic SaaS';
     $html = $http('/'); $chrome($html);
-    $check(str_contains($html, $hero) && str_contains($html, 'Welcome to CreditSoft'), 'Published Astro hero content renders through the selected page template.');
+    $check(str_contains($html, $hero) && str_contains($html, 'Welcome to CreditSoft'), 'Published CreditSoft hero content renders through the selected page template.');
     $check(str_contains($html, 'elementor-element'), 'Real Elementor frontend renders the document.');
     $edited = $data['content']; $changed = false;
     $edit = static function (array &$elements) use (&$edit, &$changed, $hero): void {

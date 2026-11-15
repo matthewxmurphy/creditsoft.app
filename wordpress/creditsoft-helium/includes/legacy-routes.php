@@ -6,7 +6,7 @@
  */
 defined('ABSPATH') || exit;
 
-/** Preserve a known Astro page alias after the operator publishes its replacement. */
+/** Preserve a known public page alias after the operator publishes its replacement. */
 function creditsoft_helium_redirect_legacy_page(string $alias_slug, string $target_slug): void
 {
     $method = $_SERVER['REQUEST_METHOD'] ?? '';

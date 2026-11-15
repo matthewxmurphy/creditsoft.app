@@ -1,0 +1,20 @@
+{% extends '@nucleus/page.html.twig' %}
+{% block page_head %}
+    {% if page_head %}{{ page_head|raw }}{% else %}{{ parent() }}{% endif %}
+{% endblock %}
+{% block page_body %}
+    {% if function('creditsoft_preserved_design_enabled') %}
+    <body{{ gantry.page.bodyAttributes({'class': []})|raw }}>
+        {{ gantry.config.page.body.body_top|raw }}{{ body_top|raw }}
+        <div class="site-shell"><div id="g-page-surround">
+            {{ page_top|raw }}{{ page_layout|raw }}{{ page_bottom|raw }}
+        </div></div>
+        {{ body_bottom|raw }}{{ page_footer|raw }}
+        {{ gantry.config.page.body.body_bottom|raw }}
+    </body>
+    {% else %}{{ parent() }}{% endif %}
+{% endblock %}
+{% block page_footer %}
+    {% do gantry.platform.finalize() %}
+    {{ gantry.theme.wordpressFooter()|raw }}
+{% endblock %}

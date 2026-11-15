@@ -20,3 +20,7 @@ form:
     contact:
       type: input.text
       label: Public contact address
+    html:
+      type: textarea.textarea
+      label: Preserved header HTML override
+      description: Optional saved shared header markup. Leave blank to use the captured CreditSoft header.

@@ -1,6 +1,9 @@
 {# New particle copyright 2026 Matthew C. Murphy; MatthewxMurphy.com / builtnotbegged.com. GPL-2.0-or-later. #}
 {% extends '@nucleus/partials/particle.html.twig' %}
 {% block particle %}
+{% if function('creditsoft_preserved_design_enabled') %}
+{{ function('creditsoft_preserved_shell', 'header', particle.html|default(''))|raw }}
+{% else %}
 <header class="creditsoft-shell-header" data-creditsoft-header>
   {% set main = gantry.theme.loadLayout().referencesByType('section', 'main')|first %}
   {% if main and main.children %}
@@ -18,4 +21,5 @@
     <div class="creditsoft-nav-actions"><a href="{{ function('home_url', '/login')|e('html_attr') }}">Login</a><a class="creditsoft-shell-button" href="{{ function('home_url', '/subscribe')|e('html_attr') }}">Checkout</a></div>
   </div>
 </header>
+{% endif %}
 {% endblock %}

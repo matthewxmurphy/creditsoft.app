@@ -1,6 +1,9 @@
 {# New particle copyright 2026 Matthew C. Murphy; MatthewxMurphy.com / builtnotbegged.com. GPL-2.0-or-later. #}
 {% extends '@nucleus/partials/particle.html.twig' %}
 {% block particle %}
+{% if function('creditsoft_preserved_design_enabled') %}
+{{ function('creditsoft_preserved_shell', 'footer', particle.html|default(''))|raw }}
+{% else %}
 <footer class="creditsoft-shell-footer">
   <div class="creditsoft-footer-brand">
     <a class="creditsoft-wordmark" href="{{ function('home_url', '/')|e('html_attr') }}" aria-label="CreditSoft home"><img src="{{ url(particle.image)|e('html_attr') }}" width="1073" height="282" alt="CreditSoft.app" loading="lazy" decoding="async"></a>
@@ -16,4 +19,5 @@
     {% endfor %}
   </div>
 </footer>
+{% endif %}
 {% endblock %}

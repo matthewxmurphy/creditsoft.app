@@ -1,0 +1,127 @@
+ <script type="module">(()=>{const t=document.querySelector("[data-mobile-menu-toggle]"),n=document.querySelector("[data-mobile-menu]");if(!(t instanceof HTMLButtonElement)||!(n instanceof HTMLElement))return;const a=e=>{t.setAttribute("aria-expanded",e?"true":"false"),n.hidden=!e,document.documentElement.classList.toggle("mobile-menu-is-open",e)};t.addEventListener("click",()=>{a(t.getAttribute("aria-expanded")!=="true")}),n.querySelectorAll("a").forEach(e=>{e.addEventListener("click",()=>a(!1))}),document.addEventListener("keydown",e=>{e.key==="Escape"&&a(!1)}),document.addEventListener("click",e=>{const c=e.target;c instanceof Node&&!n.hidden&&!n.contains(c)&&!t.contains(c)&&a(!1)})})();</script>   <script type="module">(()=>{const d=Array.from(document.querySelectorAll("[data-pricing-view-button]")),b=Array.from(document.querySelectorAll("[data-pricing-view]")),m=t=>{d.forEach(e=>{const a=e.getAttribute("data-pricing-view-button")===t;e.classList.toggle("is-active",a),e.setAttribute("aria-selected",a?"true":"false")}),b.forEach(e=>{const a=e.getAttribute("data-pricing-view")===t;e.classList.toggle("is-hidden",!a),e.toggleAttribute("hidden",!a)})};d.forEach(t=>{t.addEventListener("click",()=>{m(t.getAttribute("data-pricing-view-button")||"monthly")})});const s=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",minimumFractionDigits:2,maximumFractionDigits:2}),u=(t,e,a=0)=>{const n=new URL("/api/checkout-request.php",window.location.origin);return n.searchParams.set("quote","1"),n.searchParams.set("plan",t),n.searchParams.set("billing",e),n.searchParams.set("server_nodes",String(a)),n},f=(t,e)=>{const a=t.getAttribute("data-suffix")||"",n=t.querySelector("[data-db-sale-price]"),r=t.querySelector("[data-db-list-price]"),o=t.querySelector("[data-db-price-note]"),c=Number(e.base_amount||e.amount||0),l=Number(e.list_amount||0),p=e.base_amount_label||e.amount_label||s.format(c);n&&(n.innerHTML=`${p}<small>${a}</small>`),r&&(r.textContent=l>c?`${e.list_amount_label||s.format(l)}${a}`:"",r.hidden=!(l>c)),o&&(o.textContent="Pulled from the live database price book.")},h=(t,e)=>{const a=t.querySelector("[data-db-sale-price]"),n=t.querySelector("[data-db-list-price]"),r=t.querySelector("[data-db-price-note]");a&&(a.textContent="Database price unavailable"),n&&(n.hidden=!0),r&&(r.textContent=e||"The checkout price book is not available.")};document.querySelectorAll("[data-db-price-card]").forEach(async t=>{try{const e=await fetch(u(t.getAttribute("data-plan")||"professional",t.getAttribute("data-billing")||"monthly"),{headers:{Accept:"application/json"}}),a=await e.json();if(!e.ok||!a.success)throw new Error(a.error||"Database price unavailable.");f(t,a)}catch(e){h(t,e.message)}});const i=document.querySelector("[data-db-node-price]");i&&fetch(u("professional","monthly",1),{headers:{Accept:"application/json"}}).then(t=>t.json().then(e=>({ok:t.ok,quote:e}))).then(({ok:t,quote:e})=>{if(!t||!e.success||!e.server_node_unit_amount)throw new Error(e.error||"Database node price unavailable.");const a=i.querySelector("[data-db-node-sale]"),n=i.querySelector("[data-db-node-list]"),r=Number(e.server_node_unit_amount||0),o=Number(e.server_node_unit_list_amount||0);a&&(a.innerHTML=`${e.server_node_unit_label||s.format(r)}<small>/mo</small>`),n&&(n.textContent=o>r?`${e.server_node_unit_list_label||s.format(o)}/mo`:"",n.hidden=!(o>r))}).catch(t=>{const e=i.querySelector("[data-db-node-sale]"),a=i.querySelector("[data-db-node-list]");e&&(e.textContent="Database price unavailable"),a&&(a.hidden=!0)})})();</script>  </div> <div class="creditsoft-cookie-banner" data-cookie-banner hidden data-astro-cid-wndtdmvx> <div class="creditsoft-cookie-copy" data-astro-cid-wndtdmvx> <strong data-astro-cid-wndtdmvx>We value your privacy</strong> <p data-astro-cid-wndtdmvx>We use essential cookies for the site and optional analytics/marketing cookies when you accept. Read the <a href="/privacy" data-astro-cid-wndtdmvx>Privacy Policy</a> and <a href="/cookies" data-astro-cid-wndtdmvx>Cookie Policy</a>.</p> <small data-astro-cid-wndtdmvx>Supports GDPR, CCPA/CPRA, DMA, LGPD, POPIA, and Google Consent Mode v2.</small> </div> <div class="creditsoft-cookie-actions" data-astro-cid-wndtdmvx> <button type="button" data-cookie-decline data-astro-cid-wndtdmvx>Decline</button> <button type="button" data-cookie-accept data-astro-cid-wndtdmvx>Accept all</button> </div> </div> <script>
+  (() => {
+    const cookieName = "cookie_consent";
+    const getCookie = (name) => document.cookie.split("; ").find((row) => row.startsWith(`${name}=`))?.split("=")[1] || "";
+    const getConsent = () => getCookie(cookieName) || window.localStorage?.getItem(cookieName) || "";
+    const setCookie = (value) => {
+      const expires = new Date(Date.now() + 31536000 * 1000).toUTCString();
+      document.cookie = `${cookieName}=${value};max-age=31536000;expires=${expires};path=/;SameSite=Lax`;
+      window.localStorage?.setItem(cookieName, value);
+    };
+    const updateConsent = (accepted) => {
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          ad_storage: accepted ? "granted" : "denied",
+          analytics_storage: accepted ? "granted" : "denied",
+          ad_user_data: accepted ? "granted" : "denied",
+          ad_personalization: accepted ? "granted" : "denied",
+        });
+      }
+      if (typeof window.fbq === "function") {
+        window.fbq("consent", accepted ? "grant" : "revoke");
+      }
+    };
+
+    const banner = document.querySelector("[data-cookie-banner]");
+    const hideBanner = () => {
+      if (!banner) return;
+      banner.hidden = true;
+      banner.setAttribute("aria-hidden", "true");
+      updateCookieOffset();
+    };
+    const updateCookieOffset = () => {
+      const visible = Boolean(banner && !banner.hidden);
+      document.documentElement.classList.toggle("creditsoft-cookie-visible", visible);
+      document.documentElement.style.setProperty(
+        "--creditsoft-cookie-offset",
+        visible && banner ? `${banner.getBoundingClientRect().height}px` : "0px"
+      );
+    };
+
+    if (banner && !getConsent()) {
+      banner.hidden = false;
+      banner.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(updateCookieOffset);
+    } else {
+      updateCookieOffset();
+    }
+
+    document.querySelector("[data-cookie-accept]")?.addEventListener("click", () => {
+      setCookie("accepted");
+      updateConsent(true);
+      hideBanner();
+    });
+
+    document.querySelector("[data-cookie-decline]")?.addEventListener("click", () => {
+      setCookie("declined");
+      updateConsent(false);
+      hideBanner();
+    });
+
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(updateCookieOffset);
+    });
+
+    if (getConsent() === "accepted") {
+      updateConsent(true);
+    }
+
+    const chat = document.querySelector("[data-creditsoft-chat]");
+    const toggle = chat?.querySelector(".creditsoft-chat-toggle");
+    const panel = chat?.querySelector(".creditsoft-chat-panel");
+    const log = chat?.querySelector("[data-chat-log]");
+    const form = chat?.querySelector("[data-chat-form]");
+    const input = form?.querySelector("input");
+
+    const replies = [
+      {
+        test: /price|pricing|cost|lease|monthly|year|annual/i,
+        text: "CreditSoft offers monthly, annual, lease-style terms, and a ten-year license. The pricing page shows the current plan paths.",
+      },
+      {
+        test: /metro|fcra|fdcpa|law|lawsuit|dispute/i,
+        text: "CreditSoft is Metro2-first and keeps FCRA / FDCPA review close to the client file, so disputes start from report facts instead of generic letter prompts.",
+      },
+      {
+        test: /migration|disputefox|smartcredit|identityiq|import/i,
+        text: "CreditSoft can help migrate legacy CRM records, documents, billing history, and provider report pulls through the browser companion and office API.",
+      },
+      {
+        test: /node|server|backup|office|local|pwa|intranet/i,
+        text: "CreditSoft runs as a local-first office system with optional multi-office nodes, backups, and a public API bridge for portals and updates.",
+      },
+      {
+        test: /portal|client|upload|dashboard/i,
+        text: "The client portal is meant for uploads, status, agreements, and safe client-facing updates while casework stays inside the office system.",
+      },
+    ];
+
+    const addMessage = (text, type) => {
+      if (!log) return;
+      const message = document.createElement("div");
+      message.className = `creditsoft-chat-message is-${type}`;
+      message.textContent = text;
+      log.appendChild(message);
+      log.scrollTop = log.scrollHeight;
+    };
+
+    toggle?.addEventListener("click", () => {
+      const open = panel?.hidden;
+      if (!panel) return;
+      panel.hidden = !open;
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.querySelector("strong").textContent = open ? "-" : "+";
+      if (open) input?.focus();
+    });
+
+    form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = input?.value.trim() || "";
+      if (!text) return;
+      input.value = "";
+      addMessage(text, "user");
+      const match = replies.find((reply) => reply.test.test(text));
+      addMessage(match?.text || `I can help route that. Email ${supportEmail} and include what you are trying to set up, migrate, or license.`, "bot");
+    });
+  })();
+</script> <div class="image-lightbox" id="siteImageLightbox" aria-hidden="true" data-astro-cid-fbflauxb> <button class="image-lightbox__backdrop" type="button" data-lightbox-close aria-label="Close image preview" data-astro-cid-fbflauxb></button> <div class="image-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Full-size screenshot preview" data-astro-cid-fbflauxb> <button class="image-lightbox__close" type="button" data-lightbox-close data-astro-cid-fbflauxb>Close</button> <img src="" alt="" data-lightbox-target decoding="async" data-astro-cid-fbflauxb> <div class="image-lightbox__caption" data-lightbox-caption hidden data-astro-cid-fbflauxb></div> </div> </div>  <script type="module">(()=>{const e=document.getElementById("siteImageLightbox"),o=e?.querySelector("[data-lightbox-target]"),s=e?.querySelector("[data-lightbox-caption]"),i=Array.from(e?.querySelectorAll("[data-lightbox-close]")??[]);if(!(e instanceof HTMLElement)||!(o instanceof HTMLImageElement))return;const r=t=>{const n=t.dataset.lightboxSrc||t.currentSrc||t.src;if(!n)return;o.src=n,o.alt=t.alt||"CreditSoft screenshot preview";const a=t.dataset.lightboxTitle||t.alt||"";s instanceof HTMLElement&&(s.textContent=a,s.hidden=!a),e.classList.add("is-open"),e.setAttribute("aria-hidden","false"),document.body.classList.add("image-lightbox-open")},c=()=>{e.classList.remove("is-open"),e.setAttribute("aria-hidden","true"),document.body.classList.remove("image-lightbox-open"),o.removeAttribute("src")};document.addEventListener("click",t=>{const n=t.target instanceof Element?t.target.closest("img[data-lightbox]"):null;n instanceof HTMLImageElement&&(t.preventDefault(),r(n))}),i.forEach(t=>t.addEventListener("click",c)),document.addEventListener("keydown",t=>{t.key==="Escape"&&e.classList.contains("is-open")&&c()})})();</script> 

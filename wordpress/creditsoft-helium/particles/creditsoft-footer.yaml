@@ -20,3 +20,7 @@ form:
     contact:
       type: input.text
       label: Public contact address
+    html:
+      type: textarea.textarea
+      label: Preserved footer HTML override
+      description: Optional saved shared footer markup. Leave blank to use the captured CreditSoft footer.

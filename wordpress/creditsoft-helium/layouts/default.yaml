@@ -20,7 +20,7 @@ structure:
       class: creditsoft-navigation
   mainbar:
     type: section
-    subtype: main
+    subtype: div
     attributes:
       class: creditsoft-main
       extra:
@@ -30,7 +30,7 @@ structure:
       boxed: ''
   footer:
     type: section
-    subtype: footer
+    subtype: div
     attributes:
       boxed: ''
       class: creditsoft-footer-section

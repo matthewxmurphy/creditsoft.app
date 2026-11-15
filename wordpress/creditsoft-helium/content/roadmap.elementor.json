@@ -134,7 +134,7 @@
                       "elType": "widget",
                       "widgetType": "heading",
                       "settings": {
-                        "title": "Astro public site",
+                        "title": "WordPress public site",
                         "header_size": "h2"
                       },
                       "elements": []

@@ -2,11 +2,12 @@
 /**
  * Copyright 2026 Matthew C. Murphy <https://MatthewxMurphy.com>.
  * Product/support https://builtnotbegged.com; recorded policy identity Matthew X Murphy.
- * SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft child 2026.10.1 UNRELEASED.
+ * SPDX-License-Identifier: GPL-2.0-or-later. CreditSoft Gantry 6 public theme.
  * Registers presentation only: activation never creates/imports pages, menus or content.
  */
 defined('ABSPATH') || exit;
-const CREDITSOFT_HELIUM_VERSION = '2026.10.1';
+const CREDITSOFT_HELIUM_VERSION = '2026.11.15.2';
+require_once __DIR__ . '/includes/preserved-site.php';
 add_action('after_setup_theme', static function (): void {
     register_nav_menus([
         'creditsoft-primary' => 'CreditSoft primary navigation',
@@ -40,6 +41,9 @@ add_filter('creditsoft_financial_tools_classic_content_tag', static function (st
     return $tag;
 });
 add_action('wp_enqueue_scripts', static function (): void {
+    if (creditsoft_preserved_design_enabled()) {
+        return;
+    }
     $shell_css = '/assets/site-shell.css';
     $shell_file = get_stylesheet_directory() . $shell_css;
     $shell_hash = is_readable($shell_file) ? hash_file('sha256', $shell_file) : false;
@@ -65,6 +69,9 @@ add_filter('robots_txt', static function (string $output, bool $public): string 
     return $output;
 }, -1, 2);
 add_action('wp_head', static function (): void {
+    if (creditsoft_preserved_design_enabled()) {
+        return;
+    }
     if (has_site_icon() || is_customize_preview()) {
         return;
     }

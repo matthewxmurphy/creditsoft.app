@@ -2,6 +2,13 @@
 
 Creditsoft is a local-first Laravel 13 intranet for credit repair teams. It replaces spreadsheet casework with a private client dossier, bureau snapshot intake, side-by-side report comparison, Metro 2 style violation tracking, AI-assisted briefs and letters, SOP execution, audit trails, and CFO reporting.
 
+The public **CreditSoft.app** website runs on **WordPress and Gantry 6**. Its
+dedicated theme is [`wordpress/creditsoft-helium`](wordpress/creditsoft-helium).
+Native WordPress Pages and revisions own published content; Gantry particles
+own the shared header and footer. Follow the [WordPress deployment and rollback
+instructions](wordpress/migration/README.md) for website changes. The former
+public static-site source and deployment pipeline have been retired.
+
 ## Stack
 
 - Laravel 13
@@ -66,47 +73,33 @@ The generated node installer can also start CreditSoft on PostgreSQL with `bash 
 ## Important paths
 
 - Runtime YAML config: `/Users/mmurphy/Code/CreditSoft/creditsoft`
-- Public marketing site source: `/Users/mmurphy/Code/CreditSoft/web`
-- Public pricing page source: `/Users/mmurphy/Code/CreditSoft/web/pricing.php`
-- Website deploy handoff: `/Users/mmurphy/Code/CreditSoft/web-meta/SETUP.md`
-- Website SCP/SFTP handoff: `/Users/mmurphy/Code/CreditSoft/web-meta/SFTP.toon`
+- Public WordPress theme: `wordpress/creditsoft-helium`
+- Calculator source and adapter: `wordpress/creditsoft-financial-tools`
+- Website deployment and rollback: `wordpress/migration/README.md`
+- Existing PHP service source: `web/` (not a website deployment payload)
+- Separate update service: `updates-astro/` and `update.creditsoft.app/`
 - Operator shell layout: `/Users/mmurphy/Code/CreditSoft/resources/js/layouts/CreditsoftLayout.vue`
 - Admin panel provider: `/Users/mmurphy/Code/CreditSoft/app/Providers/Filament/AdminPanelProvider.php`
 - Comparison service: `/Users/mmurphy/Code/CreditSoft/app/Services/CreditReportComparisonService.php`
 - Signal privacy filter: `/Users/mmurphy/Code/CreditSoft/app/Services/SignalSanitizer.php`
 
-## Live website deploy
+## Live website maintenance
 
 - Public site: `https://creditsoft.app`
-- Public pricing page: `https://creditsoft.app/pricing.php`
-- WWW pricing page: `https://www.creditsoft.app/pricing.php`
+- Public pricing page: `https://creditsoft.app/pricing-plan/`
 - API host: `https://api.creditsoft.app`
 - AIetherPanel website ID: `6`
 - Deploy host: `assets101.aietherpanel.com`
-- SSH/SCP target: `mmurphy@100.126.221.83:/var/www/0abb0757-d06a-4da8-b26e-ff885980834e/public_html`
-- Shared deploy key: `/Users/Shared/aiether/keys/m1_server_ed25519`
-- Verified on `2026-04-10`: direct `scp` to `public_html` works with the shared key
-- Important: direct upload is for `public_html` only; the site runtime root and sibling `tmp` folder are not the writable SCP target
+- Panel-managed WordPress root: `/var/www/0abb0757-d06a-4da8-b26e-ff885980834e/public_html`
+- Website source and migration tools: `wordpress/`
 
-Preferred deploy:
-
-```bash
-cd /opt/aiether/aietherpanel && scripts/deploy-public-website.sh --via mmurphy@100.80.51.78 --target mmurphy@100.126.221.83 --source /Users/mmurphy/Code/CreditSoft/web --domain creditsoft.app
-```
-
-After a static/Astro deploy, restore the shared PHP support files used by `admin.creditsoft.app`:
-
-```bash
-/Users/mmurphy/Desktop/CreditSoft/scripts/restore-live-admin-support.sh
-```
-
-Direct SCP proof:
-
-```bash
-TMPFILE=$(mktemp /tmp/creditsoft-publichtml-check.XXXXXX)
-echo 'creditsoft scp check' > "$TMPFILE"
-scp -oBatchMode=yes -oStrictHostKeyChecking=accept-new -i /Users/Shared/aiether/keys/m1_server_ed25519 "$TMPFILE" mmurphy@100.126.221.83:/var/www/0abb0757-d06a-4da8-b26e-ff885980834e/public_html/creditsoft-scp-check.txt
-```
+Edit published page content in WordPress. Edit shared navigation/footer through
+the CreditSoft Gantry particles and save the existing outline. Before replacing
+a theme ZIP, back up its saved `custom/` outline directory and restore it after
+the update. Test on staging, preserve a private rollback, and verify the actual
+desktop/mobile pages before promotion. Never deploy `web/` or an intranet Vite
+build over the WordPress public root. PHP account, licensing, checkout, API and
+office services are maintained separately; preserve their service links.
 
 ## Useful commands
 

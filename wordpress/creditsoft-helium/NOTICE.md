@@ -3,7 +3,11 @@
 New child customization, particles, styles, page template, setup data, tests and
 documentation: copyright 2026 Matthew C. Murphy <https://MatthewxMurphy.com>,
 product/support <https://builtnotbegged.com>, GPL-2.0-or-later. Recorded policy
-identity: Matthew X Murphy. This is an unreleased 2026.10.1 source proposal.
+identity: Matthew X Murphy. The current child build is recorded in `VERSION`.
+
+The source paths below record pre-conversion provenance available in Git history.
+They are not an active website source/build/deployment path. The public site now
+uses WordPress Pages, Gantry particles and the captured assets in this theme.
 
 `includes/theme.php` is adapted from official Helium 5.6.4. Its original Tiger12,
 RocketTheme and GPLv2-and-later notices are retained. The documented child stream

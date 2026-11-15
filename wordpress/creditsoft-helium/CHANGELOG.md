@@ -1,4 +1,21 @@
+# 2026.11.15.2
+
+Compact chat and cookie controls, larger mobile branding, and the existing CPH Mobile Navigation drawer. Published native WordPress content and the Gantry layout remain editable.
+
 # Changes
+
+## 2026.11.15.1 — WordPress / Gantry 6 conversion
+
+- Preserve the published CreditSoft design in the dedicated Gantry 6 child,
+  editable shared particles and native WordPress Pages/revisions.
+- Capture 47 routes and 57 public assets; retain each page's main attributes,
+  scoped styles and browser modules, including calculators and videos.
+- Preserve existing Pages and backend/API/account/licensing/checkout services.
+- Retire the public static-site source, generated HTML and old deployment path.
+  Keep formula/boundary/privacy tests in the WordPress calculator component and
+  preserve all native runtime fixture tests. Separate update services remain.
+- Verify desktop/mobile navigation, all twelve calculators, video media and
+  account/checkout controls before and after promotion, with private rollback.
 
 ## 2026.10.1 — unreleased proposal
 

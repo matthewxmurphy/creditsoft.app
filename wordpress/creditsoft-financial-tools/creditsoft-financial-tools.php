@@ -370,7 +370,7 @@ final class CreditSoft_Financial_Tools
         }
 
         printf("<link rel=\"canonical\" href=\"%s\" />\n", esc_url(home_url(self::virtualPath(self::$virtual))));
-        // The index copy comes from site-astro/src/pages/tools/index.astro.
+        // Keep the published collection copy used by the native WordPress Pages.
         $description = self::$virtual === ''
             ? 'Twelve free calculators and planning worksheets for budgeting, debt payoff, utilization and credit conversations. No account required.'
             : (self::find(self::$virtual)['description'] ?? '');
