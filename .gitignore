@@ -6,11 +6,6 @@
 /public/downloads/*.zip
 /public/hot
 /public/storage
-/site-astro/.astro/
-/site-astro/dist/
-/site-astro/.env.local
-/site-astro/.env.*.local
-/site-astro/public/downloads/*.zip
 /updates-astro/.astro/
 /updates-astro/dist/
 /updates-astro/.env.local
@@ -77,3 +72,7 @@ yarn-error.log
 
 # Operator bridge configuration is private runtime state. Use the existing example.
 /web-meta/api-bridge.json
+
+# Local verification bytecode is not release source.
+__pycache__/
+*.pyc

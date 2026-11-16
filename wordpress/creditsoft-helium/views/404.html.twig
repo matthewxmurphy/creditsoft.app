@@ -1,0 +1,13 @@
+{# Copyright 2026 Matthew C. Murphy; MatthewxMurphy.com / builtnotbegged.com. GPL-2.0-or-later. #}
+{% extends 'partials/page.html.twig' %}
+{% set twigTemplate = '404.html.twig' %}
+{% set scope = '404' %}
+
+{% block content %}
+  <section class="creditsoft-not-found" aria-labelledby="creditsoft-not-found-title">
+    <p class="creditsoft-not-found-code">404</p>
+    <h1 id="creditsoft-not-found-title">That page is not here.</h1>
+    <p>The page may have moved. Use the main navigation or return to the CreditSoft homepage.</p>
+    <a class="creditsoft-shell-button" href="{{ function('home_url', '/')|e('html_attr') }}">Back to CreditSoft</a>
+  </section>
+{% endblock %}

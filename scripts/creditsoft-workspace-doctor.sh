@@ -124,7 +124,6 @@ snapshot_workspace() {
 
   rsync -a --delete \
     --exclude '/node_modules/' \
-    --exclude '/site-astro/node_modules/' \
     --exclude '/updates-astro/node_modules/' \
     --exclude '/vendor/' \
     --exclude '/storage/framework/cache/' \

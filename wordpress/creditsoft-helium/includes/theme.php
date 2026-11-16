@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @package   Gantry5
+ * @author    Tiger12 http://tiger12.com
+ * @originalCreator  RocketTheme (Gantry Framework)
+ * @currentDeveloper  Tiger12, LLC
+ * @copyright Copyright (C) 2007 - 2022 Tiger12, LLC
+ * @license   GNU/GPLv2 and later
+ *
+ * http://www.gnu.org/licenses/gpl-2.0.html
+ */
+
+// Child stream maintenance: Matthew C. Murphy, 2026, https://MatthewxMurphy.com.
+// Product/support https://builtnotbegged.com; inherited GPL and upstream notices retained.
+use Gantry\Framework\Platform;
+use Gantry\Framework\Theme;
+
+class_exists('\\Gantry\\Framework\\Gantry') or die;
+
+/**
+ * Define the template.
+ */
+class GantryTheme extends Theme
+{
+}
+
+// Initialize theme stream.
+/** @var Platform $platform */
+$platform = $gantry['platform'];
+$platform->set(
+    'streams.gantry-theme.prefixes',
+    array('' => array(
+        "gantry-themes://{$gantry['theme.name']}/custom",
+        "gantry-themes://{$gantry['theme.name']}",
+        "gantry-themes://{$gantry['theme.name']}/common",
+        "gantry-themes://{$gantry['theme.parent']}",
+        "gantry-themes://{$gantry['theme.parent']}/common"
+    ))
+);
+
+// Define Gantry services.
+$gantry['theme'] = static function ($c) {
+    return new GantryTheme($c['theme.path'], $c['theme.name']);
+};

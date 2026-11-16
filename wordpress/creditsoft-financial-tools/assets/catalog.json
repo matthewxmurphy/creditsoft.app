@@ -1,0 +1,742 @@
+{
+  "tools": [
+    {
+      "slug": "budget",
+      "title": "Budget coaching",
+      "category": "Everyday money",
+      "description": "See what remains after essential bills, debt payments and your savings target.",
+      "fields": [
+        {
+          "name": "income",
+          "label": "Monthly take-home income",
+          "type": "number",
+          "value": 4200,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "essential",
+          "label": "Essential bills",
+          "type": "number",
+          "value": 2100,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "debt",
+          "label": "Debt payments",
+          "type": "number",
+          "value": 550,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "savings",
+          "label": "Savings target",
+          "type": "number",
+          "value": 300,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        }
+      ],
+      "method": "Monthly cushion equals take-home income minus essential bills, debt payments and savings. Include each expense once; a positive cushion is unallocated cash, not a promise of affordability.",
+      "source": [
+        "CFPB money planning toolkit",
+        "https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/"
+      ]
+    },
+    {
+      "slug": "payoff",
+      "title": "Payoff planner",
+      "category": "Debt and payments",
+      "description": "Estimate the time and interest needed to pay one balance, with or without extra payments.",
+      "fields": [
+        {
+          "name": "balance",
+          "label": "Current balance",
+          "type": "number",
+          "value": 4800,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "apr",
+          "label": "APR (%)",
+          "type": "number",
+          "value": 24.99,
+          "min": 0,
+          "max": 100,
+          "step": 0.01
+        },
+        {
+          "name": "payment",
+          "label": "Monthly payment",
+          "type": "number",
+          "value": 180,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "extra",
+          "label": "Extra monthly payment",
+          "type": "number",
+          "value": 40,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        }
+      ],
+      "method": "Assumes fixed APR, monthly interest at APR / 12, payments at month end, no fees and no new purchases. Interest is rounded to cents each month. Actual statements may use daily interest. Estimates stop at 600 months and never label an unpaid balance as paid off.",
+      "source": [
+        "CFPB debt repayment strategies",
+        "https://www.consumerfinance.gov/archive/blog/how-reduce-your-debt/"
+      ]
+    },
+    {
+      "slug": "utilization",
+      "title": "Utilization targets",
+      "category": "Credit planning",
+      "description": "Calculate your revolving balance-to-limit ratio and the paydown needed for a chosen target.",
+      "fields": [
+        {
+          "name": "limit",
+          "label": "Total revolving credit limit",
+          "type": "number",
+          "value": 5000,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "balance",
+          "label": "Total revolving balance",
+          "type": "number",
+          "value": 2100,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "target",
+          "label": "Target utilization (%)",
+          "type": "number",
+          "value": 30,
+          "min": 0,
+          "max": 100,
+          "step": 0.01
+        }
+      ],
+      "method": "Utilization is revolving balance divided by revolving credit limit. Targets are planning examples, not score cutoffs or approval requirements. A lower ratio does not imply a specific score change.",
+      "source": [
+        "CFPB guide to credit scores",
+        "https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/understand-your-credit-score/"
+      ]
+    },
+    {
+      "slug": "prep",
+      "title": "Consultation prep",
+      "category": "Planning worksheets",
+      "description": "Put your goals and questions into a worksheet you can print for your consultation.",
+      "fields": [
+        {
+          "name": "goal",
+          "label": "What do you want to accomplish?",
+          "type": "textarea",
+          "value": ""
+        },
+        {
+          "name": "timeline",
+          "label": "What is your time frame?",
+          "type": "textarea",
+          "value": ""
+        },
+        {
+          "name": "balances",
+          "label": "Which balances or payments need discussion?",
+          "type": "textarea",
+          "value": ""
+        },
+        {
+          "name": "questions",
+          "label": "What questions do you want answered?",
+          "type": "textarea",
+          "value": ""
+        }
+      ],
+      "method": "Your answers become a printable worksheet. Leave out account numbers, Social Security numbers and other identifying details. Printing is optional; this page does not submit your answers or create a client record.",
+      "source": [
+        "CFPB money planning toolkit",
+        "https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/"
+      ]
+    },
+    {
+      "slug": "strategy",
+      "title": "Strategy planner",
+      "category": "Planning worksheets",
+      "description": "Create a review checklist around your goal, time frame and credit concerns.",
+      "fields": [
+        {
+          "name": "goal",
+          "label": "Your goal",
+          "type": "select",
+          "options": [
+            [
+              "Lower card balances",
+              "Lower card balances"
+            ],
+            [
+              "Prepare for a mortgage",
+              "Prepare for a mortgage"
+            ],
+            [
+              "Prepare for an auto loan",
+              "Prepare for an auto loan"
+            ],
+            [
+              "Rent a home",
+              "Rent a home"
+            ],
+            [
+              "Build a credit history",
+              "Build a credit history"
+            ],
+            [
+              "Plan business finances",
+              "Plan business finances"
+            ]
+          ]
+        },
+        {
+          "name": "horizon",
+          "label": "Planning window",
+          "type": "select",
+          "options": [
+            [
+              "30 days",
+              "30 days"
+            ],
+            [
+              "60 days",
+              "60 days"
+            ],
+            [
+              "90 days",
+              "90 days"
+            ],
+            [
+              "Longer than 90 days",
+              "Longer than 90 days"
+            ]
+          ]
+        },
+        {
+          "name": "issues",
+          "label": "Topics to review",
+          "type": "checkboxes",
+          "options": [
+            "High card balances",
+            "Late payments",
+            "Unfamiliar or incorrect information",
+            "Collections or charge-offs",
+            "Short credit history",
+            "Recent applications"
+          ]
+        }
+      ],
+      "method": "This worksheet selects general review steps from the topics you choose. It does not predict qualification, credit-score changes or dispute outcomes.",
+      "source": [
+        "CFPB guide to credit scores",
+        "https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/understand-your-credit-score/"
+      ]
+    },
+    {
+      "slug": "simulator",
+      "title": "Score scenario planner",
+      "originalTitle": "Score simulator",
+      "category": "Credit planning",
+      "description": "See utilization before and after a planned paydown. Actual credit-score changes vary.",
+      "fields": [
+        {
+          "name": "limit",
+          "label": "Total revolving credit limit",
+          "type": "number",
+          "value": 10000,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "balance",
+          "label": "Current revolving balance",
+          "type": "number",
+          "value": 4000,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        },
+        {
+          "name": "paydown",
+          "label": "Proposed balance paydown",
+          "type": "number",
+          "value": 1500,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        }
+      ],
+      "method": "Compares balance-to-limit ratios before and after the paydown, keeping the limit unchanged. Actual scores depend on the full credit file and scoring model. No point estimate or score increase is claimed.",
+      "source": [
+        "How credit scores are calculated",
+        "https://www.consumerfinance.gov/ask-cfpb/what-is-a-credit-score-en-315/"
+      ]
+    },
+    {
+      "slug": "optimizer",
+      "title": "Utilization optimizer",
+      "category": "Credit planning",
+      "description": "Compare individual cards, overall utilization and target paydowns without double-counting balances.",
+      "fields": [
+        {
+          "name": "target",
+          "label": "Target utilization (%)",
+          "type": "number",
+          "value": 30,
+          "min": 0,
+          "max": 100,
+          "step": 0.01
+        }
+      ],
+      "rows": {
+        "label": "Card",
+        "fields": [
+          {
+            "name": "balance",
+            "label": "Balance",
+            "type": "number",
+            "value": 1200,
+            "min": 0,
+            "max": 100000000,
+            "step": 0.01
+          },
+          {
+            "name": "limit",
+            "label": "Credit limit",
+            "type": "number",
+            "value": 2000,
+            "min": 0,
+            "max": 100000000,
+            "step": 0.01
+          }
+        ]
+      },
+      "method": "Each card contributes once to the total balance and limit. The review order uses the highest utilization first; it is not the interest-minimizing debt strategy. Use Debt comparison for APR-based planning.",
+      "source": [
+        "CFPB guide to credit scores",
+        "https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/understand-your-credit-score/"
+      ]
+    },
+    {
+      "slug": "readiness",
+      "title": "Funding readiness",
+      "category": "Credit planning",
+      "description": "Check whether you have gathered the information needed for a funding conversation.",
+      "fields": [
+        {
+          "name": "check0",
+          "label": "Reviewed all relevant credit reports",
+          "type": "select",
+          "options": [
+            [
+              "unsure",
+              "Not checked yet"
+            ],
+            [
+              "yes",
+              "Checked"
+            ],
+            [
+              "no",
+              "Needs attention"
+            ]
+          ]
+        },
+        {
+          "name": "check1",
+          "label": "Know current revolving balances and limits",
+          "type": "select",
+          "options": [
+            [
+              "unsure",
+              "Not checked yet"
+            ],
+            [
+              "yes",
+              "Checked"
+            ],
+            [
+              "no",
+              "Needs attention"
+            ]
+          ]
+        },
+        {
+          "name": "check2",
+          "label": "Have a monthly payment budget",
+          "type": "select",
+          "options": [
+            [
+              "unsure",
+              "Not checked yet"
+            ],
+            [
+              "yes",
+              "Checked"
+            ],
+            [
+              "no",
+              "Needs attention"
+            ]
+          ]
+        },
+        {
+          "name": "check3",
+          "label": "Checked recent payment history",
+          "type": "select",
+          "options": [
+            [
+              "unsure",
+              "Not checked yet"
+            ],
+            [
+              "yes",
+              "Checked"
+            ],
+            [
+              "no",
+              "Needs attention"
+            ]
+          ]
+        },
+        {
+          "name": "check4",
+          "label": "Understand recent applications",
+          "type": "select",
+          "options": [
+            [
+              "unsure",
+              "Not checked yet"
+            ],
+            [
+              "yes",
+              "Checked"
+            ],
+            [
+              "no",
+              "Needs attention"
+            ]
+          ]
+        },
+        {
+          "name": "check5",
+          "label": "Know the lender’s documentation requirements",
+          "type": "select",
+          "options": [
+            [
+              "unsure",
+              "Not checked yet"
+            ],
+            [
+              "yes",
+              "Checked"
+            ],
+            [
+              "no",
+              "Needs attention"
+            ]
+          ]
+        }
+      ],
+      "method": "Counts completed preparation checks equally. This is a document and planning checklist, not a credit score, lender model or approval decision.",
+      "source": [
+        "CFPB guide to credit scores",
+        "https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/understand-your-credit-score/"
+      ]
+    },
+    {
+      "slug": "negative",
+      "title": "Negative-item review",
+      "category": "Planning worksheets",
+      "description": "Organize report concerns and identify which information needs closer review.",
+      "fields": [
+        {
+          "name": "collections",
+          "label": "Collections to review",
+          "type": "number",
+          "value": 0,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "name": "chargeoffs",
+          "label": "Charge-offs to review",
+          "type": "number",
+          "value": 0,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "name": "lates",
+          "label": "Late-payment entries to review",
+          "type": "number",
+          "value": 0,
+          "min": 0,
+          "max": 100,
+          "step": 1
+        },
+        {
+          "name": "accuracy",
+          "label": "Have you found information that may be inaccurate?",
+          "type": "select",
+          "options": [
+            [
+              "Not sure yet",
+              "Not sure yet"
+            ],
+            [
+              "Yes",
+              "Yes"
+            ],
+            [
+              "No",
+              "No"
+            ]
+          ]
+        },
+        {
+          "name": "notes",
+          "label": "Notes or questions (no account numbers)",
+          "type": "textarea",
+          "value": ""
+        }
+      ],
+      "method": "Organizes the entries you identify; it does not score their severity or assert that accurate information can be removed. Check the underlying records before deciding on any dispute.",
+      "source": [
+        "CFPB guide to credit scores",
+        "https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/understand-your-credit-score/"
+      ]
+    },
+    {
+      "slug": "comparison",
+      "title": "Debt comparison",
+      "category": "Debt and payments",
+      "description": "Compare avalanche and snowball payoff plans using the same monthly budget.",
+      "fields": [
+        {
+          "name": "extra",
+          "label": "Extra monthly payment across all debts",
+          "type": "number",
+          "value": 100,
+          "min": 0,
+          "max": 100000000,
+          "step": 0.01
+        }
+      ],
+      "rows": {
+        "label": "Debt",
+        "fields": [
+          {
+            "name": "balance",
+            "label": "Balance",
+            "type": "number",
+            "value": 2400,
+            "min": 0,
+            "max": 100000000,
+            "step": 0.01
+          },
+          {
+            "name": "apr",
+            "label": "APR (%)",
+            "type": "number",
+            "value": 20,
+            "min": 0,
+            "max": 100,
+            "step": 0.01
+          },
+          {
+            "name": "minimum",
+            "label": "Monthly minimum payment",
+            "type": "number",
+            "value": 80,
+            "min": 0,
+            "max": 100000000,
+            "step": 0.01
+          }
+        ]
+      },
+      "method": "The monthly budget is all entered minimum payments plus extra. After minimums, remaining money goes to the highest APR (avalanche) or smallest balance (snowball). Payments freed by a payoff roll to the next debt, including within the same month. Assumes fixed APRs/minimums, monthly interest, no fees or new borrowing; maximum 600 months.",
+      "source": [
+        "CFPB debt repayment strategies",
+        "https://www.consumerfinance.gov/archive/blog/how-reduce-your-debt/"
+      ]
+    },
+    {
+      "slug": "timeline",
+      "title": "Action timeline",
+      "category": "Planning worksheets",
+      "description": "Build a practical review schedule around your goal and statement closing date.",
+      "fields": [
+        {
+          "name": "goal",
+          "label": "Your goal",
+          "type": "select",
+          "options": [
+            [
+              "Lower card balances",
+              "Lower card balances"
+            ],
+            [
+              "Prepare for a mortgage",
+              "Prepare for a mortgage"
+            ],
+            [
+              "Prepare for an auto loan",
+              "Prepare for an auto loan"
+            ],
+            [
+              "Rent a home",
+              "Rent a home"
+            ],
+            [
+              "Build a credit history",
+              "Build a credit history"
+            ],
+            [
+              "Plan business finances",
+              "Plan business finances"
+            ]
+          ]
+        },
+        {
+          "name": "horizon",
+          "label": "Planning window",
+          "type": "select",
+          "options": [
+            [
+              "30 days",
+              "30 days"
+            ],
+            [
+              "60 days",
+              "60 days"
+            ],
+            [
+              "90 days",
+              "90 days"
+            ],
+            [
+              "Longer than 90 days",
+              "Longer than 90 days"
+            ]
+          ]
+        },
+        {
+          "name": "closeDay",
+          "label": "Statement closing day",
+          "type": "number",
+          "value": 22,
+          "min": 1,
+          "max": 31,
+          "step": 1
+        },
+        {
+          "name": "followup",
+          "label": "Do you have a report or dispute follow-up pending?",
+          "type": "select",
+          "options": [
+            [
+              "No",
+              "No"
+            ],
+            [
+              "Yes",
+              "Yes"
+            ]
+          ]
+        }
+      ],
+      "method": "Produces planning checkpoints, not legal deadlines or promised completion dates. Confirm actual statement dates with your issuer; shorter months may close on a different day.",
+      "source": [
+        "CFPB money planning toolkit",
+        "https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/"
+      ]
+    },
+    {
+      "slug": "recommendation",
+      "title": "Account helper",
+      "category": "Credit planning",
+      "description": "Compare questions to ask about account types, costs and reporting before applying.",
+      "fields": [
+        {
+          "name": "category",
+          "label": "Account type to explore",
+          "type": "select",
+          "options": [
+            [
+              "Secured credit card",
+              "Secured credit card"
+            ],
+            [
+              "Credit-builder loan",
+              "Credit-builder loan"
+            ],
+            [
+              "Unsecured credit card",
+              "Unsecured credit card"
+            ],
+            [
+              "Business account",
+              "Business account"
+            ]
+          ]
+        },
+        {
+          "name": "priority",
+          "label": "Main question",
+          "type": "select",
+          "options": [
+            [
+              "Fees and total cost",
+              "Fees and total cost"
+            ],
+            [
+              "Credit reporting",
+              "Credit reporting"
+            ],
+            [
+              "Deposit or collateral",
+              "Deposit or collateral"
+            ],
+            [
+              "Payment affordability",
+              "Payment affordability"
+            ]
+          ]
+        }
+      ],
+      "method": "Displays a comparison checklist for the category you select. It does not rank specific providers, recommend an application or assess approval eligibility.",
+      "source": [
+        "CFPB money planning toolkit",
+        "https://www.consumerfinance.gov/consumer-tools/educator-tools/your-money-your-goals/toolkit/"
+      ]
+    }
+  ],
+  "sourceLink": "https://credit-essense.com/tools/"
+}

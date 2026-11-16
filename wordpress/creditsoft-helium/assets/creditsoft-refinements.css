@@ -1,0 +1,137 @@
+/* CreditSoft responsive controls. Copyright 2026 Matthew C. Murphy. GPL-2.0-or-later. */
+body.creditsoft-preserved-design .creditsoft-cookie-banner {
+    inset: auto auto max(16px, env(safe-area-inset-bottom)) 16px;
+    width: min(560px, calc(100vw - 32px));
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 16px;
+    background: rgba(17, 17, 22, .98);
+    box-shadow: 0 12px 42px rgba(0, 0, 0, .35);
+}
+body.creditsoft-preserved-design .creditsoft-cookie-banner[hidden] { display: none; }
+body.creditsoft-preserved-design .creditsoft-cookie-banner .creditsoft-cookie-copy > strong,
+body.creditsoft-preserved-design .creditsoft-cookie-banner .creditsoft-cookie-copy > small { display: none; }
+body.creditsoft-preserved-design .creditsoft-cookie-copy p { font-size: 13px; line-height: 1.55; }
+body.creditsoft-preserved-design .creditsoft-cookie-copy a { white-space: nowrap; }
+body.creditsoft-preserved-design .creditsoft-cookie-copy a + a { margin-inline-start: 8px; }
+body.creditsoft-preserved-design .creditsoft-cookie-actions { gap: 8px; }
+body.creditsoft-preserved-design .creditsoft-cookie-banner .creditsoft-cookie-actions button {
+    min-height: 44px;
+    padding: 8px 13px;
+    font-size: 13px;
+    border-radius: 10px;
+}
+
+body.creditsoft-preserved-design .creditsoft-chat {
+    width: 56px;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: max(18px, env(safe-area-inset-bottom));
+}
+body.creditsoft-preserved-design .creditsoft-chat-toggle {
+    width: 56px;
+    height: 56px;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--accent, #f1c27a);
+    color: #111116;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, .3);
+}
+body.creditsoft-preserved-design .creditsoft-chat-toggle > span,
+body.creditsoft-preserved-design .creditsoft-chat-toggle > strong { display: none; }
+body.creditsoft-preserved-design .creditsoft-chat-toggle svg { display: block; width: 25px; height: 25px; flex: 0 0 auto; }
+body.creditsoft-preserved-design .creditsoft-chat.is-open { width: min(360px, calc(100vw - 28px)); }
+body.creditsoft-preserved-design .creditsoft-chat.is-open .creditsoft-chat-toggle {
+    width: 100%;
+    height: 48px;
+    min-height: 48px;
+    justify-content: flex-start;
+    padding: 0 16px;
+    border-radius: 16px 16px 0 0;
+}
+body.creditsoft-preserved-design .creditsoft-chat.is-open .creditsoft-chat-toggle > span { display: inline; font-size: 14px; }
+body.creditsoft-preserved-design .creditsoft-chat.is-open .creditsoft-chat-toggle > .creditsoft-chat-close { margin-left: auto; font-size: 25px; font-weight: 500; }
+body.creditsoft-preserved-design .creditsoft-chat-panel {
+    grid-template-rows: minmax(120px, 260px) auto auto;
+    max-height: calc(100dvh - 150px);
+}
+body.creditsoft-preserved-design .creditsoft-chat-log { min-height: 0; }
+body.creditsoft-preserved-design .creditsoft-chat-form input,
+body.creditsoft-preserved-design .creditsoft-chat-form button { min-height: 44px; box-sizing: border-box; }
+body.creditsoft-preserved-design .creditsoft-chat-toggle:focus-visible,
+body.creditsoft-preserved-design .creditsoft-cookie-actions button:focus-visible,
+body.creditsoft-preserved-design .mobile-menu-toggle:focus-visible {
+    outline: 3px solid #5bd695;
+    outline-offset: 4px;
+}
+
+/* Native CPH drawer; presentation only, with its original panels and focus logic. */
+body.creditsoft-preserved-design .cph-mobile-menu {
+    box-sizing: border-box;
+    width: min(92vw, 390px);
+    color: var(--text, #fff);
+    background: #111116;
+    border-right: 1px solid rgba(255, 255, 255, .12);
+    box-shadow: 16px 0 64px rgba(0, 0, 0, .4);
+}
+body.creditsoft-preserved-design .cph-mobile-menu::backdrop { background: rgba(0, 0, 0, .62); backdrop-filter: blur(5px); }
+body.creditsoft-preserved-design .cph-menu-top { padding: max(14px, env(safe-area-inset-top)) 18px 14px; border-color: rgba(255, 255, 255, .1); }
+body.creditsoft-preserved-design .creditsoft-drawer-brand { display: block; width: min(244px, calc(100% - 58px)); }
+body.creditsoft-preserved-design .creditsoft-drawer-brand img { width: 100%; height: auto; border-radius: 0; }
+body.creditsoft-preserved-design .cph-menu-top button { border-radius: 12px; color: var(--accent); }
+body.creditsoft-preserved-design .cph-menu-panels h2 { padding: 22px 22px 16px; font-size: 24px; letter-spacing: -.03em; }
+body.creditsoft-preserved-design .cph-menu-panels a,
+body.creditsoft-preserved-design .cph-menu-panels button { box-sizing: border-box; min-height: 54px; padding: 15px 22px; border-color: rgba(255, 255, 255, .08); font-size: 15px; }
+body.creditsoft-preserved-design .cph-menu-panels a:hover,
+body.creditsoft-preserved-design .cph-menu-panels button:hover { background: rgba(255, 255, 255, .05); }
+body.creditsoft-preserved-design .cph-menu-panels .cph-menu-back { color: var(--accent); background: rgba(241, 194, 122, .07); }
+body.creditsoft-preserved-design .cph-menu-panels a[href*="/subscribe"] { margin: 14px 18px 0; width: calc(100% - 36px); border: 0; border-radius: 12px; color: #111116; background: var(--accent); }
+body.creditsoft-preserved-design .cph-mobile-menu :focus-visible { outline-color: #f1c27a; }
+
+@media (max-width: 820px) {
+    body.creditsoft-preserved-design .site-header .utility-inner { min-height: 29px; }
+    body.creditsoft-preserved-design .site-header .utility-email { font-size: 12px; }
+    body.creditsoft-preserved-design .site-header .nav-inner { min-height: 84px; gap: 16px; }
+    body.creditsoft-preserved-design .site-header .brand { flex: 1 1 auto; min-width: 0; max-width: 244px; }
+    body.creditsoft-preserved-design .site-header .brand img { width: 100%; max-width: none; max-height: none; height: auto; border-radius: 0; }
+    body.creditsoft-preserved-design .site-header .nav-actions { flex: 0 0 auto; }
+    body.creditsoft-preserved-design .site-header .login-link,
+    body.creditsoft-preserved-design .site-header .video-action,
+    body.creditsoft-preserved-design .site-header .nav-cta { display: none; }
+    body.creditsoft-preserved-design .site-header .mobile-menu-toggle {
+        width: 48px;
+        height: 48px;
+        min-height: 48px;
+        padding: 0;
+        font-size: 0;
+        border-radius: 12px;
+    }
+    body.creditsoft-preserved-design .site-header .mobile-menu-toggle::before {
+        content: "";
+        width: 22px;
+        height: 14px;
+        border-block: 2px solid currentColor;
+        background: linear-gradient(currentColor, currentColor) center / 100% 2px no-repeat;
+    }
+    body.creditsoft-preserved-design .creditsoft-cookie-banner {
+        inset: auto 12px max(12px, env(safe-area-inset-bottom)) 12px;
+        width: auto;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+    }
+    body.creditsoft-preserved-design .creditsoft-cookie-actions { width: 100%; }
+    body.creditsoft-preserved-design .creditsoft-cookie-actions button { flex: 1; }
+    body.creditsoft-preserved-design .creditsoft-chat { right: 14px; bottom: max(14px, env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.creditsoft-preserved-design .creditsoft-chat { transition: none; }
+}

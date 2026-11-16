@@ -1,35 +1,52 @@
 # CreditSoft financial tools
 
-The public collection at `https://www.creditsoft.app/tools/` adapts all twelve Credit Sense portal tools. Every tool and the collection index include a visible, ordinary HTML anchor to `https://credit-essense.com/tools/`. Astro emits the links before JavaScript runs. The homepage links to the collection in desktop/mobile navigation and its footer; the sitemap includes all thirteen URLs.
+The public collection at https://creditsoft.app/tools/ runs inside WordPress and
+the CreditSoft Gantry 6 theme. It includes twelve calculators and worksheets:
+budget, payoff, utilization, consultation prep, strategy, score scenario,
+optimizer, funding readiness, negative-item review, debt comparison, timeline and
+account helper. Every tool and the collection index retain the visible ordinary
+HTML attribution link to https://credit-essense.com/tools/.
 
-Tools: budget coaching, payoff planner, utilization targets, consultation prep, strategy planner, score scenario planner (the previous score simulator), utilization optimizer, funding readiness, negative-item review, debt comparison, action timeline and account helper.
+Calculations run entirely in the browser. These pages use no account, client API,
+office connection, financial-input storage or database writes. Their captured
+page-specific assets omit Analytics, Meta and chat scripts. Print opens the local
+browser print dialog.
 
-Calculators and worksheets run entirely in the browser. No account, client API, office/ngrok connection, database write or financial-input storage is used. The tools pages omit the site's Analytics, Meta and chat scripts. Print uses the browser's local print dialog. Other pages retain their existing behavior.
+## Maintained WordPress source
 
-The score scenario planner reports utilization changes without the former unvalidated score-point estimates. Funding readiness counts preparation checks, not a lending score. Negative-item review organizes entries without arbitrary severity weights. The account helper compares questions about categories without promising eligibility. Debt simulation rolls paid-off minimums and unused payments into the next debt, caps the final payment, and distinguishes plans still unpaid at 600 months. APR assumptions and official CFPB references are visible on the applicable pages.
+- `wordpress/creditsoft-financial-tools/assets/catalog.mjs`: inventory, inputs,
+  bounds and assumptions.
+- `assets/model.mjs`: deterministic calculations and worksheet outputs.
+- `assets/client.mjs`: accessible controls and text-only DOM result handling.
+- `wordpress/creditsoft-financial-tools/tests/model.test.mjs`: preserved numeric,
+  boundary, rollover, privacy and published-seed checks.
+- `wordpress/creditsoft-helium/content/preserved/pages/tools*.html`: initial
+  WordPress seeds and captured presentation/behavior.
 
-## Source and checks
+Native WordPress Pages are the live content authority. The preserved theme assets
+keep the published appearance and existing formulas. The calculator plugin also
+provides a shortcode/block and fallback routes for deliberately selected future
+pages; existing native Pages take precedence.
 
-- `site-astro/src/lib/financial-tools/catalog.mjs`: twelve-tool inventory, input definitions and assumptions.
-- `model.mjs`: deterministic calculations and worksheet output.
-- `client.mjs`: accessible input/result handling; DOM output uses textContent.
-- `site-astro/src/pages/tools/`: static tool index and individual routes.
-- `site-astro/tests/financial-tools.test.mjs`: numeric, boundary, rollover and built-HTML checks.
+```sh
+node wordpress/creditsoft-financial-tools/scripts/prepare-catalog.mjs
+node --test wordpress/creditsoft-financial-tools/tests/*.test.mjs
+```
 
-Build with `npm run build --prefix site-astro`, then run `node --test site-astro/tests/financial-tools.test.mjs`. Twelve test groups passed. Chrome verified all twelve default outputs and source links, a known $100 / 0% / $30 payoff result of four months, worksheet editing/reset, card add/remove/reset, invalid zero-limit handling and mobile navigation. At a 390px viewport, the page width was 390px with no horizontal overflow. These are browser observations; no screenshot file is claimed.
+Native tests remain in `wordpress/creditsoft-financial-tools/tests/native-acceptance.php`
+and the theme's guarded disposable-fixture checks. Source tests do not replace
+actual WordPress/browser acceptance.
 
-## Bounded deployment and rollback
+## Verified conversion
 
-The canonical repository at `/Users/mmurphy/Code/CreditSoft` was clean and matched GitHub main at `174d60b281384deb839562f7306e0d6b157086bd` before work. A private source archive was created before changes. Work uses a separate Git worktree. The legacy `Projects/CreditSoft` checkout contains unrelated changes and is not the deployment source.
+On November 15, 2026, Chrome verified all twelve default results and enabled
+controls on WordPress. Payoff returned 30 months from its defaults, four months
+for a $100 balance at 0% with $30 monthly payments, and restored the defaults on
+Reset. At 390px the WordPress tools and mobile navigation had no horizontal
+overflow. Videos, header/footer, source attribution and browser-local behavior
+were also checked during migration. Follow `wordpress/migration/README.md` for
+the current theme deployment and private rollback procedure.
 
-The actual Apache vhost and public root were inspected over the existing authorized SSH connection. The original homepage and sitemap matched the local baseline. A baseline Astro build reproduced the homepage exactly. Removing only the new tools links from the rebuilt homepage restores the original content. Existing fingerprinted assets are unchanged.
-
-`prepare-financial-tools-release.py` assembles only 17 files: thirteen tools HTML pages, two new fingerprinted assets, the homepage and sitemap. Existing sitemap entries and modification dates are retained. The release manifest records every new hash and expected previous hash. It must be prepared against the pre-release `web` snapshot, not rerun over the already updated generated output.
-
-`deploy-financial-tools.py` defaults to a read-only preflight. `--apply` verifies the expected live hashes again, saves changed originals in a private `/var/backups/creditsoft-financial-tools/` directory, then atomically replaces assets, tool pages and discovery links in that order. It restores its own completed replacements if deployment fails. No vhost, PHP configuration, API, admin, database, office runtime or other existing page is replaced.
-
-For later rollback, first compare the live files with the release manifest so newer work is preserved. Restore index.html and sitemap.xml from the private deployment backup using atomic replacements and their original ownership. Archive this release's new tools directory and two new assets only if their hashes still match this release and nothing newer depends on them. Recheck the original homepage, sitemap and existing private routes. The source commit can be reverted independently; it does not by itself roll back the live files.
-
-## Published result — September 22, 2026
-
-Published all 17 files. Public HTTPS responses match the release hashes for every file, and both creditsoft.app and www.creditsoft.app serve the tools collection. Thirteen HTML pages contain the Credit Sense attribution links before JavaScript runs. Live Chrome verified the collection, the homepage navigation, the backlink destination, and the debt rollover example ($100 monthly budget, two-month payoff, zero interest). The original .htaccess hash is unchanged. The private rollback backup is `/var/backups/creditsoft-financial-tools/20260922T124809Z`; both saved original files match their recorded hashes. Details are in `verification-20260922.json`.
+The old static 17-file deployment scripts and public build tree have been removed.
+Earlier September 22 release details remain in Git history and private deployment
+receipts; they are not an active deployment procedure.

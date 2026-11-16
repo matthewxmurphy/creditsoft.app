@@ -1,0 +1,197 @@
+{
+  "title": "Terms of Service | CreditSoft",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "0000013",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing creditsoft-legal",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000004",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"eyebrow\">Legal</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Terms of Service",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>The basic terms for using CreditSoft software, checkout, update, license, and public site services.</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "0000012",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000005",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"last-updated\">Last Updated: February 2026</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000006",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "1. Acceptance",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000007",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>By accessing CreditSoft or creating a checkout, account dashboard, license, or office installation, you agree to these terms.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000008",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "2. Service Description",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000009",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>CreditSoft provides Metro2-based credit repair workflow software, local-first office infrastructure, customer portal tooling, update delivery, and related support workflows.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000a",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "3. Compliance",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000b",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Users are responsible for complying with FCRA, FDCPA, CROA, state credit repair organization rules, privacy rules, and any laws that apply to their business.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000c",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "4. Payments And Licensing",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Checkout and renewal references help us match Zelle and Cash App payments to the correct customer account. License activation can require successful payment matching or manual approval.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000e",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "5. Limitation Of Liability",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000f",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>CreditSoft provides tools and workflow support as is. We do not guarantee specific credit repair results, bureau outcomes, customer approvals, or legal outcomes.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000010",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "6. Contact",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000011",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Questions? Email <a href=\"mailto:hello@creditsoft.app\">hello@creditsoft.app</a>.</p>"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

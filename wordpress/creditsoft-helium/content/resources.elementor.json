@@ -1,0 +1,664 @@
+{
+  "title": "CreditSoft Resources",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "000005a",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "000003f",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000033",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Resources",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000034",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "CreditSoft user guide and admin docs",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000035",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>This page keeps CRM documentation, AI settings, webhook routes, installer notes, and operator help from falling into old generic documentation links.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000039",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000036",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "User guide",
+                    "link": {
+                      "url": "#user-guide",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": ""
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000037",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Admin guide",
+                    "link": {
+                      "url": "#admin-guide",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000038",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "API docs",
+                    "link": {
+                      "url": "/docs",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                }
+              ]
+            },
+            {
+              "id": "000003e",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-card",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000003a",
+                  "elType": "widget",
+                  "widgetType": "heading",
+                  "settings": {
+                    "title": "Important lanes",
+                    "header_size": "h3"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "000003b",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>CRM webhooks live in the intranet API bridge.</p>"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "000003c",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>AI provider keys live under the intranet AI settings.</p>"
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "000003d",
+                  "elType": "widget",
+                  "widgetType": "text-editor",
+                  "settings": {
+                    "editor": "<p>Update checks should also validate the office license.</p>"
+                  },
+                  "elements": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0000044",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000040",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Guide map",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000041",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Start with the thing you are trying to connect.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000042",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>The CRM, public site, client portal, companion, and office nodes are different surfaces, but they should all route back through the same CreditSoft intranet.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000043",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000022",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "_element_id": "user-guide"
+                  },
+                  "elements": [
+                    {
+                      "id": "000001b",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "User guide",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000001c",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Introduction",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000001d",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>What CreditSoft connects: public website, admin, intranet, CRM, client portal, companion, and office nodes.</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000001e",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Office setup",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000001f",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Installers, update checks, license validation, local router, and the PWA shell.</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000020",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Client work",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000021",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Leads, roster, documents, reports, disputes, letters, and portal handoff.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "000002a",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "_element_id": "admin-guide"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000023",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Admin guide",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000024",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "API / Webhooks",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000025",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Website leads, portal uploads, companion captures, Meta callbacks, and multi-office sync routes.</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000026",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "AI settings",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000027",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>OpenRouter, Ollama Cloud, and OpenCode Zen provider settings used by the intranet assistant.</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000028",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Updates",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000029",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Release feed, installer packages, daily license heartbeat, and office package checks.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000032",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column",
+                    "_element_id": "crm-guide"
+                  },
+                  "elements": [
+                    {
+                      "id": "000002b",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "CRM guide",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000002c",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "CRM bridge",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000002d",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>The CRM is embedded inside the intranet and uses CreditSoft's local API bridge for office workflows.</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000002e",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Campaigns",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000002f",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Lead nurture, onboarding follow-up, dispute reminders, payment nudges, and reactivation messaging.</p>"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000030",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Webhooks",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000031",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>CRM admin webhooks should point at the intranet API routes, not the generic CRM-only docs.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "000004e",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000045",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "API / Webhooks",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000046",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Use CreditSoft intranet routes, not generic CRM placeholders.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000047",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Website lead forms, portal uploads, browser companion captures, Meta callbacks, and multi-office node events should land on the office API. The CRM admin screen can show those routes, but the intranet owns the keys and sync logic.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000048",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><code>POST /api/v1/clients</code></p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000049",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><code>POST /api/v1/clients/{cuid}/documents</code></p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000004a",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><code>POST /api/v1/browser-companion/intake</code></p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000004b",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><code>POST /api/v1/cluster-actions/apply</code></p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000004c",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><code>POST /api/v1/cluster-db-events/receive</code></p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000004d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><code>GET /api/v1/meta/callback</code></p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "0000059",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column",
+            "_element_id": "ai-settings"
+          },
+          "elements": [
+            {
+              "id": "0000058",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000052",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000004f",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "AI settings",
+                        "header_size": "h6"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000050",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "The intranet already has the AI control surface.",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000051",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>The assistant, CTO advice, letters, briefs, report review, and operational suggestions should use the provider selected in the intranet AI settings. CRM-only API keys are not the source of truth.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000057",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000053",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Documentation",
+                        "header_size": "h6"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000054",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "Old docs links should resolve here instead of 404.",
+                        "header_size": "h2"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000056",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Links such as <code>/resources#/user-guide/introduction</code> now land on a real resources page. The hash can still point people into the guide without breaking the server route.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

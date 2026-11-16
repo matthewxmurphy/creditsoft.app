@@ -1,0 +1,292 @@
+{
+  "title": "About CreditSoft",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "000001a",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000004",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "About us",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Built for offices that want a stronger public face and a stronger operating core.",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>This page is where the theme clone turns into the CreditSoft story: not just modern design, but a more intentional product for credit repair operations.</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "0000012",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000005",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Why it exists",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000006",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "The product direction is bigger than a pretty homepage",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000007",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>The site should make the office philosophy clear in plain language.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000011",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-feature-grid",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "000000a",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "0000008",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "01",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "0000009",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>Most credit repair software looks like generic SaaS with a credit niche pasted on top.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "000000d",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000b",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "02",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000c",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>CreditSoft is trying to feel like the office, the website, the portal, the updates lane, and the migration story were all planned together.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                },
+                {
+                  "id": "0000010",
+                  "elType": "container",
+                  "isInner": false,
+                  "settings": {
+                    "css_classes": "creditsoft-card",
+                    "content_width": "full",
+                    "flex_direction": "column"
+                  },
+                  "elements": [
+                    {
+                      "id": "000000e",
+                      "elType": "widget",
+                      "widgetType": "heading",
+                      "settings": {
+                        "title": "03",
+                        "header_size": "h3"
+                      },
+                      "elements": []
+                    },
+                    {
+                      "id": "000000f",
+                      "elType": "widget",
+                      "widgetType": "text-editor",
+                      "settings": {
+                        "editor": "<p>That means design matters, but so does the workflow underneath it: local-first operations, migration-aware setup, a branded website, and reporting the office can actually brag about.</p>"
+                      },
+                      "elements": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "0000019",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-cta",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000013",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Company fit",
+                "header_size": "h6"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000014",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "The strongest replacement candidate keeps the brand story and the product story aligned.",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000015",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>CreditSoft should look premium on the surface and still point people toward the real strengths underneath: workflow, migration, proof, and control.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000018",
+              "elType": "container",
+              "isInner": false,
+              "settings": {
+                "css_classes": "creditsoft-actions",
+                "content_width": "full",
+                "flex_direction": "column"
+              },
+              "elements": [
+                {
+                  "id": "0000016",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Explore features",
+                    "link": {
+                      "url": "/features",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": ""
+                  },
+                  "elements": []
+                },
+                {
+                  "id": "0000017",
+                  "elType": "widget",
+                  "widgetType": "button",
+                  "settings": {
+                    "text": "Talk to us",
+                    "link": {
+                      "url": "/contact-us",
+                      "is_external": "",
+                      "nofollow": ""
+                    },
+                    "_css_classes": "creditsoft-secondary"
+                  },
+                  "elements": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

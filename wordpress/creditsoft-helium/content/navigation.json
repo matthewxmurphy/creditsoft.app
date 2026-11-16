@@ -1,0 +1,180 @@
+{
+  "creditsoft-primary": [
+    {
+      "label": "Features",
+      "url": "/features",
+      "children": [
+        {
+          "label": "Feature overview",
+          "url": "/features"
+        },
+        {
+          "label": "Local-first CRM",
+          "url": "/local-first-crm"
+        },
+        {
+          "label": "Metro2 review",
+          "url": "/metro2"
+        },
+        {
+          "label": "Client portal",
+          "url": "/client-portal"
+        },
+        {
+          "label": "API bridge",
+          "url": "/api-bridge"
+        },
+        {
+          "label": "Multi-office nodes",
+          "url": "/multi-office-nodes"
+        },
+        {
+          "label": "FCRA / FDCPA",
+          "url": "/compliance"
+        },
+        {
+          "label": "Email providers",
+          "url": "/email-providers"
+        }
+      ]
+    },
+    {
+      "label": "Office",
+      "url": "https://admin.creditsoft.app",
+      "children": [
+        {
+          "label": "Login",
+          "url": "https://admin.creditsoft.app"
+        },
+        {
+          "label": "Backup redundancy",
+          "url": "/backup-redundancy"
+        },
+        {
+          "label": "Tech stack",
+          "url": "/tech-stack"
+        },
+        {
+          "label": "Social / Meta manager",
+          "url": "/social-media"
+        }
+      ]
+    },
+    {
+      "label": "Migration",
+      "url": "/migration"
+    },
+    {
+      "label": "Outsourcing",
+      "url": "/outsourcing"
+    },
+    {
+      "label": "Videos",
+      "url": "/videos"
+    },
+    {
+      "label": "Pricing",
+      "url": "/pricing-plan"
+    },
+    {
+      "label": "Free tools",
+      "url": "/tools/"
+    }
+  ],
+  "creditsoft-footer-explore": [
+    {
+      "label": "Home",
+      "url": "/"
+    },
+    {
+      "label": "Features",
+      "url": "/features"
+    },
+    {
+      "label": "Free financial tools",
+      "url": "/tools/"
+    },
+    {
+      "label": "Videos",
+      "url": "/videos"
+    },
+    {
+      "label": "Metro2 review",
+      "url": "/metro2"
+    },
+    {
+      "label": "FCRA / FDCPA",
+      "url": "/compliance"
+    },
+    {
+      "label": "Pricing",
+      "url": "/pricing-plan"
+    }
+  ],
+  "creditsoft-footer-office": [
+    {
+      "label": "Office login",
+      "url": "https://admin.creditsoft.app"
+    },
+    {
+      "label": "Multi-office nodes",
+      "url": "/multi-office-nodes"
+    },
+    {
+      "label": "API bridge",
+      "url": "/api-bridge"
+    },
+    {
+      "label": "Migration",
+      "url": "/migration"
+    }
+  ],
+  "creditsoft-footer-company": [
+    {
+      "label": "Contact",
+      "url": "/contact-us"
+    },
+    {
+      "label": "About",
+      "url": "/about-us"
+    },
+    {
+      "label": "Outsourcing",
+      "url": "/outsourcing"
+    },
+    {
+      "label": "hello@creditsoft.app",
+      "url": "mailto:hello@creditsoft.app"
+    },
+    {
+      "label": "Terms",
+      "url": "/terms"
+    },
+    {
+      "label": "Privacy",
+      "url": "/privacy"
+    },
+    {
+      "label": "Cookies",
+      "url": "/cookies"
+    }
+  ],
+  "creditsoft-footer-social": [
+    {
+      "label": "Facebook",
+      "url": "https://www.facebook.com/GetCreditSoft"
+    },
+    {
+      "label": "Instagram",
+      "url": "https://www.instagram.com/creditsoftapp/"
+    },
+    {
+      "label": "Threads",
+      "url": "https://www.threads.com/@creditsoftapp"
+    },
+    {
+      "label": "X",
+      "url": "https://x.com/creditsoftapp"
+    }
+  ]
+}

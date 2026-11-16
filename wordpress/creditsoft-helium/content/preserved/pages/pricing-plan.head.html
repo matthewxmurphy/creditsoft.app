@@ -1,0 +1,72 @@
+<link rel="icon" href="__CREDITSOFT_ASSET_BASE__/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="__CREDITSOFT_ASSET_BASE__/favicon.ico">
+<link rel="apple-touch-icon" href="__CREDITSOFT_ASSET_BASE__/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9QJTYCN2FZ"></script>
+<script>(function(){const googleMeasurementId = "G-9QJTYCN2FZ";
+
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          // Consent model (owner ruling 2026-10-26): tracking is ON by
+          // default; visitors opt out. A stored opt-out cookie or a Global
+          // Privacy Control signal renders the defaults denied instead.
+          var csDenied = (navigator.globalPrivacyControl === true) || /(?:^|; )cs_consent_optout=1(?:;|$)/.test(document.cookie);
+          var csState = csDenied ? 'denied' : 'granted';
+          window.__csDenied = csDenied;
+          gtag('consent', 'default', {
+            ad_storage: csState,
+            analytics_storage: csState,
+            ad_user_data: csState,
+            ad_personalization: csState
+          });
+          gtag('js', new Date());
+          gtag('config', googleMeasurementId);
+          window.csSetTracking = function (on) {
+            document.cookie = on ? 'cs_consent_optout=; Max-Age=0; Path=/; SameSite=Lax' : 'cs_consent_optout=1; Max-Age=31536000; Path=/; SameSite=Lax';
+            var st = on ? 'granted' : 'denied';
+            gtag('consent', 'update', { ad_storage: st, analytics_storage: st, ad_user_data: st, ad_personalization: st });
+            if (window.fbq) { fbq('consent', on ? 'grant' : 'revoke'); }
+            var stEl = document.getElementById('cs-tracking-state');
+            if (stEl) { stEl.textContent = on ? 'on' : 'off'; }
+          };
+          document.addEventListener('DOMContentLoaded', function () {
+            var footer = document.querySelector('footer');
+            if (!footer || document.getElementById('cs-privacy-choices')) { return; }
+            var wrap = document.createElement('div');
+            wrap.id = 'cs-privacy-choices';
+            wrap.style.cssText = 'margin-top:1rem;font-size:.875rem;';
+            wrap.innerHTML = '<button type="button" id="cs-privacy-toggle" style="background:none;border:1px solid currentColor;border-radius:.375rem;padding:.35rem .7rem;cursor:pointer;color:inherit;">Privacy choices</button>' +
+              '<div id="cs-privacy-panel" hidden style="margin-top:.6rem;max-width:34rem;">' +
+              '<p style="margin:0 0 .5rem;">Analytics and advertising tracking on this site is <strong id="cs-tracking-state">' + (window.__csDenied ? 'off' : 'on') + '</strong>. Tracking is on by default; you can turn it off at any time and your choice is stored on this device.</p>' +
+              '<button type="button" id="cs-tracking-off" style="margin-right:.5rem;border:1px solid currentColor;background:none;border-radius:.375rem;padding:.35rem .7rem;cursor:pointer;color:inherit;">Turn off tracking</button>' +
+              '<button type="button" id="cs-tracking-on" style="border:1px solid currentColor;background:none;border-radius:.375rem;padding:.35rem .7rem;cursor:pointer;color:inherit;">Turn on tracking</button></div>';
+            footer.appendChild(wrap);
+            document.getElementById('cs-privacy-toggle').addEventListener('click', function () {
+              var panel = document.getElementById('cs-privacy-panel');
+              panel.hidden = !panel.hidden;
+            });
+            document.getElementById('cs-tracking-off').addEventListener('click', function () { window.csSetTracking(false); });
+            document.getElementById('cs-tracking-on').addEventListener('click', function () { window.csSetTracking(true); });
+          });
+        })();</script>
+<script>(function(){const metaPixelId = "1407768341366840";
+
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          if (window.__csDenied) { fbq('consent', 'revoke'); }
+          fbq('init', metaPixelId);
+          fbq('track', 'PageView');
+        })();</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1407768341366840&#38;ev=PageView&#38;noscript=1" alt=""></noscript>
+<link rel="stylesheet" href="__CREDITSOFT_ASSET_BASE__/_astro/BaseLayout.CzWMf90A.css">
+<link rel="stylesheet" href="__CREDITSOFT_ASSET_BASE__/_astro/SiteFooter.C6Fj44fb.css">
+<link rel="stylesheet" href="__CREDITSOFT_ASSET_BASE__/_astro/pricing-plan@_@astro.CxTWDaoG.css">

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "creditsoft/financial-tool",
+  "version": "2026.10.1",
+  "title": "CreditSoft financial tool",
+  "category": "widgets",
+  "icon": "chart-area",
+  "description": "One existing calculator on this page. All calculations stay in the browser.",
+  "attributes": {
+    "slug": {
+      "type": "string",
+      "default": "budget"
+    }
+  },
+  "supports": {
+    "html": false,
+    "multiple": false
+  },
+  "editorScript": "creditsoft-financial-tools-editor"
+}

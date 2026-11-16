@@ -1,0 +1,445 @@
+ <script type="module">(()=>{const t=document.querySelector("[data-mobile-menu-toggle]"),n=document.querySelector("[data-mobile-menu]");if(!(t instanceof HTMLButtonElement)||!(n instanceof HTMLElement))return;const a=e=>{t.setAttribute("aria-expanded",e?"true":"false"),n.hidden=!e,document.documentElement.classList.toggle("mobile-menu-is-open",e)};t.addEventListener("click",()=>{a(t.getAttribute("aria-expanded")!=="true")}),n.querySelectorAll("a").forEach(e=>{e.addEventListener("click",()=>a(!1))}),document.addEventListener("keydown",e=>{e.key==="Escape"&&a(!1)}),document.addEventListener("click",e=>{const c=e.target;c instanceof Node&&!n.hidden&&!n.contains(c)&&!t.contains(c)&&a(!1)})})();</script>   <script>(function(){const checkoutPlans = {"professional":{"name":"CreditSoft Enterprise","apiPlan":"professional","badge":"Core office system","description":"Local-first CRM, client records, Metro2 review, letters, client portal, and legal-intake screening.","features":["Unlimited users and clients","Local intranet and client portal","Metro2 review, letters, briefs, and audit trails","FCRA / FDCPA lawsuit intake included"],"billing":{"monthly":{"label":"Monthly","suffix":"/mo"},"yearly":{"label":"Annual","suffix":"/yr"}},"upsell":{"eyebrow":"Recommended upgrade","title":"Most teams should look at Enterprise Pro before paying.","text":"Enterprise Pro adds the browser companion, API connector, automation workflows, and priority rollout support.","cta":"Upgrade to Enterprise Pro","plan":"enterprise"}},"enterprise":{"name":"CreditSoft Enterprise Pro","apiPlan":"enterprise","badge":"Browser companion","description":"The stronger office lane for teams that want the browser companion, API connector, and automation workflows.","features":["Everything in Enterprise","Chrome browser companion","API connector and automation workflows","Priority rollout support"],"billing":{"monthly":{"label":"Monthly","suffix":"/mo"},"yearly":{"label":"Annual","suffix":"/yr"},"ten-year":{"label":"10-year","suffix":"/10 years"}},"upsell":{"eyebrow":"Best value path","title":"Annual Pro or the 10-year license can beat monthly renewal math.","text":"If CreditSoft is becoming office infrastructure, compare the longer-term options before sending payment.","cta":"Compare long-term value","plan":"enterprise"}}};
+const checkoutAddons = {"server_node":{"name":"Additional server node"}};
+
+    (() => {
+      const money = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      const params = new URLSearchParams(window.location.search);
+      const normalizePlan = (value) => {
+        const plan = String(value || "professional").toLowerCase();
+        return ["enterprise", "enterprise-pro", "enterprise_pro", "pro", "api", "api_version"].includes(plan)
+          ? "enterprise"
+          : "professional";
+      };
+      const normalizeBilling = (value, plan) => {
+        const billing = String(value || "monthly").toLowerCase();
+        if (["ten-year", "ten_year", "10-year", "10_year", "lifetime"].includes(billing) && plan === "enterprise") {
+          return "ten-year";
+        }
+        return ["yearly", "annual"].includes(billing) ? "yearly" : "monthly";
+      };
+      const normalizePayment = (value) => {
+        const payment = String(value || "zelle").toLowerCase();
+        return ["cash-app", "cash_app", "cashapp", "square"].includes(payment) ? "cash_app" : "zelle";
+      };
+
+      const planKey = normalizePlan(params.get("plan"));
+      const billingKey = normalizeBilling(params.get("billing"), planKey);
+      const paymentMethod = normalizePayment(params.get("payment"));
+      const paymentQueryValue = paymentMethod === "cash_app" ? "cash-app" : "zelle";
+      const paymentLabel = paymentMethod === "cash_app" ? "Cash App" : "Zelle";
+      const plan = checkoutPlans[planKey] || checkoutPlans.professional;
+      const billing = plan.billing[billingKey] || plan.billing.monthly;
+      const serverNodeAddon = checkoutAddons.server_node;
+      const serverNodeBillingKey = billingKey === "yearly" ? "yearly" : "monthly";
+      const serverNodeCanPrice = billingKey !== "ten-year";
+      const serverNodeSuffix = serverNodeBillingKey === "yearly" ? "/yr" : "/mo";
+      let currentQuote = null;
+      let quoteSequence = 0;
+
+      const setText = (selector, value) => {
+        document.querySelectorAll(selector).forEach((node) => {
+          node.textContent = value;
+        });
+      };
+
+      setText("[data-plan-name]", plan.name);
+      setText("[data-plan-badge]", plan.badge);
+      setText("[data-plan-description]", plan.description);
+      setText("[data-billing-label]", `${billing.label} billing`);
+      setText("[data-payment-label]", paymentLabel);
+      setText("[data-upsell-eyebrow]", plan.upsell.eyebrow);
+      setText("[data-upsell-title]", plan.upsell.title);
+      setText("[data-upsell-text]", plan.upsell.text);
+      setText("[data-server-node-price]", serverNodeCanPrice ? "Loading database node price" : "Quoted with 10-year rollout");
+
+      const listPrice = document.querySelector("[data-list-price]");
+      const price = document.querySelector("[data-price]");
+      const priceNote = document.querySelector("[data-price-note]");
+
+      const featureList = document.querySelector("[data-feature-list]");
+      if (featureList) {
+        featureList.innerHTML = plan.features.map((feature) => `<li>${feature}</li>`).join("");
+      }
+
+      const upsellHref =
+        planKey === "professional"
+          ? `/checkout/?plan=enterprise&billing=${billingKey}&payment=${paymentQueryValue}`
+          : billingKey === "monthly"
+            ? `/checkout/?plan=enterprise&billing=yearly&payment=${paymentQueryValue}`
+            : `/checkout/?plan=enterprise&billing=ten-year&payment=${paymentQueryValue}`;
+      const upsellLink = document.querySelector("[data-upsell-link]");
+      if (upsellLink) {
+        upsellLink.href = upsellHref;
+        upsellLink.textContent = planKey === "professional" ? "Upgrade to Enterprise Pro" : plan.upsell.cta;
+      }
+
+      document.querySelectorAll("[data-plan-switch]").forEach((link) => {
+        const switchPlan = link.getAttribute("data-plan-switch") || "professional";
+        link.classList.toggle("is-active", switchPlan === planKey);
+        link.href = `/checkout/?plan=${switchPlan}&billing=${switchPlan === "professional" && billingKey === "ten-year" ? "monthly" : billingKey}&payment=${paymentQueryValue}`;
+      });
+
+      const checkoutForm = document.getElementById("checkoutForm");
+      const checkoutError = document.getElementById("checkoutError");
+      const checkoutSuccess = document.getElementById("checkoutSuccess");
+      const paymentOptions = document.getElementById("paymentOptions");
+      const checkoutNumber = document.getElementById("checkoutNumber");
+      const memoText = document.getElementById("memoText");
+      const dashboardLink = document.getElementById("dashboardLink");
+      const serverNodeToggle = document.getElementById("serverNodeAddon");
+      const serverNodeQty = document.getElementById("serverNodeQty");
+      const serverNodeNote = document.querySelector("[data-server-node-note]");
+      const totalPrice = document.querySelector("[data-total-price]");
+      const totalBreakdown = document.querySelector("[data-total-breakdown]");
+      const submitButton = checkoutForm?.querySelector("button[type='submit']");
+
+      if (!serverNodeCanPrice) {
+        serverNodeToggle.disabled = true;
+        serverNodeQty.disabled = true;
+        serverNodeNote.textContent =
+          "10-year server-node rollouts are sized after checkout so we do not underquote the hardware plan.";
+      }
+
+      const selectedServerNodeQuantity = () => {
+        if (!serverNodeCanPrice || !serverNodeToggle.checked) {
+          return 0;
+        }
+
+        return Math.max(1, Number.parseInt(serverNodeQty.value || "1", 10));
+      };
+
+      const quoteUrl = () => {
+        const url = new URL("/api/checkout-request.php", window.location.origin);
+        url.searchParams.set("quote", "1");
+        url.searchParams.set("plan", plan.apiPlan);
+        url.searchParams.set("billing", billingKey);
+        url.searchParams.set("server_nodes", String(selectedServerNodeQuantity()));
+        return url;
+      };
+
+      const setCheckoutReady = (ready, label = "Create checkout reference") => {
+        if (!submitButton) return;
+        submitButton.disabled = !ready;
+        submitButton.textContent = label;
+      };
+
+      const renderQuote = (quote) => {
+        currentQuote = quote;
+        const quantity = selectedServerNodeQuantity();
+        const planLabel = plan.name.replace("CreditSoft ", "");
+        const nodeLabel = quantity === 1 ? "1 server node" : `${quantity} server nodes`;
+        const paymentLabel = quote.amount_label || money.format(Number(quote.amount || 0));
+        const baseLabel = quote.base_amount_label || paymentLabel;
+        const listLabel = quote.list_amount_label || "";
+        const listAmount = Number(quote.list_amount || 0);
+        const baseAmount = Number(quote.base_amount || quote.amount || 0);
+        const nodeUnitLabel = quote.server_node_unit_label || null;
+
+        setText("[data-payment-amount]", paymentLabel);
+        setText("[data-server-node-price]", nodeUnitLabel ? `+${nodeUnitLabel}${serverNodeSuffix} per node` : "Database node price unavailable");
+
+        if (listPrice) {
+          listPrice.textContent = listAmount > baseAmount ? `${listLabel}${billing.suffix}` : "";
+          listPrice.hidden = !(listAmount > baseAmount);
+        }
+
+        if (price) {
+          price.innerHTML = `${baseLabel}<small>${billing.suffix}</small>`;
+        }
+
+        if (priceNote) {
+          priceNote.textContent = "Invoice amount comes from the database price book at checkout time.";
+        }
+
+        if (totalPrice) {
+          totalPrice.textContent = `${paymentLabel}${billing.suffix}`;
+        }
+
+        if (totalBreakdown) {
+          totalBreakdown.textContent = quantity > 0
+            ? `${planLabel} ${billing.label.toLowerCase()} + ${nodeLabel}`
+            : `${planLabel} ${billing.label.toLowerCase()}`;
+        }
+
+        setCheckoutReady(true);
+      };
+
+      const renderQuoteLoading = () => {
+        currentQuote = null;
+        setCheckoutReady(false, "Loading database price...");
+        setText("[data-payment-amount]", "Database invoice");
+        setText("[data-server-node-price]", serverNodeCanPrice ? "Loading database node price" : "Quoted with 10-year rollout");
+
+        if (price) {
+          price.textContent = "Loading database price";
+        }
+
+        if (totalPrice) {
+          totalPrice.textContent = "Loading database price";
+        }
+
+        if (priceNote) {
+          priceNote.textContent = "Checkout pulls the current price from the database before creating the invoice.";
+        }
+      };
+
+      const refreshQuote = async () => {
+        const sequence = ++quoteSequence;
+        renderQuoteLoading();
+
+        try {
+          const response = await fetch(quoteUrl(), { headers: { Accept: "application/json" } });
+          const data = await response.json();
+
+          if (sequence !== quoteSequence) {
+            return;
+          }
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Database pricing is not available.");
+          }
+
+          renderQuote(data);
+        } catch (error) {
+          if (sequence !== quoteSequence) {
+            return;
+          }
+
+          currentQuote = null;
+          setCheckoutReady(false, "Database price unavailable");
+          setText("[data-payment-amount]", "Database price unavailable");
+          if (price) {
+            price.textContent = "Database price unavailable";
+          }
+          if (totalPrice) {
+            totalPrice.textContent = "Database price unavailable";
+          }
+          if (priceNote) {
+            priceNote.textContent = error.message || "Database pricing is not available.";
+          }
+        }
+      };
+
+      serverNodeToggle?.addEventListener("change", refreshQuote);
+      serverNodeQty?.addEventListener("change", refreshQuote);
+      refreshQuote();
+
+      const showMessage = (target, message) => {
+        if (!target) return;
+        target.textContent = message;
+        target.style.display = "block";
+      };
+
+      const clearMessages = () => {
+        [checkoutError, checkoutSuccess].forEach((node) => {
+          if (node) {
+            node.textContent = "";
+            node.style.display = "none";
+          }
+        });
+      };
+
+      checkoutForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearMessages();
+
+        if (!currentQuote) {
+          showMessage(checkoutError, "Database pricing is not loaded yet. Please wait a moment and try again.");
+          return;
+        }
+
+        const payload = {
+          plan: plan.apiPlan,
+          billing: billingKey,
+          server_nodes: selectedServerNodeQuantity(),
+          payment_method: paymentMethod,
+          customer_email: document.getElementById("customerEmail").value.trim(),
+          customer_phone: document.getElementById("customerPhone").value.trim(),
+          payment_source: document.getElementById("paymentSource").value.trim(),
+          office_name: document.getElementById("officeName").value.trim(),
+          notes: document.getElementById("checkoutNotes").value.trim(),
+          website: document.getElementById("checkoutWebsite").value.trim(),
+          turnstile_token: window.turnstile
+            ? window.turnstile.getResponse()
+            : document.querySelector('[name="cf-turnstile-response"]')?.value || "",
+        };
+
+        if (!payload.customer_email || !payload.customer_phone || !payload.office_name) {
+          showMessage(checkoutError, "Please fill in the account email, phone, and office name.");
+          return;
+        }
+
+        submitButton.disabled = true;
+        submitButton.textContent = "Creating checkout...";
+
+        try {
+          const response = await fetch("/api/checkout-request.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(data.error || "Unable to create the checkout.");
+          }
+
+          const reference = data.checkout_number || data.checkout_reference || "";
+          const email = data.customer_email || payload.customer_email;
+          const memo = data.payment_memo || (reference ? `CreditSoft checkout:${reference} email:${email}` : `CreditSoft email:${email}`);
+
+          checkoutNumber.textContent = reference;
+          memoText.textContent = memo;
+          const dashboardUrl = new URL("/account/", window.location.origin);
+          dashboardUrl.searchParams.set("email", email);
+          if (reference) {
+            dashboardUrl.searchParams.set("reference", reference);
+          }
+          dashboardLink.href = data.account_dashboard_url || data.customer_dashboard_url || dashboardUrl.toString();
+
+          showMessage(checkoutSuccess, "Checkout saved. Use one of the payment options below and include the exact checkout note.");
+          paymentOptions.hidden = false;
+          paymentOptions.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (error) {
+          showMessage(checkoutError, error.message || "Something went wrong. Please try again.");
+        } finally {
+          if (window.turnstile) {
+            window.turnstile.reset();
+          }
+          setCheckoutReady(Boolean(currentQuote));
+        }
+      });
+    })();
+  })();</script>  </div> <div class="creditsoft-cookie-banner" data-cookie-banner hidden data-astro-cid-wndtdmvx> <div class="creditsoft-cookie-copy" data-astro-cid-wndtdmvx> <strong data-astro-cid-wndtdmvx>We value your privacy</strong> <p data-astro-cid-wndtdmvx>We use essential cookies for the site and optional analytics/marketing cookies when you accept. Read the <a href="/privacy" data-astro-cid-wndtdmvx>Privacy Policy</a> and <a href="/cookies" data-astro-cid-wndtdmvx>Cookie Policy</a>.</p> <small data-astro-cid-wndtdmvx>Supports GDPR, CCPA/CPRA, DMA, LGPD, POPIA, and Google Consent Mode v2.</small> </div> <div class="creditsoft-cookie-actions" data-astro-cid-wndtdmvx> <button type="button" data-cookie-decline data-astro-cid-wndtdmvx>Decline</button> <button type="button" data-cookie-accept data-astro-cid-wndtdmvx>Accept all</button> </div> </div> <script>
+  (() => {
+    const cookieName = "cookie_consent";
+    const getCookie = (name) => document.cookie.split("; ").find((row) => row.startsWith(`${name}=`))?.split("=")[1] || "";
+    const getConsent = () => getCookie(cookieName) || window.localStorage?.getItem(cookieName) || "";
+    const setCookie = (value) => {
+      const expires = new Date(Date.now() + 31536000 * 1000).toUTCString();
+      document.cookie = `${cookieName}=${value};max-age=31536000;expires=${expires};path=/;SameSite=Lax`;
+      window.localStorage?.setItem(cookieName, value);
+    };
+    const updateConsent = (accepted) => {
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          ad_storage: accepted ? "granted" : "denied",
+          analytics_storage: accepted ? "granted" : "denied",
+          ad_user_data: accepted ? "granted" : "denied",
+          ad_personalization: accepted ? "granted" : "denied",
+        });
+      }
+      if (typeof window.fbq === "function") {
+        window.fbq("consent", accepted ? "grant" : "revoke");
+      }
+    };
+
+    const banner = document.querySelector("[data-cookie-banner]");
+    const hideBanner = () => {
+      if (!banner) return;
+      banner.hidden = true;
+      banner.setAttribute("aria-hidden", "true");
+      updateCookieOffset();
+    };
+    const updateCookieOffset = () => {
+      const visible = Boolean(banner && !banner.hidden);
+      document.documentElement.classList.toggle("creditsoft-cookie-visible", visible);
+      document.documentElement.style.setProperty(
+        "--creditsoft-cookie-offset",
+        visible && banner ? `${banner.getBoundingClientRect().height}px` : "0px"
+      );
+    };
+
+    if (banner && !getConsent()) {
+      banner.hidden = false;
+      banner.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(updateCookieOffset);
+    } else {
+      updateCookieOffset();
+    }
+
+    document.querySelector("[data-cookie-accept]")?.addEventListener("click", () => {
+      setCookie("accepted");
+      updateConsent(true);
+      hideBanner();
+    });
+
+    document.querySelector("[data-cookie-decline]")?.addEventListener("click", () => {
+      setCookie("declined");
+      updateConsent(false);
+      hideBanner();
+    });
+
+    window.addEventListener("resize", () => {
+      requestAnimationFrame(updateCookieOffset);
+    });
+
+    if (getConsent() === "accepted") {
+      updateConsent(true);
+    }
+
+    const chat = document.querySelector("[data-creditsoft-chat]");
+    const toggle = chat?.querySelector(".creditsoft-chat-toggle");
+    const panel = chat?.querySelector(".creditsoft-chat-panel");
+    const log = chat?.querySelector("[data-chat-log]");
+    const form = chat?.querySelector("[data-chat-form]");
+    const input = form?.querySelector("input");
+
+    const replies = [
+      {
+        test: /price|pricing|cost|lease|monthly|year|annual/i,
+        text: "CreditSoft offers monthly, annual, lease-style terms, and a ten-year license. The pricing page shows the current plan paths.",
+      },
+      {
+        test: /metro|fcra|fdcpa|law|lawsuit|dispute/i,
+        text: "CreditSoft is Metro2-first and keeps FCRA / FDCPA review close to the client file, so disputes start from report facts instead of generic letter prompts.",
+      },
+      {
+        test: /migration|disputefox|smartcredit|identityiq|import/i,
+        text: "CreditSoft can help migrate legacy CRM records, documents, billing history, and provider report pulls through the browser companion and office API.",
+      },
+      {
+        test: /node|server|backup|office|local|pwa|intranet/i,
+        text: "CreditSoft runs as a local-first office system with optional multi-office nodes, backups, and a public API bridge for portals and updates.",
+      },
+      {
+        test: /portal|client|upload|dashboard/i,
+        text: "The client portal is meant for uploads, status, agreements, and safe client-facing updates while casework stays inside the office system.",
+      },
+    ];
+
+    const addMessage = (text, type) => {
+      if (!log) return;
+      const message = document.createElement("div");
+      message.className = `creditsoft-chat-message is-${type}`;
+      message.textContent = text;
+      log.appendChild(message);
+      log.scrollTop = log.scrollHeight;
+    };
+
+    toggle?.addEventListener("click", () => {
+      const open = panel?.hidden;
+      if (!panel) return;
+      panel.hidden = !open;
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.querySelector("strong").textContent = open ? "-" : "+";
+      if (open) input?.focus();
+    });
+
+    form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const text = input?.value.trim() || "";
+      if (!text) return;
+      input.value = "";
+      addMessage(text, "user");
+      const match = replies.find((reply) => reply.test.test(text));
+      addMessage(match?.text || `I can help route that. Email ${supportEmail} and include what you are trying to set up, migrate, or license.`, "bot");
+    });
+  })();
+</script> <div class="image-lightbox" id="siteImageLightbox" aria-hidden="true" data-astro-cid-fbflauxb> <button class="image-lightbox__backdrop" type="button" data-lightbox-close aria-label="Close image preview" data-astro-cid-fbflauxb></button> <div class="image-lightbox__dialog" role="dialog" aria-modal="true" aria-label="Full-size screenshot preview" data-astro-cid-fbflauxb> <button class="image-lightbox__close" type="button" data-lightbox-close data-astro-cid-fbflauxb>Close</button> <img src="" alt="" data-lightbox-target decoding="async" data-astro-cid-fbflauxb> <div class="image-lightbox__caption" data-lightbox-caption hidden data-astro-cid-fbflauxb></div> </div> </div>  <script type="module">(()=>{const e=document.getElementById("siteImageLightbox"),o=e?.querySelector("[data-lightbox-target]"),s=e?.querySelector("[data-lightbox-caption]"),i=Array.from(e?.querySelectorAll("[data-lightbox-close]")??[]);if(!(e instanceof HTMLElement)||!(o instanceof HTMLImageElement))return;const r=t=>{const n=t.dataset.lightboxSrc||t.currentSrc||t.src;if(!n)return;o.src=n,o.alt=t.alt||"CreditSoft screenshot preview";const a=t.dataset.lightboxTitle||t.alt||"";s instanceof HTMLElement&&(s.textContent=a,s.hidden=!a),e.classList.add("is-open"),e.setAttribute("aria-hidden","false"),document.body.classList.add("image-lightbox-open")},c=()=>{e.classList.remove("is-open"),e.setAttribute("aria-hidden","true"),document.body.classList.remove("image-lightbox-open"),o.removeAttribute("src")};document.addEventListener("click",t=>{const n=t.target instanceof Element?t.target.closest("img[data-lightbox]"):null;n instanceof HTMLImageElement&&(t.preventDefault(),r(n))}),i.forEach(t=>t.addEventListener("click",c)),document.addEventListener("keydown",t=>{t.key==="Escape"&&e.classList.contains("is-open")&&c()})})();</script> 

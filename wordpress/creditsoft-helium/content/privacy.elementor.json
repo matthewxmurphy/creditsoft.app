@@ -1,0 +1,197 @@
+{
+  "title": "Privacy Policy | CreditSoft",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "0000013",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing creditsoft-legal",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000004",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"eyebrow\">Legal</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Privacy Policy",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>How CreditSoft protects public website, account, and local-first office data.</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "0000012",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000005",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"last-updated\">Last Updated: February 2026</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000006",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Information We Collect",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000007",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>We collect information you provide directly, including name, email, company, office details, payment-reference notes, and support messages.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000008",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "How We Use Information",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000009",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>We use information to provide and improve CreditSoft, create account dashboard access, match license payments, communicate with you, and meet legal and security obligations.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000a",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Local-First Client Data",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000b",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p><strong>Important:</strong> CreditSoft office data is designed to run on your approved server or office node. Client case data is not treated like a shared SaaS database hosted for every customer.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000c",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Analytics And Marketing",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>We may use analytics and marketing tools such as Google Analytics and Meta Pixel after consent where required. You can decline optional cookies from the cookie banner.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000e",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Your Rights",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000f",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<ul>\n        <li>Request access to your information.</li>\n        <li>Request correction or deletion where applicable.</li>\n        <li>Ask how your account or license information is used.</li>\n      </ul>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000010",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Contact",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000011",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Questions? Email <a href=\"mailto:hello@creditsoft.app\">hello@creditsoft.app</a>.</p>"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

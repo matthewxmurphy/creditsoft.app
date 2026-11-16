@@ -1,0 +1,159 @@
+{
+  "title": "Cookie Policy | CreditSoft",
+  "type": "page",
+  "version": "0.4",
+  "page_settings": {
+    "template": "templates/creditsoft-home.php"
+  },
+  "content": [
+    {
+      "id": "000000f",
+      "elType": "container",
+      "isInner": false,
+      "settings": {
+        "css_classes": "creditsoft-home creditsoft-marketing creditsoft-legal",
+        "content_width": "full",
+        "flex_direction": "column"
+      },
+      "elements": [
+        {
+          "id": "0000004",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section creditsoft-hero",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000001",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"eyebrow\">Legal</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000002",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Cookie Policy",
+                "header_size": "h1"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000003",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>How CreditSoft uses essential cookies, analytics cookies, marketing pixels, and consent controls.</p>"
+              },
+              "elements": []
+            }
+          ]
+        },
+        {
+          "id": "000000e",
+          "elType": "container",
+          "isInner": false,
+          "settings": {
+            "css_classes": "creditsoft-section",
+            "content_width": "full",
+            "flex_direction": "column"
+          },
+          "elements": [
+            {
+              "id": "0000005",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p class=\"last-updated\">Last Updated: February 2026</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000006",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "What Are Cookies",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000007",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>Cookies are small text files stored on your device to support site functionality, preferences, analytics, and marketing measurement.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000008",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Types We Use",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "0000009",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<ul>\n        <li><strong>Essential:</strong> Required for site functionality, security, account access, and checkout behavior.</li>\n        <li><strong>Analytics:</strong> Help us understand site usage and improve pages.</li>\n        <li><strong>Marketing:</strong> Used for relevant ads and conversion measurement when you consent.</li>\n      </ul>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000a",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Managing Cookies",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000b",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>You can accept or decline optional cookies through the banner. You can also control or delete cookies through browser settings. Blocking essential cookies may affect functionality.</p>"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000c",
+              "elType": "widget",
+              "widgetType": "heading",
+              "settings": {
+                "title": "Compliance",
+                "header_size": "h2"
+              },
+              "elements": []
+            },
+            {
+              "id": "000000d",
+              "elType": "widget",
+              "widgetType": "text-editor",
+              "settings": {
+                "editor": "<p>CreditSoft's public site consent flow is intended to support GDPR, CCPA/CPRA, DMA, LGPD, POPIA, and Google Consent Mode v2.</p>"
+              },
+              "elements": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
