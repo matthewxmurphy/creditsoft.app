@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "2026.11.18.001",
+  "product": "creditsoft",
+  "artifact_type": "source-checkpoint",
+  "license": "MIT",
+  "release_owner": "Matthew X Murphy",
+  "author_url": "https://MatthewxMurphy.com",
+  "brand_url": "https://builtnotbegged.com",
+  "authority": "https://w473zm07ej.execute-api.us-east-1.amazonaws.com/license",
+  "customer_rollout_ready": false,
+  "primary_office_application_built": false,
+  "source_patch_is_primary_office_update": false,
+  "standalone_aws_contract_checks": 50,
+  "native_laravel_browser_acceptance": "pending",
+  "live_client_deployment": "not performed",
+  "browser_required_feature": "browser_companion",
+  "employee_client_independent_paid_license": false,
+  "public_wordpress_gantry_site_changed": false
+}

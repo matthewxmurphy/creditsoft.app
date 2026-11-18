@@ -30,7 +30,30 @@ class CreditsoftSelfUpdateService
 
     public function latestPackagePath(): string
     {
-        return $this->resolvePackagePath($this->updateFeed->current());
+        return $this->stageLatestPackage()['path'];
+    }
+
+    /** Fresh authorization and the exact primary are also used by node installers. */
+    public function stageLatestPackage(): array
+    {
+        $release = $this->updateFeed->refresh();
+
+        return ['path' => $this->resolvePackagePath($release), 'release' => $release];
+    }
+
+    /** Installed browser features keep their policy; obtaining new code needs AWS. */
+    public function browserArtifactPath(): string
+    {
+        $artifact = AwsLicenseAuthority::browserArtifact($this->updateFeed->refresh());
+        if ($artifact === null) {
+            throw new RuntimeException('The license server has no authorized browser companion release for this office.');
+        }
+        $path = $this->downloadRemotePackage($artifact['download_url'], $artifact['version'], $artifact);
+        if (! AwsLicenseAuthority::archiveMatchesType($path, 'browser-companion')) {
+            throw new RuntimeException('CreditSoft refused a package that is not the browser companion.');
+        }
+
+        return $path;
     }
 
     /**
@@ -39,6 +62,10 @@ class CreditsoftSelfUpdateService
     public function applyLatest(): array
     {
         $status = $this->updateFeed->refresh();
+
+        if (($status['authorized'] ?? false) !== true) {
+            throw new RuntimeException('The license server could not authorize a CreditSoft update. Your installed workspace is unchanged.');
+        }
 
         if (! ($status['update_available'] ?? false)) {
             throw new RuntimeException('This office is already on the newest available build.');
@@ -111,50 +138,59 @@ class CreditsoftSelfUpdateService
      */
     protected function resolvePackagePath(array $status): string
     {
-        $packagePath = trim((string) ($status['package_path'] ?? ''));
-
-        if ($packagePath !== '' && is_file($packagePath)) {
-            return $packagePath;
-        }
-
         $latestVersion = trim((string) ($status['latest_version'] ?? ''));
-
-        if ($latestVersion !== '') {
-            $localPath = base_path(sprintf('update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion));
-
-            if (is_file($localPath)) {
-                return $localPath;
-            }
-        }
-
         $downloadUrl = trim((string) ($status['download_url'] ?? ''));
 
-        if ($downloadUrl === '') {
-            throw new RuntimeException('CreditSoft does not have a download URL for the current update package.');
+        if (($status['authorized'] ?? false) !== true || ($status['artifact_type'] ?? null) !== 'office-application'
+            || ! AwsLicenseAuthority::amazonHttpsUrl($downloadUrl)) {
+            throw new RuntimeException('Request an authorized Amazon-hosted release from the CreditSoft license server first.');
         }
 
-        return $this->downloadRemotePackage($downloadUrl, $latestVersion !== '' ? $latestVersion : 'latest');
+        $path = $this->downloadRemotePackage($downloadUrl, $latestVersion !== '' ? $latestVersion : 'latest', $status);
+        if (! AwsLicenseAuthority::archiveMatchesType($path, 'office-application')) {
+            throw new RuntimeException('CreditSoft refused a package that is not the Office application.');
+        }
+
+        return $path;
     }
 
-    protected function downloadRemotePackage(string $downloadUrl, string $version): string
+    protected function downloadRemotePackage(string $downloadUrl, string $version, array $release): string
     {
         $downloadDirectory = storage_path('app/private/updates/downloads');
-        $localPath = $downloadDirectory.DIRECTORY_SEPARATOR.sprintf('creditsoft-office-v%s.zip', $version);
+        $file = $release['file'] ?? '';
+        if (! is_string($file) || preg_match('/\A[A-Za-z0-9][A-Za-z0-9._-]{0,159}\.zip\z/D', $file) !== 1) {
+            throw new RuntimeException('CreditSoft refused an invalid release filename.');
+        }
+        $localPath = $downloadDirectory.DIRECTORY_SEPARATOR.$file;
 
-        if (is_file($localPath)) {
+        if (AwsLicenseAuthority::packageMatches($localPath, $release)) {
             return $localPath;
         }
 
         File::ensureDirectoryExists($downloadDirectory);
+        $temporaryPath = tempnam($downloadDirectory, '.creditsoft-download-');
 
-        try {
-            $response = Http::timeout(120)->withOptions(['sink' => $localPath])->get($downloadUrl);
-        } catch (Throwable $exception) {
-            throw new RuntimeException('CreditSoft could not download the update package: '.$exception->getMessage(), previous: $exception);
+        if ($temporaryPath === false) {
+            throw new RuntimeException('CreditSoft could not prepare the update download.');
         }
 
-        if (! $response->successful() || ! is_file($localPath)) {
-            throw new RuntimeException('CreditSoft could not download the update package from the remote update lane.');
+        try {
+            $response = Http::timeout(120)->withOptions(['sink' => $temporaryPath, 'allow_redirects' => false])->get($downloadUrl);
+
+            if (! $response->successful() || ! AwsLicenseAuthority::packageMatches($temporaryPath, $release)) {
+                throw new RuntimeException('CreditSoft refused an incomplete or mismatched update package.');
+            }
+
+            if (! rename($temporaryPath, $localPath)) {
+                throw new RuntimeException('CreditSoft could not stage the verified update package.');
+            }
+        } catch (Throwable $exception) {
+            // Transport errors may include the presigned URL; keep them private.
+            throw new RuntimeException('CreditSoft could not download and verify the Amazon update package.');
+        } finally {
+            if (is_file($temporaryPath)) {
+                unlink($temporaryPath);
+            }
         }
 
         return $localPath;

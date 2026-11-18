@@ -42,16 +42,6 @@ class BrowserCompanionController extends Controller
             return $this->redirectToLicenseHub($request, $licenseState->featureUnavailableMessage('browser_companion'));
         }
 
-        $publicDownloadUrl = $bundle->publicDownloadUrl();
-
-        if ($this->isPublicZipUrl($publicDownloadUrl)) {
-            $download = $this->downloadPublicZip($publicDownloadUrl, $bundle->downloadName());
-
-            if ($download instanceof Response) {
-                return $download;
-            }
-        }
-
         return response()->download(
             $bundle->build(),
             $bundle->downloadName(),

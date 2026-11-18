@@ -47,41 +47,12 @@ class BrowserCompanionBundle
 
     public function publicDownloadUrl(): string
     {
-        $configuredUrl = trim((string) config('creditsoft.updates.browser_companion_download_url', ''));
-        $feedUrl = $this->feedDownloadUrl();
-
-        if ($feedUrl !== null) {
-            return $feedUrl;
-        }
-
-        if ($configuredUrl !== '') {
-            return $configuredUrl;
-        }
-
-        return sprintf('https://update.creditsoft.app/downloads/%s', $this->downloadName());
+        return route('install.browser-companion.download');
     }
 
     public function build(): string
     {
-        $sourcePath = $this->sourcePath();
-
-        if (! is_dir($sourcePath)) {
-            throw new RuntimeException('CreditSoft browser companion source folder was not found.');
-        }
-
-        $bundleDirectory = storage_path('app/private/browser-companion');
-
-        File::ensureDirectoryExists($bundleDirectory);
-
-        $archivePath = $bundleDirectory.DIRECTORY_SEPARATOR.$this->downloadName();
-
-        if (! is_file($archivePath) || filemtime($archivePath) < $this->latestSourceTimestamp()) {
-            $this->writeArchive($sourcePath, $archivePath);
-        }
-
-        $this->publishToUpdateLane($archivePath);
-
-        return $archivePath;
+        return app(CreditsoftSelfUpdateService::class)->browserArtifactPath();
     }
 
     /**
@@ -132,24 +103,7 @@ class BrowserCompanionBundle
 
     protected function publishToUpdateLane(string $archivePath): void
     {
-        $downloadsDirectory = base_path('update.creditsoft.app/downloads');
-
-        if (! is_dir(dirname($downloadsDirectory))) {
-            return;
-        }
-
-        File::ensureDirectoryExists($downloadsDirectory);
-
-        $publishedPath = $downloadsDirectory.DIRECTORY_SEPARATOR.$this->downloadName();
-        $versionedPublishedPath = $downloadsDirectory.DIRECTORY_SEPARATOR.$this->versionedDownloadName();
-
-        if (! is_file($publishedPath) || filemtime($publishedPath) < filemtime($archivePath)) {
-            File::copy($archivePath, $publishedPath);
-        }
-
-        if (! is_file($versionedPublishedPath) || filemtime($versionedPublishedPath) < filemtime($archivePath)) {
-            File::copy($archivePath, $versionedPublishedPath);
-        }
+        throw new RuntimeException('Licensed browser releases are published through the Amazon release channel.');
     }
 
     protected function feedDownloadUrl(): ?string

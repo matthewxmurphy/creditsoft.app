@@ -16,7 +16,7 @@ class LicenseCheckService
      */
     public function check(string $licenseKey, array $context = []): array
     {
-        $normalizedKey = Str::upper(trim($licenseKey));
+        $normalizedKey = AwsLicenseAuthority::normalizeKey($licenseKey);
         $mode = (string) config('creditsoft.installer.license_mode', 'auto');
         $graceDays = max((int) config('creditsoft.installer.license_grace_days', 7), 0);
         $remoteUrls = $this->remoteUrls();
@@ -63,7 +63,7 @@ class LicenseCheckService
     ): array {
         $valid = (bool) preg_match('/^[A-Z0-9]{4,8}(?:-[A-Z0-9]{4,8}){2,5}$/', $normalizedKey);
         $message = $valid
-            ? 'License format looks valid. Configure a remote endpoint later if you want live entitlement checks.'
+            ? 'License format looks valid. Live verification is pending.'
             : 'License format did not match the expected office-key pattern.';
 
         return [
@@ -104,14 +104,19 @@ class LicenseCheckService
         ];
 
         try {
-            foreach (['post', 'get'] as $method) {
-                $response = Http::timeout(5)
-                    ->acceptJson()
-                    ->{$method}($remoteUrl, $requestPayload);
+            $response = Http::timeout(5)
+                ->acceptJson()
+                ->withOptions(['allow_redirects' => false])
+                ->post($remoteUrl, $requestPayload);
+            $payload = $response->json();
 
-                if (is_array($response->json())) {
-                    return $response->json();
+            if ($response->successful() && is_array($payload) && is_bool($payload['valid'] ?? null)) {
+                if (($payload['valid'] ?? false) && ! AwsLicenseAuthority::officePlan($payload)) {
+                    return ['valid' => false, 'status' => 'invalid',
+                        'message' => 'This license does not authorize CreditSoft.'];
                 }
+
+                return $payload;
             }
         } catch (Throwable) {
             return null;
@@ -159,9 +164,9 @@ class LicenseCheckService
             'plan' => data_get($payload, 'plan')
                 ?: data_get($payload, 'edition')
                 ?: data_get($payload, 'tier'),
-            'plan_key' => data_get($payload, 'plan_key')
-                ?: data_get($payload, 'plan')
-                ?: data_get($payload, 'sku'),
+            'plan_key' => AwsLicenseAuthority::officePlan($payload)
+                ? AwsLicenseAuthority::officeEdition($payload)
+                : (data_get($payload, 'plan_key') ?: data_get($payload, 'plan') ?: data_get($payload, 'sku')),
             'features' => $this->featurePayload($payload),
             'expires_at' => $expiresAt?->toIso8601String(),
             'grace_days' => $resolvedGraceDays,
@@ -176,16 +181,8 @@ class LicenseCheckService
      */
     private function remoteUrls(): array
     {
-        return collect([
-            config('creditsoft.installer.license_check_api_url'),
-            config('creditsoft.installer.license_check_portal_url'),
-            config('creditsoft.installer.license_check_url'),
-        ])
-            ->filter(fn (mixed $url): bool => is_string($url) && trim($url) !== '')
-            ->map(fn (string $url): string => trim($url))
-            ->unique()
-            ->values()
-            ->all();
+        return [AwsLicenseAuthority::endpoint('validate',
+            (string) config('creditsoft.installer.license_check_api_url', ''))];
     }
 
     /**

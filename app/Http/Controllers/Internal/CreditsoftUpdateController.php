@@ -24,7 +24,9 @@ class CreditsoftUpdateController extends Controller
                 'type' => ! empty($status['update_available']) ? 'success' : 'info',
                 'message' => ! empty($status['update_available'])
                     ? sprintf('Update %s is ready for this office.', $status['latest_version'] ?? 'package')
-                    : 'This office is already on the newest available build.',
+                    : (($status['authorized'] ?? false) === true
+                        ? 'This office is already on the newest available build.'
+                        : ($status['summary'] ?? 'The license server could not authorize an update right now.')),
             ]);
         } catch (RuntimeException $exception) {
             $request->session()->flash('toast', [

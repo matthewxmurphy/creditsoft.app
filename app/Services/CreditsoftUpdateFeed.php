@@ -11,14 +11,6 @@ use Throwable;
 class CreditsoftUpdateFeed
 {
     /**
-     * @var array<int, string>
-     */
-    protected const CANONICAL_REMOTE_FEEDS = [
-        'https://update.creditsoft.app/api/update-feed.php',
-        'https://update.creditsoft.app/api/update-feed',
-    ];
-
-    /**
      * @return array<string, mixed>
      */
     public function current(): array
@@ -133,51 +125,47 @@ class CreditsoftUpdateFeed
     protected function fetchFeed(): array
     {
         $urls = $this->remoteUrls();
-        $localFeed = $this->localFeed();
+        $licenseKey = AwsLicenseAuthority::normalizeKey((string) (app(InstallerState::class)->read()['license_key'] ?? ''));
 
-        if ($urls === [] && $localFeed === null) {
+        if ($licenseKey === '') {
             return [
                 'source' => 'none',
-                'headline' => 'No update feed configured',
-                'summary' => 'Add the update feed URL so this office can see when a new build is ready.',
+                'headline' => 'Enter your CreditSoft license',
+                'summary' => 'Save your office license to request updates from the license server.',
                 'notes' => [],
             ];
         }
 
         $cacheKey = $this->cacheKey($urls);
-        $cacheMinutes = max(1, (int) config('creditsoft.updates.cache_minutes', 15));
+        // Keep authorized S3 URLs below the authority's five-minute lifetime.
+        $cacheMinutes = min(2, max(1, (int) config('creditsoft.updates.cache_minutes', 2)));
 
         /** @var array<string, mixed> $feed */
-        $feed = Cache::remember($cacheKey, now()->addMinutes($cacheMinutes), function () use ($urls, $localFeed): array {
-            $feeds = [];
-
+        $feed = Cache::remember($cacheKey, now()->addMinutes($cacheMinutes), function () use ($urls, $licenseKey): array {
             foreach ($urls as $url) {
                 try {
-                    $response = Http::timeout(3)
+                    $response = Http::timeout(10)
                         ->acceptJson()
-                        ->withOptions($this->ipv4CurlOptions())
-                        ->get($url);
+                        ->withOptions(array_replace($this->ipv4CurlOptions(), ['allow_redirects' => false]))
+                        ->post($url, ['license_key' => $licenseKey,
+                            'current_version' => (string) config('creditsoft.updates.current_version', '')]);
 
                     if ($response->successful() && is_array($response->json())) {
-                        $feeds[] = $this->normalizeFeed($response->json(), 'remote', $url);
+                        $authorized = AwsLicenseAuthority::updateFeed($response->json());
+
+                        if ($authorized !== null) {
+                            return $this->normalizeFeed($authorized, 'aws', $url);
+                        }
                     }
                 } catch (Throwable) {
                     continue;
                 }
             }
 
-            if ($localFeed !== null) {
-                $feeds[] = $localFeed;
-            }
-
-            if ($feeds !== []) {
-                return $this->newestFeed($feeds);
-            }
-
             return [
                 'source' => 'unavailable',
                 'headline' => 'Update feed unavailable',
-                'summary' => 'The office could not reach the remote update feed right now.',
+                'summary' => 'The license server could not authorize an Amazon-hosted office release right now. Your installed workspace remains available under its existing license policy.',
                 'notes' => [],
                 'feed_url' => $urls[0] ?? null,
             ];
@@ -196,10 +184,6 @@ class CreditsoftUpdateFeed
         $downloadUrl = trim((string) ($feed['download_url'] ?? ''));
         $inferredDownloadUrl = $downloadUrl;
 
-        if ($latestVersion !== '' && ($downloadUrl === '' || ! str_ends_with(strtolower(parse_url($downloadUrl, PHP_URL_PATH) ?: ''), '.zip'))) {
-            $inferredDownloadUrl = sprintf('https://update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion);
-        }
-
         $payload = array_replace_recursive([
             'product' => 'CreditSoft Intranet',
             'channel' => 'stable',
@@ -211,7 +195,7 @@ class CreditsoftUpdateFeed
             'summary' => null,
             'notes' => [],
             'download_url' => $inferredDownloadUrl !== '' ? $inferredDownloadUrl : null,
-            'package_path' => $this->resolvePackagePath($feed, $latestVersion, $inferredDownloadUrl),
+            'package_path' => null,
             'renewal_url' => null,
             'support_url' => 'https://creditsoft.app/',
             'update_required' => false,
@@ -221,10 +205,6 @@ class CreditsoftUpdateFeed
             'source' => $source,
             'feed_url' => $url,
         ]);
-
-        if (filled((string) ($payload['package_path'] ?? ''))) {
-            $payload['download_url'] = route('internal.updates.download', [], false);
-        }
 
         return $payload;
     }
@@ -250,22 +230,16 @@ class CreditsoftUpdateFeed
      */
     protected function remoteUrls(): array
     {
-        return collect([
-            trim((string) config('creditsoft.updates.feed_url', '')),
-            trim((string) config('creditsoft.updates.fallback_feed_url', '')),
-            ...self::CANONICAL_REMOTE_FEEDS,
-        ])
-            ->filter(fn (string $url): bool => $url !== '' && ! str_starts_with($url, 'file://'))
-            ->unique()
-            ->values()
-            ->all();
+        return [AwsLicenseAuthority::endpoint('updates',
+            (string) config('creditsoft.updates.feed_url', ''))];
     }
 
     protected function cacheKey(array $urls): string
     {
         $signature = implode('|', [
             ...$urls,
-            $this->localFeedPath(),
+            hash('sha256', AwsLicenseAuthority::normalizeKey((string) (app(InstallerState::class)->read()['license_key'] ?? ''))),
+            'aws-license-authority-v1',
         ]);
 
         return 'creditsoft:update-feed:'.sha1($signature);

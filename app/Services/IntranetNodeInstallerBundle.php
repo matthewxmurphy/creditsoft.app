@@ -59,7 +59,7 @@ class IntranetNodeInstallerBundle
 
         $directory = storage_path('app/private/intranet-node-installer');
         $archivePath = $directory.DIRECTORY_SEPARATOR.$this->downloadName();
-        $package = $this->packageState(refresh: true);
+        $package = $this->packageState(refresh: true, stage: true);
         $manifest = $this->manifest($state, $package);
 
         File::ensureDirectoryExists($directory);
@@ -94,94 +94,36 @@ class IntranetNodeInstallerBundle
 
     protected function version(): string
     {
-        $feedPath = base_path('update.creditsoft.app/data/update-feed.json');
-
-        if (File::exists($feedPath)) {
-            $decoded = json_decode((string) File::get($feedPath), true);
-            $latestVersion = is_array($decoded) ? trim((string) ($decoded['latest_version'] ?? '')) : '';
-
-            if ($latestVersion !== '') {
-                return $latestVersion;
-            }
-        }
-
         return trim((string) config('creditsoft.updates.current_version', '2026.4.27.1')) ?: '2026.4.27.1';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    protected function packageState(bool $refresh = false): array
+    /** The paid Office primary always comes from fresh Amazon authorization. */
+    protected function packageState(bool $refresh = false, bool $stage = false): array
     {
-        $feed = $this->localPackageFeed();
-
-        if ($feed === null) {
+        $path = null;
+        if ($stage) {
+            $staged = app(CreditsoftSelfUpdateService::class)->stageLatestPackage();
+            $feed = $staged['release'];
+            $path = $staged['path'];
+        } else {
             $feed = $refresh ? $this->updateFeed->refresh() : $this->updateFeed->current();
         }
-
-        $latestVersion = trim((string) ($feed['latest_version'] ?? $this->version()));
-        $packagePath = trim((string) ($feed['package_path'] ?? ''));
-        $downloadUrl = trim((string) ($feed['download_url'] ?? ''));
-
-        if ($latestVersion !== '' && ($downloadUrl === '' || str_starts_with($downloadUrl, '/'))) {
-            $downloadUrl = sprintf('https://update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion);
-        }
-
-        $bundled = $packagePath !== '' && is_file($packagePath);
-        $feedUrl = trim((string) ($feed['feed_url'] ?? config('creditsoft.updates.feed_url')));
-
-        if ($feedUrl === '' || str_starts_with($feedUrl, 'file://')) {
-            $feedUrl = (string) config('creditsoft.updates.feed_url', 'https://update.creditsoft.app/api/update-feed');
-        }
+        $version = trim((string) ($feed['published_latest_version'] ?? $feed['latest_version'] ?? $this->version()));
+        $authorized = ($feed['authorized'] ?? false) === true
+            && ($feed['artifact_type'] ?? null) === 'office-application'
+            && AwsLicenseAuthority::amazonHttpsUrl((string) ($feed['download_url'] ?? ''));
 
         return [
-            'name' => $bundled ? basename($packagePath) : sprintf('creditsoft-office-v%s.zip', $latestVersion ?: $this->version()),
-            'path' => $bundled ? $packagePath : null,
-            'bundled' => $bundled,
-            'source' => $bundled ? 'bundled-office-package' : 'remote-update-feed',
-            'version' => $latestVersion ?: $this->version(),
-            'build' => $feed['latest_build'] ?? ($latestVersion ?: $this->version()),
-            'download_url' => $downloadUrl,
-            'feed_url' => $feedUrl,
-        ];
-    }
-
-    /**
-     * Prefer a freshly built local update package when the installer is generated from source.
-     *
-     * @return array<string, mixed>|null
-     */
-    protected function localPackageFeed(): ?array
-    {
-        $feedPath = base_path('update.creditsoft.app/data/update-feed.json');
-
-        if (! File::exists($feedPath)) {
-            return null;
-        }
-
-        $decoded = json_decode((string) File::get($feedPath), true);
-
-        if (! is_array($decoded)) {
-            return null;
-        }
-
-        $latestVersion = trim((string) ($decoded['latest_version'] ?? ''));
-
-        if ($latestVersion === '') {
-            return null;
-        }
-
-        $packagePath = base_path(sprintf('update.creditsoft.app/downloads/creditsoft-office-v%s.zip', $latestVersion));
-
-        if (! is_file($packagePath)) {
-            return null;
-        }
-
-        return [
-            ...$decoded,
-            'source' => 'local',
-            'feed_url' => 'file://'.$feedPath,
-            'package_path' => $packagePath,
+            'name' => $authorized ? ($feed['file'] ?? null) : null,
+            'path' => $authorized ? $path : null,
+            'bundled' => $authorized && is_string($path) && is_file($path),
+            'source' => $authorized ? 'amazon-authorized-office-package' : 'amazon-release-unavailable',
+            'version' => $version ?: $this->version(),
+            'build' => $feed['published_latest_build'] ?? $feed['latest_build'] ?? $version,
+            // Embedded presigned grants would expire before a later install.
+            // The authorized bytes are bundled instead; no signed URL is shipped.
+            'download_url' => $stage ? null : ($authorized ? $feed['download_url'] : null),
+            'feed_url' => AwsLicenseAuthority::endpoint('updates'),
         ];
     }
 
@@ -435,10 +377,9 @@ class IntranetNodeInstallerBundle
             'CREDITSOFT_INSTALLER_ENABLED' => 'true',
             'CREDITSOFT_INSTALLER_LOGO_URL_PREFIX' => (string) config('creditsoft.installer.logo_url_prefix', '/installer/branding'),
             'CREDITSOFT_LICENSE_MODE' => (string) config('creditsoft.installer.license_mode', 'auto'),
-            'CREDITSOFT_LICENSE_API_URL' => (string) config('creditsoft.installer.license_check_api_url', 'https://api.creditsoft.app/license/validate'),
-            'CREDITSOFT_LICENSE_PORTAL_URL' => (string) config('creditsoft.installer.license_check_portal_url', 'https://api.creditsoft.app/license/validate.json'),
+            'CREDITSOFT_LICENSE_API_URL' => AwsLicenseAuthority::endpoint('validate', (string) config('creditsoft.installer.license_check_api_url', '')),
             'CREDITSOFT_LICENSE_GRACE_DAYS' => (string) config('creditsoft.installer.license_grace_days', 7),
-            'CREDITSOFT_UPDATE_FEED_URL' => (string) config('creditsoft.updates.feed_url', 'https://update.creditsoft.app/api/update-feed'),
+            'CREDITSOFT_UPDATE_FEED_URL' => AwsLicenseAuthority::endpoint('updates', (string) config('creditsoft.updates.feed_url', '')),
             'CREDITSOFT_AI_DEFAULT_PROVIDER' => (string) config('ai.default', 'openrouter_creditsoft'),
             'CREDITSOFT_CRM_ENABLED' => $this->boolEnv(config('creditsoft.integrations.crm.enabled', false)),
             'CREDITSOFT_CRM_BASE_URL' => (string) config('creditsoft.integrations.crm.base_url', ''),
