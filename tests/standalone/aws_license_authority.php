@@ -116,6 +116,12 @@ namespace {
     check(Authority::normalizeKey('ABCD:'.str_repeat('A', 59)) === 'ABCD:'.str_repeat('A', 59), 'Portal token changed identity.');
     check(! Authority::amazonHttpsUrl('https://user@s3.us-east-1.amazonaws.com/package.zip'), 'URL credentials accepted.');
     check(! Authority::amazonHttpsUrl('https://bucket.s3.amazonaws.com.evil.test/package.zip'), 'Non-Amazon suffix accepted.');
+    foreach (['enterprise', 'enterprise-basic', 'enterprise_basic', 'packaged', 'packaged-enterprise', 'packaged_enterprise',
+        'enterprise-pro', 'enterprise_pro', 'enterprise pro', 'pro', 'api', 'api-version', 'api_version', 'packaged-pro', 'packaged_pro'] as $edition) {
+        $expected = in_array($edition, ['enterprise', 'enterprise-basic', 'enterprise_basic', 'packaged', 'packaged-enterprise', 'packaged_enterprise'], true)
+            ? 'enterprise' : 'enterprise_pro';
+        check(Authority::officeEdition(['plan_key' => 'creditsoft', 'plan' => $edition]) === $expected, 'Existing Office edition alias changed.');
+    }
     $release = ['authorized' => true, 'plan_key' => 'creditsoft', 'product' => 'creditsoft',
         'latest_version' => '2026.11.18.1', 'latest' => [
             'version' => '2026.11.18.1', 'file' => 'creditsoft-office-v2026.11.18.1.zip',
@@ -151,11 +157,23 @@ namespace {
     $verdict = (new LicenseCheckService)->check('OFFICE-TEST-KEY1');
     check($verdict['valid'] && $verdict['can_access_workspace'], 'AWS office validation changed workspace access.');
     check($verdict['plan_key'] === 'enterprise', 'AWS product family replaced the existing office edition.');
+    check($verdict['features'] === [], 'Enterprise acquired invented explicit feature grants.');
     check(Http::$requests[0]['url'] === Authority::BASE_URL.'/validate', 'Validation reached the old authority.');
     check(! str_contains(Http::$requests[0]['url'], 'OFFICE-TEST-KEY1'), 'License key entered a URL.');
     Http::$responses = [new RuntimeException('offline')];
     $offline = (new LicenseCheckService)->check('OFFICE-TEST-KEY1');
     check($offline['remote_unreachable'] && $offline['can_access_workspace'], 'Outage disabled the installed workspace.');
+
+    foreach ([[], ['workspace' => true, 'partner_api' => true, 'browser_companion' => true, 'lawsuit_intake' => true]] as $features) {
+        Http::$responses = [['valid' => true, 'status' => 'active', 'plan_key' => 'creditsoft', 'plan' => 'cluster', 'features' => $features]];
+        $cluster = (new LicenseCheckService)->check('OFFICE-TEST-KEY1');
+        check($cluster['plan_key'] === 'cluster', 'Cluster edition changed.');
+        check($cluster['features'] === ['workspace' => false, 'partner_api' => false, 'browser_companion' => false,
+            'lawsuit_intake' => false, 'cluster_install' => true], 'Cluster inherited permissive Office defaults or conflicting overrides.');
+    }
+    Http::$responses = [['valid' => true, 'status' => 'active', 'plan_key' => 'creditsoft', 'plan' => 'packaged-pro', 'features' => []]];
+    $pro = (new LicenseCheckService)->check('OFFICE-TEST-KEY1');
+    check($pro['plan_key'] === 'enterprise_pro' && $pro['features'] === [], 'Packaged Pro lost its edition or gained invented explicit grants.');
 
     Http::$responses = [$release];
     $feed = (new FeedProbe)->fetch();

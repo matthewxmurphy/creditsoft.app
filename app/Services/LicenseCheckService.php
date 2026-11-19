@@ -190,6 +190,15 @@ class LicenseCheckService
      */
     private function featurePayload(array $payload): mixed
     {
+        // Match the established Cluster compatibility contract. Empty generic
+        // features must not fall through to the Office app's permissive defaults.
+        if (AwsLicenseAuthority::officePlan($payload)
+            && AwsLicenseAuthority::officeEdition($payload) === 'cluster') {
+            return ['workspace' => false, 'partner_api' => false,
+                'browser_companion' => false, 'lawsuit_intake' => false,
+                'cluster_install' => true];
+        }
+
         foreach ([
             'features',
             'feature_flags',

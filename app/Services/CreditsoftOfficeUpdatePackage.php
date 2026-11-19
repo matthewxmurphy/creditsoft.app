@@ -23,6 +23,8 @@ class CreditsoftOfficeUpdatePackage
 
     public function build(?string $version = null, ?string $build = null): array
     {
+        throw new RuntimeException('Use the Amazon licensed release channel.');
+
         $version = trim($version ?: $this->releaseVersion());
         $build = trim($build ?: $version);
 

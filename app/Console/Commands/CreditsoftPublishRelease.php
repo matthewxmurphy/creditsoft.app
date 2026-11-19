@@ -22,14 +22,20 @@ class CreditsoftPublishRelease extends Command
         {--summary= : One-line update-feed summary}
         {--headline= : Update-feed headline}
         {--note=* : Release note to prepend to the update feed}
-        {--package : Build the office update zip after writing the feed}
+        {--package : Retired; use the Amazon licensed release channel}
         {--required : Mark this feed as a required build change even when the version number is lower than a previously published bad stamp}
         {--dry-run : Show the next version without writing files}';
 
-    protected $description = 'Publish the next date-based CreditSoft release version and optionally build the office update package.';
+    protected $description = 'Preview the next date-based CreditSoft release; use the Amazon licensed release channel to publish.';
 
     public function handle(CreditsoftOfficeUpdatePackage $packageBuilder): int
     {
+        if (! (bool) $this->option('dry-run')) {
+            $this->error('Use the Amazon licensed release channel.');
+
+            return self::FAILURE;
+        }
+
         $feed = $this->readFeed();
         $previousVersion = trim((string) ($feed['latest_version'] ?? ''));
         try {

@@ -66,7 +66,7 @@ final class AwsLicenseAuthority
             return 'cluster';
         }
 
-        return in_array($plan, ['enterprise_pro', 'pro', 'api', 'api_version'], true)
+        return in_array($plan, ['enterprise_pro', 'pro', 'api', 'api_version', 'packaged_pro'], true)
             ? 'enterprise_pro' : 'enterprise';
     }
 
