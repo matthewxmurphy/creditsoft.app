@@ -1,20 +1,64 @@
 {
-  "schema": 1,
-  "version": "2026.11.18.001",
-  "product": "creditsoft",
   "artifact_type": "source-checkpoint",
-  "license": "MIT",
-  "release_owner": "Matthew X Murphy",
   "author_url": "https://MatthewxMurphy.com",
-  "brand_url": "https://builtnotbegged.com",
   "authority": "https://w473zm07ej.execute-api.us-east-1.amazonaws.com/license",
-  "customer_rollout_ready": false,
-  "primary_office_application_built": false,
-  "source_patch_is_primary_office_update": false,
-  "standalone_aws_contract_checks": 50,
-  "native_laravel_browser_acceptance": "pending",
-  "live_client_deployment": "not performed",
+  "brand_url": "https://builtnotbegged.com",
   "browser_required_feature": "browser_companion",
+  "customer_rollout_ready": false,
   "employee_client_independent_paid_license": false,
-  "public_wordpress_gantry_site_changed": false
+  "host_publisher_discovery": "no actually used Laravel publisher established; two candidate files absent in bounded root stat audit",
+  "independent_four_file_review": "root-passed",
+  "legacy_paid_operator_checks": 63,
+  "legacy_paid_operator_publication": "closed; readonly-preview-preserves-modern-validation",
+  "license": "MIT",
+  "live_client_deployment": "not performed",
+  "modern_checkpoint_is_published_primary": false,
+  "modern_reconciliation_base_commit": "0cdaa94f39a2eb3a6640c089378c5eb96521ce19",
+  "modern_reconciliation_commit": "8c99ab064c2889f829dde1add1c841ecb8b703b1",
+  "native_laravel_browser_acceptance": "pending-for-modern-checkpoint",
+  "primary_office_application_built": false,
+  "product": "creditsoft",
+  "public_wordpress_gantry_site_changed": false,
+  "reconciled_code_images": {
+    "app/Console/Commands/CreditsoftPublishRelease.php": {
+      "base_sha256": "5f376476062ae75eb972279cf6121175eedaa3d297bda5d25072ec13a6b0a48f",
+      "published_primary_sha256": "f73ef924fd52cea9bd6ada0fccb66c07824b8a491cdcc13c88a55b2555bd059c",
+      "sha256": "de61a288d72183444b018d2740cc96d6704855edf063490aabc3fcdd397f9396"
+    },
+    "app/Services/AwsLicenseAuthority.php": {
+      "base_sha256": "8e494403cfd25956e341b8004a5f0e250c3528b6b009a6d74aa53563291b9e9d",
+      "published_primary_sha256": "18ebf44f266504acd1c3575764b60320192dab2b2123fc505990f20d4659dd57",
+      "sha256": "18ebf44f266504acd1c3575764b60320192dab2b2123fc505990f20d4659dd57"
+    },
+    "app/Services/CreditsoftOfficeUpdatePackage.php": {
+      "base_sha256": "d3e72a7724e67f05c2ff56bce4f62226d9f0a6bfbfedd21c43402b53e5b2ab2d",
+      "published_primary_sha256": "60fb81cf89a1d497f62a39ddcd661a5276b06ee4a860405a025e3c0701684ffd",
+      "sha256": "18a9f3fbd6a8f1943c0d0b7bf53b4780206b7a8f95f088cc336b9e056851d7e0"
+    },
+    "app/Services/LicenseCheckService.php": {
+      "base_sha256": "b8037cdfa3f92c11b6205d33b2bce7867dc75ac11bc494d6862ccb3e17c414dd",
+      "published_primary_sha256": "1265fc2674ab01a70a356bf1a9793f8e1024dbbff4ace2e000633c1d16d64694",
+      "sha256": "1265fc2674ab01a70a356bf1a9793f8e1024dbbff4ace2e000633c1d16d64694"
+    }
+  },
+  "release_owner": "Matthew X Murphy",
+  "root_repeated_focused_checks": {
+    "aws_contract": 71,
+    "git_diff_check": "pass",
+    "guarded_operator": 63
+  },
+  "schema": 1,
+  "separate_published_genuine_primary": {
+    "modern_source_substituted": false,
+    "native_checks": 84,
+    "owner_delivery_receipt_sha256": "e6a84fb212625ade277633b54d249f0112339432d6fb0994ea6a64705195fd20",
+    "sha256": "622caee227b7501b6db053315fe8ff14cf4df225c02d512c9af6c30a77f84bfb",
+    "source_images": 15986,
+    "version": "2026.11.18.001"
+  },
+  "source_branch": "codex/aws-license-authority-20261118",
+  "source_branch_pushed_by_root": true,
+  "source_patch_is_primary_office_update": false,
+  "standalone_aws_contract_checks": 71,
+  "version": "2026.11.18.001"
 }

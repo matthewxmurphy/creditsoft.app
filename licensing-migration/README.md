@@ -6,12 +6,26 @@ Source checkpoint: **2026.11.18.001**. Author/developer and release owner:
 metadata declares MIT; this scoped source checkpoint preserves that license.
 It does not change the separate WordPress/Gantry website or its GPL components.
 
+The four-file modern reconciliation and its three test files are committed as
+`8c99ab064c2889f829dde1add1c841ecb8b703b1`, pushed by the root operator to
+`codex/aws-license-authority-20261118`. The prior `0cdaa94` checkpoint remains in
+Git history. These source changes have not been deployed as an Office app.
+
 ## Resulting behavior
 
 Office license checks and update requests use only the owner's pinned Amazon
 authority. Historical/custom endpoint values remain stored but cannot redirect
 credentials, even to another AWS tenant. Office edition, feature, grace and
 installed-workspace policies remain the existing policies.
+
+The modern checkpoint now includes the two reviewed policy fixes from the
+separately published genuine Office primary: `packaged-pro` / `packaged_pro`
+retain the Pro edition, and Cluster receives its established explicit closed
+feature map instead of permissive empty-feature defaults. The two paid legacy
+operator entrypoints are also closed: non-dry-run `creditsoft:release` returns
+failure before feed/config/service work, and the disk archive builder throws
+before any filesystem, Composer or ZIP work. Read-only release previews retain
+the modern Chicago calendar and version validation.
 
 New code requires fresh Amazon authorization. Updates use private Amazon HTTPS
 grants, scoped cache keys, integer size, MD5 and SHA256 verification, temporary
@@ -41,7 +55,7 @@ browser companion artifacts and are not packaged for this channel.
 
 ## What is verified and what remains
 
-`php tests/standalone/aws_license_authority.php` passes 50 isolated checks using
+`php tests/standalone/aws_license_authority.php` passes 71 isolated checks using
 fake HTTP and synthetic local ZIPs. They cover pinned endpoints, edition and
 installed-access preservation, strict product/metadata/type binding, fresh
 authorization, no local/public paid fallback, Node primary bundling without
@@ -49,17 +63,36 @@ embedded grants, browser feature separation, archive paths and poisoned caches.
 All changed PHP files are syntax checked. No real key, service, customer, node,
 browser installation, OS service, mail or provider is contacted by that fixture.
 
+`python3 tests/standalone/run_legacy_paid_operator.py --php-assertions on`
+passes 63 checks against exact copied modern source files. The disposable PHP
+fixture disables network, mail and process functions, boots no application and
+uses no real filesystem facade. It verifies both write entrypoints stop before
+side effects, two dry-run cases remain read-only, and three existing calendar /
+version denials remain. Repeat with Python `-O` and `--php-assertions off` to
+verify the guards do not depend on assertions. The temporary fixture is removed.
+
 This branch and its source-patch ZIP are private source backups. The existing
 Office backend migration to AWS was performed by the separate root operator;
-this lane performed no live client deployment. A full primary Office archive,
-native Laravel/update application proof, actual auxiliary package/channel
-acceptance and installed desktop/browser checks remain required before customer
+this lane performed no live client deployment. The root operator separately
+published the genuine recovered full Office `2026.11.18.001` primary
+(`622caee227b7501b6db053315fe8ff14cf4df225c02d512c9af6c30a77f84bfb`),
+with native acceptance and current-owner delivery proof. That older application
+payload is distinct from this modern source tree. Its full source never
+overwrites the modern repository. Native Laravel/update and installed-client
+acceptance of this modern checkpoint remain required before its customer
 rollout. Missing dependency trees were not downloaded for this checkpoint.
 
 The accompanying artifact receipt distinguishes source patch, browser extension
 and employee-client source. None is a substitute primary Office application.
 Actual historical files on old update hosts require their own backup/retirement
 verification; this offline source lane does not claim those files are removed.
+The earlier source-patch archive at commit `0cdaa94` remains a historical source
+backup and was not rebuilt by this reconciliation.
+
+No actually used Laravel publisher or deployment target is established by this
+source tree. Root's bounded stat audit found the two candidate application files
+absent below the selected admin document root. That is not a host-wide absence
+claim, and no active application is invented or deployed from that finding.
 
 ## Run and release
 
